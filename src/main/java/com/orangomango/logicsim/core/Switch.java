@@ -9,6 +9,7 @@ public class Switch extends Gate{
 
 	public Switch(GraphicsContext gc, Rectangle2D rect){
 		super(gc, rect, Color.RED);
+		this.name = "SWITCH";
 		this.onClick = () -> {
 			this.on = !this.on;
 			this.color = this.on ? Color.GREEN : Color.RED;

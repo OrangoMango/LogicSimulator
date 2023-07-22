@@ -4,6 +4,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.paint.Color;
 
+import org.json.JSONObject;
+
 public class Wire{
 	private GraphicsContext gc;
 	private Gate.Pin pin1, pin2;
@@ -14,6 +16,13 @@ public class Wire{
 		this.pin2 = p2;
 		this.pin1.attach(this.pin2);
 		this.pin2.attach(this.pin1);
+	}
+
+	public JSONObject getJSON(){
+		JSONObject json = new JSONObject();
+		json.put("pin1", this.pin1.getId());
+		json.put("pin2", this.pin2.getId());
+		return json;
 	}
 
 	public void render(){

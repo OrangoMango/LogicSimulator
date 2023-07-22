@@ -19,12 +19,12 @@ public class SideArea{
 		this.area = area;
 	}
 
-	public void addButton(Runnable r){
+	public void addButton(String text, Runnable r){
 		final double distance = 10;
 		final int maxRow = (int)Math.floor(area.getWidth()/(75+distance));
 		Point2D pos = new Point2D(distance+(this.buttons.size()%maxRow)*(75+distance), distance+(this.buttons.size()/maxRow)*(75+distance));
 		pos = pos.add(area.getMinX(), area.getMinY());
-		UiButton ub = new UiButton(this.gc, new Rectangle2D(pos.getX(), pos.getY(), 75, 75), r);
+		UiButton ub = new UiButton(this.gc, text, new Rectangle2D(pos.getX(), pos.getY(), 75, 75), r);
 		this.buttons.add(ub);
 	}
 

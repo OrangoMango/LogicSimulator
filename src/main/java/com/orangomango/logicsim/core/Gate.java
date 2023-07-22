@@ -5,6 +5,8 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.paint.Color;
 
 import java.util.*;
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 public class Gate{
 	protected GraphicsContext gc;
@@ -12,16 +14,46 @@ public class Gate{
 	protected Color color;
 	protected Runnable onClick;
 	protected List<Pin> pins = new ArrayList<>();
+	protected String name = "GATE";
 
 	public static class Pin{
 		private Rectangle2D rect;
 		private boolean on;
 		private List<Pin> attached = new ArrayList<>();
 		private boolean doInput;
+		private int id;
+
+		private static int PIN_ID = 0;
 
 		public Pin(Rectangle2D r, boolean doIn){
 			this.rect = r;
 			this.doInput = doIn;
+			this.id = PIN_ID++;
+		}
+
+		public Pin(JSONObject json){
+			this.rect = new Rectangle2D(json.getJSONObject("rect").getDouble("x"), json.getJSONObject("rect").getDouble("y"), json.getJSONObject("rect").getDouble("w"), json.getJSONObject("rect").getDouble("h"));
+			this.doInput = json.getBoolean("doInput");
+			this.id = json.getInt("id");
+			PIN_ID = Math.max(PIN_ID, this.id+1);
+		}
+
+		public JSONObject getJSON(){
+			JSONObject json = new JSONObject();
+			json.put("id", this.id);
+			JSONObject r = new JSONObject();
+			r.put("x", this.rect.getMinX());
+			r.put("y", this.rect.getMinY());
+			r.put("w", this.rect.getWidth());
+			r.put("h", this.rect.getHeight());
+			json.put("rect", r);
+			json.put("doInput", this.doInput);
+			JSONArray array = new JSONArray();
+			for (Pin p : this.attached){
+				array.put(p.getId());
+			}
+			json.put("attached", array);
+			return json;
 		}
 
 		public double getX(){
@@ -41,7 +73,9 @@ public class Gate{
 		}
 
 		public void attach(Pin o){
-			this.attached.add(o);
+			if (!this.attached.contains(o)){
+				this.attached.add(o);
+			}
 		}
 
 		private boolean hasOnPin(){
@@ -74,6 +108,10 @@ public class Gate{
 			return this.on;
 		}
 
+		public int getId(){
+			return this.id;
+		}
+
 		public void render(GraphicsContext gc){
 			gc.setFill(this.on ? Color.GREEN : Color.BLACK);
 			gc.fillOval(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
@@ -84,6 +122,14 @@ public class Gate{
 		this.gc = gc;
 		this.rect = rect;
 		this.color = color;
+	}
+
+	public void setPins(List<Pin> pins){
+		this.pins = pins;
+	}
+
+	public List<Pin> getPins(){
+		return this.pins;
 	}
 
 	public void onClick(double x, double y){
@@ -111,5 +157,27 @@ public class Gate{
 		gc.setFill(this.color);
 		gc.fillRect(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
 		renderPins(this.gc);
+	}
+
+	public JSONObject getJSON(){
+		JSONObject json = new JSONObject();
+		json.put("name", this.name);
+		JSONObject r = new JSONObject();
+		r.put("x", this.rect.getMinX());
+		r.put("y", this.rect.getMinY());
+		r.put("w", this.rect.getWidth());
+		r.put("h", this.rect.getHeight());
+		json.put("rect", r);
+		JSONObject c = new JSONObject();
+		c.put("red", this.color.getRed());
+		c.put("green", this.color.getGreen());
+		c.put("blue", this.color.getBlue());
+		json.put("color", c);
+		JSONArray array = new JSONArray();
+		for (Pin p : this.pins){
+			array.put(p.getJSON());
+		}
+		json.put("pins", array);
+		return json;
 	}
 }

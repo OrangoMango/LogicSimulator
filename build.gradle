@@ -38,6 +38,7 @@ javafx {
 }
 
 dependencies {
+    implementation "org.json:json:20220924"
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")

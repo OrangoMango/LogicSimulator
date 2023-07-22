@@ -7,6 +7,7 @@ import javafx.scene.paint.Color;
 public class AndGate extends Gate{
 	public AndGate(GraphicsContext gc, Rectangle2D rect){
 		super(gc, rect, Color.BLUE);
+		this.name = "AND";
 		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX(), rect.getMinY(), 15, 15), true)); // Input
 		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX(), rect.getMinY()+20, 15, 15), true)); // Input
 		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMaxX()-15, rect.getMinY(), 15, 15), false)); // Output

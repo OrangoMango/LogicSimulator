@@ -1,0 +1,404 @@
+{
+    "wires": [
+        {
+            "pin1": 0,
+            "pin2": 2
+        },
+        {
+            "pin1": 1,
+            "pin2": 3
+        },
+        {
+            "pin1": 4,
+            "pin2": 5
+        },
+        {
+            "pin1": 9,
+            "pin2": 11
+        },
+        {
+            "pin1": 12,
+            "pin2": 15
+        },
+        {
+            "pin1": 17,
+            "pin2": 18
+        },
+        {
+            "pin1": 19,
+            "pin2": 20
+        },
+        {
+            "pin1": 10,
+            "pin2": 13
+        },
+        {
+            "pin1": 14,
+            "pin2": 16
+        }
+    ],
+    "gates": [
+        {
+            "rect": {
+                "w": 50,
+                "x": 130,
+                "h": 50,
+                "y": 212
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 130,
+                    "h": 15,
+                    "y": 212
+                },
+                "attached": [2],
+                "id": 0,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 138,
+                "h": 50,
+                "y": 323
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 138,
+                    "h": 15,
+                    "y": 323
+                },
+                "attached": [3],
+                "id": 1,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 261,
+                "h": 50,
+                "y": 271
+            },
+            "color": {
+                "red": 0,
+                "green": 0,
+                "blue": 1
+            },
+            "name": "AND",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 261,
+                        "h": 15,
+                        "y": 271
+                    },
+                    "attached": [0],
+                    "id": 2,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 261,
+                        "h": 15,
+                        "y": 291
+                    },
+                    "attached": [1],
+                    "id": 3,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 296,
+                        "h": 15,
+                        "y": 271
+                    },
+                    "attached": [5],
+                    "id": 4,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 380,
+                "h": 50,
+                "y": 277
+            },
+            "color": {
+                "red": 1,
+                "green": 1,
+                "blue": 0
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 415,
+                    "h": 15,
+                    "y": 277
+                },
+                "attached": [4],
+                "id": 5,
+                "doInput": true
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 79,
+                "h": 50,
+                "y": 448
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 79,
+                    "h": 15,
+                    "y": 448
+                },
+                "attached": [11],
+                "id": 9,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 78,
+                "h": 50,
+                "y": 576
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 78,
+                    "h": 15,
+                    "y": 576
+                },
+                "attached": [13],
+                "id": 10,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 223,
+                "h": 50,
+                "y": 449
+            },
+            "color": {
+                "red": 1,
+                "green": 0.6470588445663452,
+                "blue": 0
+            },
+            "name": "NOT",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 223,
+                        "h": 15,
+                        "y": 449
+                    },
+                    "attached": [9],
+                    "id": 11,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 258,
+                        "h": 15,
+                        "y": 449
+                    },
+                    "attached": [15],
+                    "id": 12,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 215,
+                "h": 50,
+                "y": 570
+            },
+            "color": {
+                "red": 1,
+                "green": 0.6470588445663452,
+                "blue": 0
+            },
+            "name": "NOT",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 215,
+                        "h": 15,
+                        "y": 570
+                    },
+                    "attached": [10],
+                    "id": 13,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 250,
+                        "h": 15,
+                        "y": 570
+                    },
+                    "attached": [16],
+                    "id": 14,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 349,
+                "h": 50,
+                "y": 509
+            },
+            "color": {
+                "red": 0,
+                "green": 0,
+                "blue": 1
+            },
+            "name": "AND",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 349,
+                        "h": 15,
+                        "y": 509
+                    },
+                    "attached": [12],
+                    "id": 15,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 349,
+                        "h": 15,
+                        "y": 529
+                    },
+                    "attached": [14],
+                    "id": 16,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 384,
+                        "h": 15,
+                        "y": 509
+                    },
+                    "attached": [18],
+                    "id": 17,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 467,
+                "h": 50,
+                "y": 513
+            },
+            "color": {
+                "red": 1,
+                "green": 0.6470588445663452,
+                "blue": 0
+            },
+            "name": "NOT",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 467,
+                        "h": 15,
+                        "y": 513
+                    },
+                    "attached": [17],
+                    "id": 18,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 502,
+                        "h": 15,
+                        "y": 513
+                    },
+                    "attached": [20],
+                    "id": 19,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 590,
+                "h": 50,
+                "y": 521
+            },
+            "color": {
+                "red": 1,
+                "green": 1,
+                "blue": 0
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 625,
+                    "h": 15,
+                    "y": 521
+                },
+                "attached": [19],
+                "id": 20,
+                "doInput": true
+            }]
+        }
+    ]
+}
