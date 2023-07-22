@@ -14,8 +14,7 @@ public class AndGate extends Gate{
 	}
 
 	@Override
-	public void render(){
-		super.render();
+	public void update(){
 		this.pins.get(2).setSignal(this.pins.get(0).isOn() && this.pins.get(1).isOn());
 	}
 }

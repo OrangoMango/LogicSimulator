@@ -54,7 +54,12 @@ public class MainApplication extends Application{
 			FileChooser fc = new FileChooser();
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
 			File file = fc.showOpenDialog(stage);
-			load(file, gc);
+			List<Gate> gates = new ArrayList<>();
+			List<Wire> wires = new ArrayList<>();
+			Gate.Pin.PIN_ID = 0;
+			load(file, gc, gates, wires);
+			this.gates = gates;
+			this.wires = wires;
 		});
 		this.buttons.add(saveButton);
 		this.buttons.add(loadButton);
@@ -65,6 +70,7 @@ public class MainApplication extends Application{
 		this.sideArea.addButton("Light", () -> this.selectedId = 2);
 		this.sideArea.addButton("NOT", () -> this.selectedId = 3);
 		this.sideArea.addButton("AND", () -> this.selectedId = 4);
+		this.sideArea.addButton("CHIP", () -> this.selectedId = 5);
 
 		canvas.setOnMousePressed(e -> {
 			if (e.getButton() == MouseButton.PRIMARY){
@@ -109,6 +115,12 @@ public class MainApplication extends Application{
 							case 4:
 								g = new AndGate(gc, new Rectangle2D(e.getX(), e.getY(), 50, 50));
 								break;
+							case 5:
+								FileChooser fc = new FileChooser();
+								fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
+								File file = fc.showOpenDialog(stage);
+								g = new Chip(gc, new Rectangle2D(e.getX(), e.getY(), 50, 0), file);
+								break;
 						}
 						if (g != null){
 							this.gates.add(g);
@@ -138,6 +150,7 @@ public class MainApplication extends Application{
 		loop.setCycleCount(Animation.INDEFINITE);
 		loop.play();
 		
+		stage.setResizable(false);
 		stage.setScene(new Scene(pane, WIDTH, HEIGHT));
 		stage.show();
 	}
@@ -166,9 +179,7 @@ public class MainApplication extends Application{
 		}
 	}
 
-	private void load(File file, GraphicsContext gc){
-		List<Gate> tempGates = new ArrayList<>();
-		List<Wire> tempWires = new ArrayList<>();
+	public static void load(File file, GraphicsContext gc, List<Gate> tempGates, List<Wire> tempWires){
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 			StringBuilder builder = new StringBuilder();
@@ -189,6 +200,7 @@ public class MainApplication extends Application{
 					pins.add(p);
 				}
 				Gate gt = null;
+				int lastPinId = Gate.Pin.PIN_ID; // Save pin id
 				if (name.equals("AND")){
 					gt = new AndGate(gc, rect);
 				} else if (name.equals("GATE")){
@@ -199,12 +211,15 @@ public class MainApplication extends Application{
 					gt = new NotGate(gc, rect);
 				} else if (name.equals("SWITCH")){
 					gt = new Switch(gc, rect);
+				} else if (name.equals("CHIP")){
+					gt = new Chip(gc, rect, new File(gate.getString("fileName")));
 				}
+				Gate.Pin.PIN_ID = lastPinId; // Restore the last pin id
 				gt.setPins(pins);
 				tempGates.add(gt);
 			}
 
-			// Load gates' pins
+			// Attach gates' pins
 			for (Object o : json.getJSONArray("gates")){
 				JSONObject gate = (JSONObject)o;
 				for (Object o2 : gate.getJSONArray("pins")){
@@ -226,15 +241,12 @@ public class MainApplication extends Application{
 				Gate.Pin p2 = getPinById(tempGates, wire.getInt("pin2"));
 				tempWires.add(new Wire(gc, p1, p2));
 			}
-
-			this.gates = tempGates;
-			this.wires = tempWires;
 		} catch (IOException ex){
 			ex.printStackTrace();
 		}
 	}
 
-	private Gate.Pin getPinById(List<Gate> gates, int id){
+	private static Gate.Pin getPinById(List<Gate> gates, int id){
 		for (Gate g : gates){
 			for (Gate.Pin p : g.getPins()){
 				if (p.getId() == id){
@@ -251,6 +263,7 @@ public class MainApplication extends Application{
 		gc.fillRect(0, 0, WIDTH, HEIGHT);
 
 		for (Gate g : this.gates){
+			g.update();
 			g.render();
 		}
 		for (Wire w : this.wires){

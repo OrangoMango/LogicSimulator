@@ -10,11 +10,13 @@ public class Switch extends Gate{
 	public Switch(GraphicsContext gc, Rectangle2D rect){
 		super(gc, rect, Color.RED);
 		this.name = "SWITCH";
-		this.onClick = () -> {
-			this.on = !this.on;
-			this.color = this.on ? Color.GREEN : Color.RED;
-			this.pins.get(0).setSignal(!this.pins.get(0).isOn());
-		};
+		this.onClick = () -> setOn(!this.on);
 		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX(), rect.getMinY(), 15, 15), false));
+	}
+
+	public void setOn(boolean v){
+		this.on = v;
+		this.color = this.on ? Color.GREEN : Color.RED;
+		this.pins.get(0).setSignal(this.on);
 	}
 }

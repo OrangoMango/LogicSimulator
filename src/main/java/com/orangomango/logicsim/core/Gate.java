@@ -23,7 +23,8 @@ public class Gate{
 		private boolean doInput;
 		private int id;
 
-		private static int PIN_ID = 0;
+		public static int PIN_ID = 0;
+		public static boolean UPDATE_PIN_ID = true;
 
 		public Pin(Rectangle2D r, boolean doIn){
 			this.rect = r;
@@ -35,7 +36,9 @@ public class Gate{
 			this.rect = new Rectangle2D(json.getJSONObject("rect").getDouble("x"), json.getJSONObject("rect").getDouble("y"), json.getJSONObject("rect").getDouble("w"), json.getJSONObject("rect").getDouble("h"));
 			this.doInput = json.getBoolean("doInput");
 			this.id = json.getInt("id");
-			PIN_ID = Math.max(PIN_ID, this.id+1);
+			if (UPDATE_PIN_ID){
+				PIN_ID = Math.max(PIN_ID, this.id+1);
+			}
 		}
 
 		public JSONObject getJSON(){
@@ -147,16 +150,16 @@ public class Gate{
 		return null;
 	}
 
-	protected void renderPins(GraphicsContext gc){
-		for (Pin pin : pins){
-			pin.render(gc);
-		}
+	public void update(){
+		// Do nothing rn
 	}
 
 	public void render(){
 		gc.setFill(this.color);
 		gc.fillRect(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
-		renderPins(this.gc);
+		for (Pin pin : pins){
+			pin.render(gc);
+		}
 	}
 
 	public JSONObject getJSON(){

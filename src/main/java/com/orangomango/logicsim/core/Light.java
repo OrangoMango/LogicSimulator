@@ -6,15 +6,17 @@ import javafx.scene.paint.Color;
 
 public class Light extends Gate{
 	public Light(GraphicsContext gc, Rectangle2D rect){
-		super(gc, rect, Color.YELLOW);
+		super(gc, rect, Color.GRAY);
 		this.name = "LIGHT";
 		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMaxX()-15, rect.getMinY(), 15, 15), true));
 	}
 
+	public boolean isOn(){
+		return this.pins.get(0).isOn();
+	}
+
 	@Override
-	public void render(){
-		gc.setFill(this.pins.get(0).isOn() ? this.color : Color.GRAY);
-		gc.fillRect(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
-		renderPins(this.gc);
+	public void update(){
+		this.color = isOn() ? Color.YELLOW : Color.GRAY;
 	}
 }

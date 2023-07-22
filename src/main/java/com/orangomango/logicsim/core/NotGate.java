@@ -13,8 +13,7 @@ public class NotGate extends Gate{
 	}
 
 	@Override
-	public void render(){
-		super.render();
+	public void update(){
 		this.pins.get(1).setSignal(!this.pins.get(0).isOn());
 	}
 }
