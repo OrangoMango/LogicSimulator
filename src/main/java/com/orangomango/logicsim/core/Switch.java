@@ -12,8 +12,8 @@ public class Switch extends Gate{
 		this.onClick = () -> {
 			this.on = !this.on;
 			this.color = this.on ? Color.GREEN : Color.RED;
-			this.pins.get(0).toggleOn();
+			this.pins.get(0).setSignal(!this.pins.get(0).isOn());
 		};
-		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX(), rect.getMinY(), 15, 15)));
+		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX(), rect.getMinY(), 15, 15), false));
 	}
 }

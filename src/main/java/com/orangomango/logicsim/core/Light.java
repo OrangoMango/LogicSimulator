@@ -7,7 +7,7 @@ import javafx.scene.paint.Color;
 public class Light extends Gate{
 	public Light(GraphicsContext gc, Rectangle2D rect){
 		super(gc, rect, Color.YELLOW);
-		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMaxX()-15, rect.getMinY(), 15, 15)));
+		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMaxX()-15, rect.getMinY(), 15, 15), true));
 	}
 
 	@Override

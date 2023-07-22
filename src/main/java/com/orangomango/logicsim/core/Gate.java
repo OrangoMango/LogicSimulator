@@ -17,9 +17,11 @@ public class Gate{
 		private Rectangle2D rect;
 		private boolean on;
 		private List<Pin> attached = new ArrayList<>();
+		private boolean doInput;
 
-		public Pin(Rectangle2D r){
+		public Pin(Rectangle2D r, boolean doIn){
 			this.rect = r;
+			this.doInput = doIn;
 		}
 
 		public double getX(){
@@ -34,29 +36,35 @@ public class Gate{
 			return this.rect.contains(x, y);
 		}
 
+		public boolean isInput(){
+			return this.doInput;
+		}
+
 		public void attach(Pin o){
 			this.attached.add(o);
 		}
 
 		private boolean hasOnPin(){
 			for (Pin p : this.attached){
-				if (p.isOn()){
+				if (p.isOn() && !p.isInput()){
 					return true;
 				}
 			}
 			return false;
 		}
 
-		public void toggleOn(){
-			this.on = !this.on;
-			if (this.on){
-				for (Pin p : this.attached){
-					p.on = true;
-				}
-			} else {
-				for (Pin p : this.attached){
-					if (!p.hasOnPin()){
-						p.on = false;	
+		public void setSignal(boolean on){
+			this.on = on;
+			if (!this.isInput()){
+				if (this.on){
+					for (Pin p : this.attached){
+						p.on = true;
+					}
+				} else {
+					for (Pin p : this.attached){
+						if (!p.hasOnPin()){
+							p.on = false;	
+						}
 					}
 				}
 			}

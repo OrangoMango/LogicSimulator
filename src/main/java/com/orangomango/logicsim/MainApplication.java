@@ -41,6 +41,8 @@ public class MainApplication extends Application{
 		this.sideArea.addButton(() -> this.selectedId = 0);
 		this.sideArea.addButton(() -> this.selectedId = 1);
 		this.sideArea.addButton(() -> this.selectedId = 2);
+		this.sideArea.addButton(() -> this.selectedId = 3);
+		this.sideArea.addButton(() -> this.selectedId = 4);
 
 		canvas.setOnMousePressed(e -> {
 			if (e.getButton() == MouseButton.PRIMARY){
@@ -67,10 +69,18 @@ public class MainApplication extends Application{
 									this.connG = null;
 									this.selectedId = -1;
 								}
+							} else {
+								this.selectedId = -1;
 							}
 							break;
 						case 2:
 							g = new Light(gc, new Rectangle2D(e.getX(), e.getY(), 50, 50));
+							break;
+						case 3:
+							g = new NotGate(gc, new Rectangle2D(e.getX(), e.getY(), 50, 50));
+							break;
+						case 4:
+							g = new AndGate(gc, new Rectangle2D(e.getX(), e.getY(), 50, 50));
 							break;
 					}
 					if (g != null){
@@ -80,7 +90,13 @@ public class MainApplication extends Application{
 				} else {
 					this.sideArea.onClick(e.getX(), e.getY());
 					for (Gate g : this.gates){
-						g.onClick(e.getX(), e.getY());
+						Gate.Pin pin = g.getPin(e.getX(), e.getY());
+						if (pin == null){
+							g.onClick(e.getX(), e.getY());
+						} else {
+							this.selectedId = 1;
+							this.connG = pin;
+						}
 					}
 				}
 			}
@@ -112,26 +128,6 @@ public class MainApplication extends Application{
 
 		// UI
 		this.sideArea.render();
-
-		if (this.selectedId >= 0){
-			// TODO
-			Color color = null;
-			switch (this.selectedId){
-				case 0:
-					color = Color.RED;
-					break;
-				case 2:
-					color = Color.GRAY;
-					break;
-			}
-			if (color != null){
-				gc.save();
-				gc.setFill(color);
-				gc.setGlobalAlpha(0.7);
-				gc.fillRect(this.mouseMoved.getX(), this.mouseMoved.getY(), 50, 50);
-				gc.restore();
-			}
-		}
 	}
 	
 	public static void main(String[] args){

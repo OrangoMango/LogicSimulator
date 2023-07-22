@@ -17,7 +17,7 @@ public class Wire{
 	}
 
 	public void render(){
-		gc.setStroke(this.pin1.isOn() || this.pin2.isOn() ? Color.GREEN : Color.BLACK);
+		gc.setStroke((this.pin1.isOn() && !this.pin1.isInput()) || (this.pin2.isOn() && !this.pin2.isInput()) ? Color.GREEN : Color.BLACK);
 		gc.setLineWidth(3);
 		gc.strokeLine(this.pin1.getX(), this.pin1.getY(), this.pin2.getX(), this.pin2.getY());
 	}
