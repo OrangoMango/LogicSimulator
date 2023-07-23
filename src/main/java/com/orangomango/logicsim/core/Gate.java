@@ -8,13 +8,13 @@ import java.util.*;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
-public class Gate{
+public abstract class Gate{
 	protected GraphicsContext gc;
 	protected Rectangle2D rect;
 	protected Color color;
 	protected Runnable onClick;
 	protected List<Pin> pins = new ArrayList<>();
-	protected String name = "GATE";
+	private String name;
 
 	public static class Pin{
 		private Rectangle2D rect;
@@ -71,6 +71,10 @@ public class Gate{
 			return this.rect.contains(x, y);
 		}
 
+		public void move(double x, double y){
+			this.rect = new Rectangle2D(this.rect.getMinX()+x, this.rect.getMinY()+y, this.rect.getWidth(), this.rect.getHeight());
+		}
+
 		public boolean isInput(){
 			return this.doInput;
 		}
@@ -121,10 +125,11 @@ public class Gate{
 		}
 	}
 
-	public Gate(GraphicsContext gc, Rectangle2D rect, Color color){
+	public Gate(GraphicsContext gc, String name, Rectangle2D rect, Color color){
 		this.gc = gc;
 		this.rect = rect;
 		this.color = color;
+		this.name = name;
 	}
 
 	public void setPins(List<Pin> pins){
@@ -141,6 +146,19 @@ public class Gate{
 		}
 	}
 
+	public boolean contains(double x, double y){
+		return this.rect.contains(x, y);
+	}
+
+	public void setPos(double x, double y){
+		double deltaX = x-this.rect.getMinX();
+		double deltaY = y-this.rect.getMinY();
+		this.rect = new Rectangle2D(x, y, this.rect.getWidth(), this.rect.getHeight());
+		for (Pin p : this.pins){
+			p.move(deltaX, deltaY);
+		}
+	}
+
 	public Pin getPin(double x, double y){
 		for (Pin pin : this.pins){
 			if (pin.contains(x, y)){
@@ -150,9 +168,11 @@ public class Gate{
 		return null;
 	}
 
-	public void update(){
-		// Do nothing rn
+	public String getName(){
+		return this.name;
 	}
+
+	public abstract void update();
 
 	public void render(){
 		gc.setFill(this.color);

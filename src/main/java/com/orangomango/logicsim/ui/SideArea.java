@@ -12,6 +12,8 @@ public class SideArea{
 	private Rectangle2D closedButton, area;
 	private boolean opened = false;
 	private List<UiButton> buttons = new ArrayList<>();
+	private int amount = 0;
+	private double extraY;
 
 	public SideArea(GraphicsContext gc, Rectangle2D closedBtn, Rectangle2D area){
 		this.gc = gc;
@@ -22,10 +24,16 @@ public class SideArea{
 	public void addButton(String text, Runnable r){
 		final double distance = 10;
 		final int maxRow = (int)Math.floor(area.getWidth()/(75+distance));
-		Point2D pos = new Point2D(distance+(this.buttons.size()%maxRow)*(75+distance), distance+(this.buttons.size()/maxRow)*(75+distance));
+		Point2D pos = new Point2D(distance+(this.amount%maxRow)*(75+distance), distance+(this.amount/maxRow)*(75+distance)+this.extraY);
 		pos = pos.add(area.getMinX(), area.getMinY());
 		UiButton ub = new UiButton(this.gc, text, new Rectangle2D(pos.getX(), pos.getY(), 75, 75), r);
 		this.buttons.add(ub);
+		this.amount++;
+	}
+
+	public void startSection(){
+		this.extraY = this.buttons.get(this.buttons.size()-1).getRect().getMaxY()+35;
+		this.amount = 0;
 	}
 
 	public void onClick(double x, double y){

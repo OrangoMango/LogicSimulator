@@ -6,9 +6,8 @@ import javafx.scene.paint.Color;
 
 public class Light extends Gate{
 	public Light(GraphicsContext gc, Rectangle2D rect){
-		super(gc, rect, Color.GRAY);
-		this.name = "LIGHT";
-		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMaxX()-15, rect.getMinY(), 15, 15), true));
+		super(gc, "LIGHT", rect, Color.GRAY);
+		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMaxX(), rect.getMinY(), 15, 15), true));
 	}
 
 	public boolean isOn(){

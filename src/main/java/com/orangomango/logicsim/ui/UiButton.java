@@ -24,6 +24,10 @@ public class UiButton{
 		}
 	}
 
+	public Rectangle2D getRect(){
+		return this.button;
+	}
+
 	public void render(){
 		gc.setFill(Color.web("#FFD949"));
 		gc.fillRect(this.button.getMinX(), this.button.getMinY(), this.button.getWidth(), this.button.getHeight());

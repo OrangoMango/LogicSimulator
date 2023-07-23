@@ -5,6 +5,7 @@ import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.canvas.*;
 import javafx.scene.paint.Color;
@@ -12,9 +13,15 @@ import javafx.animation.*;
 import javafx.util.Duration;
 import javafx.geometry.Rectangle2D;
 import javafx.geometry.Point2D;
+import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ColorPicker;
 
 import java.util.*;
 import java.io.*;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -34,7 +41,9 @@ public class MainApplication extends Application{
 	private List<Gate> gates = new ArrayList<>();
 	private List<Wire> wires = new ArrayList<>();
 	private Gate.Pin connG;
+	private Gate selectedGate;
 	private List<UiButton> buttons = new ArrayList<>();
+	private File selectedChipFile;
 	
 	@Override
 	public void start(Stage stage){
@@ -53,6 +62,7 @@ public class MainApplication extends Application{
 		UiButton loadButton = new UiButton(gc, "LOAD", new Rectangle2D(175, 20, 100, 35), () -> {
 			FileChooser fc = new FileChooser();
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
+			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
 			File file = fc.showOpenDialog(stage);
 			List<Gate> gates = new ArrayList<>();
 			List<Wire> wires = new ArrayList<>();
@@ -61,8 +71,36 @@ public class MainApplication extends Application{
 			this.gates = gates;
 			this.wires = wires;
 		});
+		UiButton saveChipButton = new UiButton(gc, "SAVE CHIP", new Rectangle2D(300, 20, 150, 35), () -> {
+			Alert alert = new Alert(Alert.AlertType.INFORMATION);
+			alert.setHeaderText("Create chip");
+			alert.setTitle("Create chip");
+			GridPane gpane = new GridPane();
+			gpane.setPadding(new Insets(5, 5, 5, 5));
+			gpane.setHgap(5);
+			gpane.setVgap(5);
+			Label nameL = new Label("Name: ");
+			TextField name = new TextField();
+			ColorPicker colorPicker = new ColorPicker(Color.BLUE);
+			gpane.add(nameL, 0, 0);
+			gpane.add(name, 1, 0);
+			gpane.add(colorPicker, 0, 1, 2, 1);
+			alert.getDialogPane().setContent(gpane);
+			alert.showAndWait();
+			FileChooser fc = new FileChooser();
+			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
+			File file = fc.showSaveDialog(stage);
+			save(file, name.getText(), colorPicker.getValue());
+		});
+		UiButton clearButton = new UiButton(gc, "CLEAR", new Rectangle2D(475, 20, 100, 35), () -> {
+			this.wires = new ArrayList<Wire>();
+			this.gates = new ArrayList<Gate>();
+			Gate.Pin.PIN_ID = 0;
+		});
 		this.buttons.add(saveButton);
 		this.buttons.add(loadButton);
+		this.buttons.add(saveChipButton);
+		this.buttons.add(clearButton);
 		
 		this.sideArea = new SideArea(gc, new Rectangle2D(950, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, 350, 800));
 		this.sideArea.addButton("Switch", () -> this.selectedId = 0);
@@ -71,6 +109,17 @@ public class MainApplication extends Application{
 		this.sideArea.addButton("NOT", () -> this.selectedId = 3);
 		this.sideArea.addButton("AND", () -> this.selectedId = 4);
 		this.sideArea.addButton("CHIP", () -> this.selectedId = 5);
+
+		this.sideArea.startSection();
+		for (File file : (new File(System.getProperty("user.dir"))).listFiles()){
+			String nm = file.getName();
+			if (nm.endsWith(".lsimc")){
+				this.sideArea.addButton(nm.substring(0, nm.lastIndexOf(".")), () -> {
+					this.selectedId = 6;
+					this.selectedChipFile = file;
+				});
+			}
+		}
 
 		canvas.setOnMousePressed(e -> {
 			if (e.getButton() == MouseButton.PRIMARY){
@@ -117,9 +166,12 @@ public class MainApplication extends Application{
 								break;
 							case 5:
 								FileChooser fc = new FileChooser();
-								fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
+								fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
 								File file = fc.showOpenDialog(stage);
-								g = new Chip(gc, new Rectangle2D(e.getX(), e.getY(), 50, 0), file);
+								g = new Chip(gc, new Rectangle2D(e.getX(), e.getY(), 125, 0), file);
+								break;
+							case 6:
+								g = new Chip(gc, new Rectangle2D(e.getX(), e.getY(), 125, 0), this.selectedChipFile);
 								break;
 						}
 						if (g != null){
@@ -139,11 +191,31 @@ public class MainApplication extends Application{
 						}
 					}
 				}
+			} else if (e.getButton() == MouseButton.SECONDARY){
+				Gate found = null;
+				for (Gate g : this.gates){
+					if (g.contains(e.getX(), e.getY())){
+						found = g;
+						break;
+					}
+				}
+				this.selectedGate = found;
+				if (found == null) this.selectedId = -1;
 			}
 		});
 
 		canvas.setOnMouseMoved(e -> {
 			this.mouseMoved = new Point2D(e.getX(), e.getY());
+		});
+
+		canvas.setOnMouseDragged(e -> {
+			if (e.getButton() == MouseButton.SECONDARY){
+				if (this.selectedGate != null){
+					this.selectedGate.setPos(e.getX(), e.getY());
+				} else {
+					// TODO
+				}
+			}
 		});
 
 		Timeline loop = new Timeline(new KeyFrame(Duration.millis(1000.0/FPS), e -> update(gc)));
@@ -156,8 +228,12 @@ public class MainApplication extends Application{
 	}
 
 	private void save(File file){
-		if (!file.getName().endsWith(".lsim")){
-			file = new File(file.getName()+".lsim");
+		save(file, null, null);
+	}
+
+	private void save(File file, String chipName, Color color){
+		if (!file.getName().endsWith(".lsim") || !file.getName().endsWith(".lsimc")){
+			file = new File(file.getName()+".lsim"+(chipName == null ? "" : "c"));
 		}
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(file));
@@ -172,6 +248,14 @@ public class MainApplication extends Application{
 				data.put(wire.getJSON());
 			}
 			json.put("wires", data);
+			if (chipName != null && color != null){
+				json.put("chipName", chipName);
+				JSONObject cl = new JSONObject();
+				cl.put("red", color.getRed());
+				cl.put("green", color.getGreen());
+				cl.put("blue", color.getBlue());
+				json.put("color", cl);
+			}
 			writer.write(json.toString(4));
 			writer.close();
 		} catch (IOException ex){
@@ -179,7 +263,7 @@ public class MainApplication extends Application{
 		}
 	}
 
-	public static void load(File file, GraphicsContext gc, List<Gate> tempGates, List<Wire> tempWires){
+	public static JSONObject load(File file, GraphicsContext gc, List<Gate> tempGates, List<Wire> tempWires){
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 			StringBuilder builder = new StringBuilder();
@@ -203,8 +287,6 @@ public class MainApplication extends Application{
 				int lastPinId = Gate.Pin.PIN_ID; // Save pin id
 				if (name.equals("AND")){
 					gt = new AndGate(gc, rect);
-				} else if (name.equals("GATE")){
-					gt = new Gate(gc, rect, color);
 				} else if (name.equals("LIGHT")){
 					gt = new Light(gc, rect);
 				} else if (name.equals("NOT")){
@@ -212,7 +294,17 @@ public class MainApplication extends Application{
 				} else if (name.equals("SWITCH")){
 					gt = new Switch(gc, rect);
 				} else if (name.equals("CHIP")){
-					gt = new Chip(gc, rect, new File(gate.getString("fileName")));
+					JSONObject chipData = gate.getJSONObject("chipData");
+					try {
+						File temp = File.createTempFile("temp", ".lsim");
+						temp.deleteOnExit();
+						BufferedWriter writer = new BufferedWriter(new FileWriter(temp));
+						writer.write(chipData.toString(4));
+						writer.close();
+						gt = new Chip(gc, rect, temp);
+					} catch (IOException ex){
+						ex.printStackTrace();
+					}
 				}
 				Gate.Pin.PIN_ID = lastPinId; // Restore the last pin id
 				gt.setPins(pins);
@@ -241,8 +333,11 @@ public class MainApplication extends Application{
 				Gate.Pin p2 = getPinById(tempGates, wire.getInt("pin2"));
 				tempWires.add(new Wire(gc, p1, p2));
 			}
+
+			return json;
 		} catch (IOException ex){
 			ex.printStackTrace();
+			return null;
 		}
 	}
 

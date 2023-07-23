@@ -8,10 +8,14 @@ public class Switch extends Gate{
 	private boolean on;
 
 	public Switch(GraphicsContext gc, Rectangle2D rect){
-		super(gc, rect, Color.RED);
-		this.name = "SWITCH";
+		super(gc, "SWITCH", rect, Color.RED);
 		this.onClick = () -> setOn(!this.on);
-		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX(), rect.getMinY(), 15, 15), false));
+		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX()-15, rect.getMinY(), 15, 15), false));
+	}
+
+	@Override
+	public void update(){
+		// Does nothing
 	}
 
 	public void setOn(boolean v){
