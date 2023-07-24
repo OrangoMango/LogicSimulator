@@ -423,6 +423,8 @@ public class MainApplication extends Application{
 					gt = new Switch(gc, rect);
 				} else if (name.equals("CHIP")){
 					gt = new Chip(gc, rect, new File(System.getProperty("user.dir"), gate.getString("fileName"))); // TODO (user.dir)
+				} else if (name.equals("DISPLAY7")){
+					gt = new Display7(gc, rect);
 				}
 				Gate.Pin.PIN_ID = lastPinId; // Restore the last pin id
 				Gate.Pin.UPDATE_PIN_ID = lastPinFlag;
