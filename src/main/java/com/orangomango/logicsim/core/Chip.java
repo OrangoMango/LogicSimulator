@@ -20,6 +20,7 @@ public class Chip extends Gate{
 	private List<Gate.Pin> outputPins = new ArrayList<>();
 	private File file;
 	private String name;
+	private JSONObject json;
 
 	public Chip(GraphicsContext gc, Rectangle2D rect, File file){
 		super(gc, "CHIP", rect, Color.BLUE);
@@ -27,11 +28,12 @@ public class Chip extends Gate{
 
 		// Load data
 		Gate.Pin.UPDATE_PIN_ID = false;
-		JSONObject json = MainApplication.load(this.file, this.gc, this.gates, this.wires);
+		this.json = MainApplication.load(this.file, this.gc, this.gates, this.wires);
 		Gate.Pin.UPDATE_PIN_ID = true;
+		if (this.json == null) return;
 
-		this.color = Color.color(json.getJSONObject("color").getDouble("red"), json.getJSONObject("color").getDouble("green"), json.getJSONObject("color").getDouble("blue"));
-		this.name = json.getString("chipName");
+		this.color = Color.color(this.json.getJSONObject("color").getDouble("red"), this.json.getJSONObject("color").getDouble("green"), this.json.getJSONObject("color").getDouble("blue"));
+		this.name = this.json.getString("chipName");
 
 		for (Gate g : this.gates){
 			if (g.getName().equals("SWITCH")){
@@ -52,6 +54,10 @@ public class Chip extends Gate{
 			this.pins.add(pin);
 			this.outputPins.add(pin);
 		}
+	}
+
+	public JSONObject getJSONData(){
+		return this.json;
 	}
 
 	public String getName(){

@@ -1,0 +1,194 @@
+{
+    "wires": [
+        {
+            "pin1": 0,
+            "pin2": 2,
+            "points" : []
+        },
+        {
+            "pin1": 1,
+            "pin2": 3,
+            "points" : []
+        },
+        {
+            "pin1": 4,
+            "pin2": 5,
+            "points" : []
+        },
+        {
+            "pin1": 6,
+            "pin2": 7,
+            "points" : []
+        }
+    ],
+    "gates": [
+        {
+            "rect": {
+                "w": 50,
+                "x": 84,
+                "h": 50,
+                "y": 293
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 69,
+                    "h": 15,
+                    "y": 293
+                },
+                "attached": [2],
+                "id": 0,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 82,
+                "h": 50,
+                "y": 408
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 67,
+                    "h": 15,
+                    "y": 408
+                },
+                "attached": [3],
+                "id": 1,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 212,
+                "h": 50,
+                "y": 325
+            },
+            "color": {
+                "red": 0,
+                "green": 0,
+                "blue": 1
+            },
+            "name": "AND",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 197,
+                        "h": 15,
+                        "y": 325
+                    },
+                    "attached": [0],
+                    "id": 2,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 197,
+                        "h": 15,
+                        "y": 345
+                    },
+                    "attached": [1],
+                    "id": 3,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 262,
+                        "h": 15,
+                        "y": 325
+                    },
+                    "attached": [5],
+                    "id": 4,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 352,
+                "h": 50,
+                "y": 328
+            },
+            "color": {
+                "red": 1,
+                "green": 0.6470588445663452,
+                "blue": 0
+            },
+            "name": "NOT",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 337,
+                        "h": 15,
+                        "y": 328
+                    },
+                    "attached": [4],
+                    "id": 5,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 402,
+                        "h": 15,
+                        "y": 328
+                    },
+                    "attached": [7],
+                    "id": 6,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 497,
+                "h": 50,
+                "y": 336
+            },
+            "color": {
+                "red": 1,
+                "green": 1,
+                "blue": 0
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 547,
+                    "h": 15,
+                    "y": 336
+                },
+                "attached": [6],
+                "id": 7,
+                "doInput": true
+            }]
+        }
+    ],
+    "color": {
+        "red": 0,
+        "green": 0,
+        "blue": 1
+    },
+    "chipName": "NAND"
+}

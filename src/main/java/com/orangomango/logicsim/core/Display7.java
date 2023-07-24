@@ -24,6 +24,11 @@ public class Display7 extends Gate{
 		public void render(){
 			gc.drawImage(this.image, this.x, this.y, this.image.getWidth(), this.image.getHeight());
 		}
+
+		public void move(double x, double y){
+			this.x += x;
+			this.y += y;
+		}
 	}
 
 	public Display7(GraphicsContext gc, Rectangle2D rect){
@@ -41,6 +46,16 @@ public class Display7 extends Gate{
 		this.pieces[4] = new DisplayPiece(gc, new Image(getClass().getResourceAsStream("/display-v.png")), this.rect.getMinX()+3*2, this.rect.getMinY()+39*2);
 		this.pieces[5] = new DisplayPiece(gc, new Image(getClass().getResourceAsStream("/display-v.png")), this.rect.getMinX()+3*2, this.rect.getMinY()+11*2);
 		this.pieces[6] = new DisplayPiece(gc, new Image(getClass().getResourceAsStream("/display-h.png")), this.rect.getMinX()+6*2, this.rect.getMinY()+34*2);
+	}
+
+	@Override
+	public void setPos(double x, double y){
+		double deltaX = x-this.rect.getMinX();
+		double deltaY = y-this.rect.getMinY();
+		super.setPos(x, y);
+		for (int i = 0; i < 7; i++){
+			this.pieces[i].move(deltaX, deltaY);
+		}
 	}
 
 	@Override

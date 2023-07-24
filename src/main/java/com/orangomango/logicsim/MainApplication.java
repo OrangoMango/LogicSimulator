@@ -39,6 +39,7 @@ public class MainApplication extends Application{
 	private static final double TOOLBAR_Y = 75;
 
 	private SideArea sideArea;
+	private File currentFile = null;
 	private int selectedId = -1;
 	private Point2D mouseMoved = new Point2D(0, 0);
 	private List<Gate> gates = new ArrayList<>();
@@ -58,7 +59,6 @@ public class MainApplication extends Application{
 	
 	@Override
 	public void start(Stage stage){
-		stage.setTitle("LogicSim");
 		StackPane pane = new StackPane();
 		Canvas canvas = new Canvas(WIDTH, HEIGHT);
 		GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -68,7 +68,10 @@ public class MainApplication extends Application{
 			FileChooser fc = new FileChooser();
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
 			File file = fc.showSaveDialog(stage);
-			if (file != null) save(file);
+			if (file != null){
+				this.currentFile = file;
+				save(file);
+			}
 		});
 		UiButton loadButton = new UiButton(gc, "LOAD", new Rectangle2D(175, 20, 100, 35), () -> {
 			FileChooser fc = new FileChooser();
@@ -77,10 +80,16 @@ public class MainApplication extends Application{
 			File file = fc.showOpenDialog(stage);
 			List<Gate> gates = new ArrayList<>();
 			List<Wire> wires = new ArrayList<>();
-			Gate.Pin.PIN_ID = 0;
-			if (file != null) load(file, gc, gates, wires);
-			this.gates = gates;
-			this.wires = wires;
+			if (file != null){
+				JSONObject json = load(file, gc, gates, wires);
+				if (json == null){
+					return;
+				}
+				this.currentFile = file;
+				Gate.Pin.PIN_ID = 0;
+				this.gates = gates;
+				this.wires = wires;
+			}
 		});
 		UiButton saveChipButton = new UiButton(gc, "SAVE CHIP", new Rectangle2D(300, 20, 150, 35), () -> {
 			Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -101,7 +110,10 @@ public class MainApplication extends Application{
 			FileChooser fc = new FileChooser();
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
 			File file = fc.showSaveDialog(stage);
-			if (file != null) save(file, name.getText(), colorPicker.getValue());
+			if (file != null){
+				this.currentFile = file;
+				save(file, name.getText(), colorPicker.getValue());
+			}
 		});
 		UiButton clearButton = new UiButton(gc, "CLEAR", new Rectangle2D(475, 20, 100, 35), () -> {
 			this.wires = new ArrayList<Wire>();
@@ -147,6 +159,7 @@ public class MainApplication extends Application{
 				} else {
 					if (this.selectedId >= 0){
 						Gate g = null;
+						boolean loaded = true;
 						switch (this.selectedId){
 							case 0:
 								g = new Switch(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50));
@@ -208,16 +221,18 @@ public class MainApplication extends Application{
 								File file = fc.showOpenDialog(stage);
 								if (file == null) return;
 								g = new Chip(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 125, 0), file);
+								loaded = ((Chip)g).getJSONData() != null;
 								break;
 							case 6:
 								g = new Chip(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 125, 0), this.selectedChipFile);
+								loaded = ((Chip)g).getJSONData() != null;
 								break;
 							case 7:
 								g = new Display7(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 0, 0));
 								break;
 						}
 						if (g != null){
-							this.gates.add(g);
+							if (loaded) this.gates.add(g);
 							this.selectedId = -1;
 						}
 					} else {
@@ -335,6 +350,7 @@ public class MainApplication extends Application{
 			} else {
 				scene.setCursor(Cursor.DEFAULT);
 			}
+			stage.setTitle("LogicSim"+(this.currentFile == null ? "" : " - "+this.currentFile.getName()));
 		}));
 		loop.setCycleCount(Animation.INDEFINITE);
 		loop.play();
@@ -398,6 +414,8 @@ public class MainApplication extends Application{
 			reader.close();
 			JSONObject json = new JSONObject(builder.toString());
 
+			int backupId = Gate.Pin.PIN_ID;
+
 			// Load gates
 			for (Object o : json.getJSONArray("gates")){
 				JSONObject gate = (JSONObject)o;
@@ -422,7 +440,17 @@ public class MainApplication extends Application{
 				} else if (name.equals("SWITCH")){
 					gt = new Switch(gc, rect);
 				} else if (name.equals("CHIP")){
-					gt = new Chip(gc, rect, new File(System.getProperty("user.dir"), gate.getString("fileName"))); // TODO (user.dir)
+					File chipFile = new File(file.getParent(), gate.getString("fileName"));
+					if (!chipFile.exists()){
+						Alert error = new Alert(Alert.AlertType.ERROR);
+						error.setTitle("Missing dependency");
+						error.setHeaderText("Missing dependency");
+						error.setContentText("The following dependency is missing: "+gate.getString("fileName"));
+						error.showAndWait();
+						Gate.Pin.PIN_ID = backupId;
+						return null;
+					}
+					gt = new Chip(gc, rect, chipFile);
 				} else if (name.equals("DISPLAY7")){
 					gt = new Display7(gc, rect);
 				}

@@ -1,0 +1,596 @@
+{
+    "wires": [
+        {
+            "pin1": 5,
+            "pin2": 46,
+            "points" : []
+        },
+        {
+            "pin1": 5,
+            "pin2": 42,
+            "points" : []
+        },
+        {
+            "pin1": 5,
+            "pin2": 38,
+            "points" : []
+        },
+        {
+            "pin1": 5,
+            "pin2": 34,
+            "points" : []
+        },
+        {
+            "pin1": 4,
+            "pin2": 45,
+            "points" : []
+        },
+        {
+            "pin1": 4,
+            "pin2": 41,
+            "points" : []
+        },
+        {
+            "pin1": 4,
+            "pin2": 37,
+            "points" : []
+        },
+        {
+            "pin1": 4,
+            "pin2": 33,
+            "points" : []
+        },
+        {
+            "pin1": 3,
+            "pin2": 44,
+            "points" : []
+        },
+        {
+            "pin1": 2,
+            "pin2": 40,
+            "points" : []
+        },
+        {
+            "pin1": 1,
+            "pin2": 36,
+            "points" : []
+        },
+        {
+            "pin1": 0,
+            "pin2": 32,
+            "points" : []
+        },
+        {
+            "pin1": 47,
+            "pin2": 51,
+            "points" : []
+        },
+        {
+            "pin1": 43,
+            "pin2": 50,
+            "points" : []
+        },
+        {
+            "pin1": 39,
+            "pin2": 49,
+            "points" : []
+        },
+        {
+            "pin1": 35,
+            "pin2": 48,
+            "points" : []
+        }
+    ],
+    "gates": [
+        {
+            "rect": {
+                "w": 50,
+                "x": 82,
+                "h": 50,
+                "y": 172
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 67,
+                    "h": 15,
+                    "y": 172
+                },
+                "attached": [32],
+                "id": 0,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 85,
+                "h": 50,
+                "y": 243
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 70,
+                    "h": 15,
+                    "y": 243
+                },
+                "attached": [36],
+                "id": 1,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 84,
+                "h": 50,
+                "y": 319
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 69,
+                    "h": 15,
+                    "y": 319
+                },
+                "attached": [40],
+                "id": 2,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 86,
+                "h": 50,
+                "y": 390
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 71,
+                    "h": 15,
+                    "y": 390
+                },
+                "attached": [44],
+                "id": 3,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 83,
+                "h": 50,
+                "y": 507
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 68,
+                    "h": 15,
+                    "y": 507
+                },
+                "attached": [
+                    45,
+                    41,
+                    37,
+                    33
+                ],
+                "id": 4,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 89,
+                "h": 50,
+                "y": 647
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 74,
+                    "h": 15,
+                    "y": 647
+                },
+                "attached": [
+                    46,
+                    42,
+                    38,
+                    34
+                ],
+                "id": 5,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 125,
+                "x": 335,
+                "h": 60,
+                "y": 213
+            },
+            "fileName": "1bRegister.lsimc",
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 1
+            },
+            "name": "CHIP",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 320,
+                        "h": 15,
+                        "y": 213
+                    },
+                    "attached": [0],
+                    "id": 32,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 320,
+                        "h": 15,
+                        "y": 233
+                    },
+                    "attached": [4],
+                    "id": 33,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 320,
+                        "h": 15,
+                        "y": 253
+                    },
+                    "attached": [5],
+                    "id": 34,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 460,
+                        "h": 15,
+                        "y": 213
+                    },
+                    "attached": [48],
+                    "id": 35,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 125,
+                "x": 338,
+                "h": 60,
+                "y": 308
+            },
+            "fileName": "1bRegister.lsimc",
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 1
+            },
+            "name": "CHIP",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 323,
+                        "h": 15,
+                        "y": 308
+                    },
+                    "attached": [1],
+                    "id": 36,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 323,
+                        "h": 15,
+                        "y": 328
+                    },
+                    "attached": [4],
+                    "id": 37,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 323,
+                        "h": 15,
+                        "y": 348
+                    },
+                    "attached": [5],
+                    "id": 38,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 463,
+                        "h": 15,
+                        "y": 308
+                    },
+                    "attached": [49],
+                    "id": 39,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 125,
+                "x": 338,
+                "h": 60,
+                "y": 394
+            },
+            "fileName": "1bRegister.lsimc",
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 1
+            },
+            "name": "CHIP",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 323,
+                        "h": 15,
+                        "y": 394
+                    },
+                    "attached": [2],
+                    "id": 40,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 323,
+                        "h": 15,
+                        "y": 414
+                    },
+                    "attached": [4],
+                    "id": 41,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 323,
+                        "h": 15,
+                        "y": 434
+                    },
+                    "attached": [5],
+                    "id": 42,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 463,
+                        "h": 15,
+                        "y": 394
+                    },
+                    "attached": [50],
+                    "id": 43,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 125,
+                "x": 338,
+                "h": 60,
+                "y": 478
+            },
+            "fileName": "1bRegister.lsimc",
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 1
+            },
+            "name": "CHIP",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 323,
+                        "h": 15,
+                        "y": 478
+                    },
+                    "attached": [3],
+                    "id": 44,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 323,
+                        "h": 15,
+                        "y": 498
+                    },
+                    "attached": [4],
+                    "id": 45,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 323,
+                        "h": 15,
+                        "y": 518
+                    },
+                    "attached": [5],
+                    "id": 46,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 463,
+                        "h": 15,
+                        "y": 478
+                    },
+                    "attached": [51],
+                    "id": 47,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 560,
+                "h": 50,
+                "y": 189
+            },
+            "color": {
+                "red": 1,
+                "green": 1,
+                "blue": 0
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 610,
+                    "h": 15,
+                    "y": 189
+                },
+                "attached": [35],
+                "id": 48,
+                "doInput": true
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 564,
+                "h": 50,
+                "y": 276
+            },
+            "color": {
+                "red": 1,
+                "green": 1,
+                "blue": 0
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 614,
+                    "h": 15,
+                    "y": 276
+                },
+                "attached": [39],
+                "id": 49,
+                "doInput": true
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 557,
+                "h": 50,
+                "y": 371
+            },
+            "color": {
+                "red": 0.501960813999176,
+                "green": 0.501960813999176,
+                "blue": 0.501960813999176
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 607,
+                    "h": 15,
+                    "y": 371
+                },
+                "attached": [43],
+                "id": 50,
+                "doInput": true
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 565,
+                "h": 50,
+                "y": 473
+            },
+            "color": {
+                "red": 0.501960813999176,
+                "green": 0.501960813999176,
+                "blue": 0.501960813999176
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 615,
+                    "h": 15,
+                    "y": 473
+                },
+                "attached": [47],
+                "id": 51,
+                "doInput": true
+            }]
+        }
+    ],
+    "color": {
+        "red": 1,
+        "green": 0,
+        "blue": 1
+    },
+    "chipName": "4B REGISTER"
+}
