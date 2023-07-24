@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.canvas.*;
 import javafx.scene.paint.Color;
 import javafx.animation.*;
@@ -18,6 +19,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 
 import java.util.*;
 import java.io.*;
@@ -31,7 +34,7 @@ import com.orangomango.logicsim.core.*;
 public class MainApplication extends Application{
 	private static final double WIDTH = 1000;
 	private static final double HEIGHT = 800;
-	private static final int FPS = 40;
+	public static final int FPS = 40;
 	private static final double TOOLBAR_X = 650;
 	private static final double TOOLBAR_Y = 75;
 
@@ -46,6 +49,7 @@ public class MainApplication extends Application{
 	private File selectedChipFile;
 	private Point2D movePoint, deltaMove = new Point2D(0, 0);
 	private double cameraX, cameraY;
+	private double cameraScale = 1;
 	
 	@Override
 	public void start(Stage stage){
@@ -59,7 +63,7 @@ public class MainApplication extends Application{
 			FileChooser fc = new FileChooser();
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
 			File file = fc.showSaveDialog(stage);
-			save(file);
+			if (file != null) save(file);
 		});
 		UiButton loadButton = new UiButton(gc, "LOAD", new Rectangle2D(175, 20, 100, 35), () -> {
 			FileChooser fc = new FileChooser();
@@ -69,7 +73,7 @@ public class MainApplication extends Application{
 			List<Gate> gates = new ArrayList<>();
 			List<Wire> wires = new ArrayList<>();
 			Gate.Pin.PIN_ID = 0;
-			load(file, gc, gates, wires);
+			if (file != null) load(file, gc, gates, wires);
 			this.gates = gates;
 			this.wires = wires;
 		});
@@ -92,7 +96,7 @@ public class MainApplication extends Application{
 			FileChooser fc = new FileChooser();
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
 			File file = fc.showSaveDialog(stage);
-			save(file, name.getText(), colorPicker.getValue());
+			if (file != null) save(file, name.getText(), colorPicker.getValue());
 		});
 		UiButton clearButton = new UiButton(gc, "CLEAR", new Rectangle2D(475, 20, 100, 35), () -> {
 			this.wires = new ArrayList<Wire>();
@@ -124,11 +128,7 @@ public class MainApplication extends Application{
 		}
 
 		canvas.setOnMousePressed(e -> {
-			Point2D clickPoint = new Point2D(e.getX(), e.getY());
-			clickPoint = clickPoint.subtract(this.cameraX, this.cameraY);
-			if (this.movePoint != null){
-				clickPoint = clickPoint.subtract(this.deltaMove);
-			}
+			Point2D clickPoint = getClickPoint(e);
 			if (e.getButton() == MouseButton.PRIMARY){
 				if (e.getY() < TOOLBAR_Y && e.getX() < TOOLBAR_X){
 					for (UiButton ub : this.buttons){
@@ -175,6 +175,7 @@ public class MainApplication extends Application{
 								FileChooser fc = new FileChooser();
 								fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
 								File file = fc.showOpenDialog(stage);
+								if (file == null) return;
 								g = new Chip(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 125, 0), file);
 								break;
 							case 6:
@@ -211,6 +212,21 @@ public class MainApplication extends Application{
 					this.selectedId = -1;
 					this.movePoint = new Point2D(e.getX(), e.getY());
 					this.deltaMove = new Point2D(0, 0);
+				} else if (found instanceof Chip){
+					ContextMenu cm = new ContextMenu();
+					MenuItem showChip = new MenuItem("Look inside");
+					final Chip chip = (Chip)found;
+					showChip.setOnAction(ev -> {
+						Alert alert = new Alert(Alert.AlertType.INFORMATION);
+						alert.setTitle(chip.getName());
+						alert.setHeaderText(chip.getName());
+						ChipCanvas cc = new ChipCanvas(chip);
+						alert.getDialogPane().setContent(cc.getPane());
+						alert.showAndWait();
+						cc.destroy();
+					});
+					cm.getItems().add(showChip);
+					cm.show(canvas, e.getScreenX(), e.getScreenY());
 				}
 			}
 		});
@@ -222,11 +238,7 @@ public class MainApplication extends Application{
 		canvas.setOnMouseDragged(e -> {
 			if (e.getButton() == MouseButton.SECONDARY){
 				if (this.selectedGate != null){
-					Point2D clickPoint = new Point2D(e.getX(), e.getY());
-					clickPoint = clickPoint.subtract(this.cameraX, this.cameraY);
-					if (this.movePoint != null){
-						clickPoint = clickPoint.subtract(this.deltaMove);
-					}
+					Point2D clickPoint = getClickPoint(e);
 					this.selectedGate.setPos(clickPoint.getX(), clickPoint.getY());
 				} else {
 					this.deltaMove = new Point2D(e.getX()-this.movePoint.getX(), e.getY()-this.movePoint.getY());
@@ -244,6 +256,12 @@ public class MainApplication extends Application{
 			}
 		});
 
+		canvas.setOnScroll(e -> {
+			if (e.getDeltaY() != 0){
+				this.cameraScale += (e.getDeltaY() > 0 ? 0.05 : -0.05);
+			}
+		});
+
 		Timeline loop = new Timeline(new KeyFrame(Duration.millis(1000.0/FPS), e -> update(gc)));
 		loop.setCycleCount(Animation.INDEFINITE);
 		loop.play();
@@ -253,12 +271,22 @@ public class MainApplication extends Application{
 		stage.show();
 	}
 
+	private Point2D getClickPoint(MouseEvent e){
+		Point2D clickPoint = new Point2D(e.getX(), e.getY());
+		clickPoint = clickPoint.subtract(this.cameraX, this.cameraY);
+		if (this.movePoint != null){
+			clickPoint = clickPoint.subtract(this.deltaMove);
+		}
+		clickPoint = clickPoint.multiply(1/this.cameraScale);
+		return clickPoint;
+	}
+
 	private void save(File file){
 		save(file, null, null);
 	}
 
 	private void save(File file, String chipName, Color color){
-		if (!file.getName().endsWith(".lsim") || !file.getName().endsWith(".lsimc")){
+		if (!file.getName().endsWith(".lsim") && !file.getName().endsWith(".lsimc")){
 			file = new File(file.getName()+".lsim"+(chipName == null ? "" : "c"));
 		}
 		try {
@@ -320,17 +348,7 @@ public class MainApplication extends Application{
 				} else if (name.equals("SWITCH")){
 					gt = new Switch(gc, rect);
 				} else if (name.equals("CHIP")){
-					JSONObject chipData = gate.getJSONObject("chipData");
-					try {
-						File temp = File.createTempFile("temp", ".lsim");
-						temp.deleteOnExit();
-						BufferedWriter writer = new BufferedWriter(new FileWriter(temp));
-						writer.write(chipData.toString(4));
-						writer.close();
-						gt = new Chip(gc, rect, temp);
-					} catch (IOException ex){
-						ex.printStackTrace();
-					}
+					gt = new Chip(gc, rect, new File(System.getProperty("user.dir"), gate.getString("fileName"))); // TODO (user.dir)
 				}
 				Gate.Pin.PIN_ID = lastPinId; // Restore the last pin id
 				gt.setPins(pins);
@@ -388,6 +406,7 @@ public class MainApplication extends Application{
 		if (this.movePoint != null){
 			gc.translate(this.deltaMove.getX(), this.deltaMove.getY());
 		}
+		gc.scale(this.cameraScale, this.cameraScale);
 		for (Gate g : this.gates){
 			g.update();
 			g.render();

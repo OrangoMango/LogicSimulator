@@ -13,12 +13,12 @@ import com.orangomango.logicsim.MainApplication;
 
 public class Chip extends Gate{
 	private List<Gate> gates = new ArrayList<>();
+	private List<Wire> wires = new ArrayList<>();
 	private List<Gate> inputGates = new ArrayList<>();
 	private List<Gate> outputGates = new ArrayList<>();
 	private List<Gate.Pin> inputPins = new ArrayList<>();
 	private List<Gate.Pin> outputPins = new ArrayList<>();
 	private File file;
-	private JSONObject json;
 	private String name;
 
 	public Chip(GraphicsContext gc, Rectangle2D rect, File file){
@@ -27,11 +27,11 @@ public class Chip extends Gate{
 
 		// Load data
 		Gate.Pin.UPDATE_PIN_ID = false;
-		this.json = MainApplication.load(this.file, this.gc, this.gates, new ArrayList<Wire>());
+		JSONObject json = MainApplication.load(this.file, this.gc, this.gates, this.wires);
 		Gate.Pin.UPDATE_PIN_ID = true;
 
-		this.color = Color.color(this.json.getJSONObject("color").getDouble("red"), this.json.getJSONObject("color").getDouble("green"), this.json.getJSONObject("color").getDouble("blue"));
-		this.name = this.json.getString("chipName");
+		this.color = Color.color(json.getJSONObject("color").getDouble("red"), json.getJSONObject("color").getDouble("green"), json.getJSONObject("color").getDouble("blue"));
+		this.name = json.getString("chipName");
 
 		for (Gate g : this.gates){
 			if (g.getName().equals("SWITCH")){
@@ -54,6 +54,21 @@ public class Chip extends Gate{
 		}
 	}
 
+	public String getName(){
+		return this.name;
+	}
+
+	public List<Gate> getGates(){
+		return this.gates;
+	}
+
+	@Override
+	public JSONObject getJSON(){
+		JSONObject json = super.getJSON();
+		json.put("fileName", this.file.getName());
+		return json;
+	}
+
 	@Override
 	public void setPins(List<Pin> pins){
 		super.setPins(pins);
@@ -68,11 +83,13 @@ public class Chip extends Gate{
 		}
 	}
 
-	@Override
-	public JSONObject getJSON(){
-		JSONObject json = super.getJSON();
-		json.put("chipData", this.json);
-		return json;
+	public void renderInside(GraphicsContext gc){
+		for (Gate g : this.gates){
+			g.render(gc);
+		}
+		for (Wire w : this.wires){
+			w.render(gc);
+		}
 	}
 
 	@Override
@@ -92,8 +109,8 @@ public class Chip extends Gate{
 	}
 
 	@Override
-	public void render(){
-		super.render();
+	public void render(GraphicsContext gc){
+		super.render(gc);
 		gc.setFill(Color.BLACK);
 		gc.setTextAlign(TextAlignment.CENTER);
 		gc.fillText(this.name, this.rect.getMinX()+this.rect.getWidth()/2, this.rect.getMinY()+this.rect.getHeight()/2);

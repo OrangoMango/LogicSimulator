@@ -8,6 +8,8 @@ import java.util.*;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
+import com.orangomango.logicsim.Util;
+
 public abstract class Gate{
 	protected GraphicsContext gc;
 	protected Rectangle2D rect;
@@ -174,7 +176,11 @@ public abstract class Gate{
 
 	public abstract void update();
 
-	public void render(){
+	public final void render(){
+		render(this.gc);
+	}
+
+	public void render(GraphicsContext gc){
 		gc.setFill(this.color);
 		gc.fillRect(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
 		for (Pin pin : pins){
