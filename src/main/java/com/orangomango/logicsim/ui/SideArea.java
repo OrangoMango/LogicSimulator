@@ -36,6 +36,10 @@ public class SideArea{
 		this.amount = 0;
 	}
 
+	public boolean isOpen(){
+		return this.opened;
+	}
+
 	public void onClick(double x, double y){
 		if (this.opened){
 			if (this.closedButton.contains(x+this.area.getWidth(), y)){

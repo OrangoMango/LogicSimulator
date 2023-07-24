@@ -4,10 +4,10 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 import javafx.scene.Scene;
+import javafx.scene.Cursor;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.canvas.*;
 import javafx.scene.paint.Color;
 import javafx.animation.*;
@@ -44,12 +44,17 @@ public class MainApplication extends Application{
 	private List<Gate> gates = new ArrayList<>();
 	private List<Wire> wires = new ArrayList<>();
 	private Gate.Pin connG;
+	private List<Point2D> pinPoints = new ArrayList<>();
 	private Gate selectedGate;
 	private List<UiButton> buttons = new ArrayList<>();
 	private File selectedChipFile;
-	private Point2D movePoint, deltaMove = new Point2D(0, 0);
+	private Point2D movePoint, deltaMove = new Point2D(0, 0); // For camera movement
 	private double cameraX, cameraY;
 	private double cameraScale = 1;
+	private boolean rmWire = false, rmGate = false;
+	private Gate.Pin rmW;
+	private List<Wire> wiresToRemove = new ArrayList<>();
+	private List<Gate> gatesToRemove = new ArrayList<>();
 	
 	@Override
 	public void start(Stage stage){
@@ -103,10 +108,14 @@ public class MainApplication extends Application{
 			this.gates = new ArrayList<Gate>();
 			Gate.Pin.PIN_ID = 0;
 		});
+		UiButton rmWireButton = new UiButton(gc, "RM WIRE", new Rectangle2D(600, 20, 75, 35), () -> this.rmWire = true);
+		UiButton rmGateButton = new UiButton(gc, "RM GATE", new Rectangle2D(700, 20, 75, 35), () -> this.rmGate = true);
 		this.buttons.add(saveButton);
 		this.buttons.add(loadButton);
 		this.buttons.add(saveChipButton);
 		this.buttons.add(clearButton);
+		this.buttons.add(rmWireButton);
+		this.buttons.add(rmGateButton);
 		
 		this.sideArea = new SideArea(gc, new Rectangle2D(950, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, 350, 800));
 		this.sideArea.addButton("Switch", () -> this.selectedId = 0);
@@ -128,9 +137,9 @@ public class MainApplication extends Application{
 		}
 
 		canvas.setOnMousePressed(e -> {
-			Point2D clickPoint = getClickPoint(e);
+			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
 			if (e.getButton() == MouseButton.PRIMARY){
-				if (e.getY() < TOOLBAR_Y && e.getX() < TOOLBAR_X){
+				if (e.getY() < TOOLBAR_Y && (e.getX() < TOOLBAR_X || !this.sideArea.isOpen())){
 					for (UiButton ub : this.buttons){
 						ub.onClick(e.getX(), e.getY());
 					}
@@ -154,12 +163,33 @@ public class MainApplication extends Application{
 									if (this.connG == null){
 										this.connG = found;
 									} else {
-										this.wires.add(new Wire(gc, this.connG, found));
+										this.wires.add(new Wire(gc, this.connG, found, new ArrayList<Point2D>(this.pinPoints)));
 										this.connG = null;
 										this.selectedId = -1;
+										this.pinPoints.clear();
 									}
-								} else {
-									this.selectedId = -1;
+								} else if (this.connG != null){
+									Point2D finalPoint = clickPoint;
+									if (e.isControlDown()){
+										if (this.pinPoints.size() >= 1){
+											this.pinPoints.remove(this.pinPoints.size()-1);
+										}
+									} else {
+										if (e.isShiftDown()){
+											Point2D ref = null;
+											if (this.pinPoints.size() == 0){
+												ref = new Point2D(this.connG.getX(), this.connG.getY());
+											} else {
+												ref = this.pinPoints.get(this.pinPoints.size()-1);
+											}
+											if (Math.abs(finalPoint.getX()-ref.getX()) > Math.abs(finalPoint.getY()-ref.getY())){
+												finalPoint = new Point2D(finalPoint.getX(), ref.getY());
+											} else {
+												finalPoint = new Point2D(ref.getX(), finalPoint.getY());
+											}
+										}
+										this.pinPoints.add(finalPoint);
+									}
 								}
 								break;
 							case 2:
@@ -191,10 +221,30 @@ public class MainApplication extends Application{
 						for (Gate g : this.gates){
 							Gate.Pin pin = g.getPin(clickPoint.getX(), clickPoint.getY());
 							if (pin == null){
-								g.onClick(clickPoint.getX(), clickPoint.getY());
+								if (this.rmGate && g.contains(clickPoint.getX(), clickPoint.getY())){
+									this.gatesToRemove.add(g);
+									this.rmGate = false;
+								} else {
+									g.onClick(clickPoint.getX(), clickPoint.getY());
+								}
 							} else {
-								this.selectedId = 1;
-								this.connG = pin;
+								if (this.rmWire){
+									if (this.rmW == null){
+										this.rmW = pin;
+									} else {
+										Wire foundWire = getWire(this.wires, this.rmW, pin);
+										if (foundWire != null){
+											this.wiresToRemove.add(foundWire);
+										} else {
+											System.out.println("No wire found");
+										}
+										this.rmW = null;
+										this.rmWire = false;
+									}
+								} else {
+									this.selectedId = 1;
+									this.connG = pin;	
+								}
 							}
 						}
 					}
@@ -208,8 +258,13 @@ public class MainApplication extends Application{
 					}
 				}
 				this.selectedGate = found;
+				this.rmGate = false;
+				this.rmWire = false;
+				this.rmW = null;
 				if (found == null){
 					this.selectedId = -1;
+					this.pinPoints.clear();
+					this.connG = null;
 					this.movePoint = new Point2D(e.getX(), e.getY());
 					this.deltaMove = new Point2D(0, 0);
 				} else if (found instanceof Chip && e.getClickCount() == 2){
@@ -238,7 +293,7 @@ public class MainApplication extends Application{
 		canvas.setOnMouseDragged(e -> {
 			if (e.getButton() == MouseButton.SECONDARY){
 				if (this.selectedGate != null){
-					Point2D clickPoint = getClickPoint(e);
+					Point2D clickPoint = getClickPoint(e.getX(), e.getY());
 					this.selectedGate.setPos(clickPoint.getX(), clickPoint.getY());
 				} else {
 					this.deltaMove = new Point2D(e.getX()-this.movePoint.getX(), e.getY()-this.movePoint.getY());
@@ -248,6 +303,7 @@ public class MainApplication extends Application{
 
 		canvas.setOnMouseReleased(e -> {
 			if (e.getButton() == MouseButton.SECONDARY){
+				this.selectedGate = null;
 				if (this.movePoint != null){
 					this.movePoint = null;
 					this.cameraX += this.deltaMove.getX();
@@ -262,17 +318,30 @@ public class MainApplication extends Application{
 			}
 		});
 
-		Timeline loop = new Timeline(new KeyFrame(Duration.millis(1000.0/FPS), e -> update(gc)));
+		Scene scene = new Scene(pane, WIDTH, HEIGHT);
+
+		Timeline loop = new Timeline(new KeyFrame(Duration.millis(1000.0/FPS), e -> {
+			update(gc);
+			if (this.rmWire || this.rmGate){
+				scene.setCursor(Cursor.CROSSHAIR);
+			} else if (this.movePoint != null){
+				scene.setCursor(Cursor.MOVE);
+			} else if (this.selectedGate != null){
+				scene.setCursor(Cursor.HAND);
+			} else {
+				scene.setCursor(Cursor.DEFAULT);
+			}
+		}));
 		loop.setCycleCount(Animation.INDEFINITE);
 		loop.play();
 		
 		stage.setResizable(false);
-		stage.setScene(new Scene(pane, WIDTH, HEIGHT));
+		stage.setScene(scene);
 		stage.show();
 	}
 
-	private Point2D getClickPoint(MouseEvent e){
-		Point2D clickPoint = new Point2D(e.getX(), e.getY());
+	private Point2D getClickPoint(double x, double y){
+		Point2D clickPoint = new Point2D(x, y);
 		clickPoint = clickPoint.subtract(this.cameraX, this.cameraY);
 		if (this.movePoint != null){
 			clickPoint = clickPoint.subtract(this.deltaMove);
@@ -377,7 +446,12 @@ public class MainApplication extends Application{
 				JSONObject wire = (JSONObject)o;
 				Gate.Pin p1 = getPinById(tempGates, wire.getInt("pin1"));
 				Gate.Pin p2 = getPinById(tempGates, wire.getInt("pin2"));
-				tempWires.add(new Wire(gc, p1, p2));
+				List<Point2D> points = new ArrayList<>();
+				for (Object o2 : wire.getJSONArray("points")){
+					JSONObject p = (JSONObject)o2;
+					points.add(new Point2D(p.getDouble("x"), p.getDouble("y")));
+				}
+				tempWires.add(new Wire(gc, p1, p2, points));
 			}
 
 			return json;
@@ -397,6 +471,15 @@ public class MainApplication extends Application{
 		}
 		return null;
 	}
+
+	public static Wire getWire(List<Wire> wires, Gate.Pin p1, Gate.Pin p2){
+		for (Wire w : wires){
+			if ((w.getPin1() == p1 && w.getPin2() == p2) || (w.getPin1() == p2 && w.getPin2() == p1)){
+				return w;
+			}
+		}
+		return null;
+	}
 	
 	private void update(GraphicsContext gc){
 		gc.clearRect(0, 0, WIDTH, HEIGHT);
@@ -404,17 +487,34 @@ public class MainApplication extends Application{
 		gc.fillRect(0, 0, WIDTH, HEIGHT);
 
 		gc.save();
+		gc.setFill(Color.BLACK);
+		gc.setGlobalAlpha(0.5);
+		gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
+		gc.restore();
+
+		gc.save();
 		gc.translate(this.cameraX, this.cameraY);
 		if (this.movePoint != null){
 			gc.translate(this.deltaMove.getX(), this.deltaMove.getY());
 		}
 		gc.scale(this.cameraScale, this.cameraScale);
+
 		for (Gate g : this.gates){
 			g.update();
 			g.render();
 		}
 		for (Wire w : this.wires){
 			w.render();
+		}
+
+		if (this.connG != null){
+			gc.setStroke(Color.BLACK);
+			gc.setLineWidth(3);
+			Point2D end = getClickPoint(this.mouseMoved.getX(), this.mouseMoved.getY());
+			List<Point2D[]> renderingPoints = Util.getPointsList(new Point2D(this.connG.getX(), this.connG.getY()), end, this.pinPoints);
+			for (Point2D[] line : renderingPoints){
+				gc.strokeLine(line[0].getX(), line[0].getY(), line[1].getX(), line[1].getY());
+			}
 		}
 
 		gc.restore();
@@ -432,6 +532,24 @@ public class MainApplication extends Application{
 			gc.fillRect(mouseMoved.getX(), mouseMoved.getY(), 50, 50);
 			gc.restore();
 		}
+
+		// Remove selected gate
+		// More than 1 if the user selected multiple gates during a frame update
+		for (int i = 0; i < this.gatesToRemove.size(); i++){
+			Gate g = this.gatesToRemove.get(i);
+			g.destroy(this.wires, this.wiresToRemove);
+			this.gates.remove(g);
+		}
+		this.gatesToRemove.clear();
+
+		// Remove selected wire
+		// More than 1 if the user selected multiple wires during a frame update
+		for (int i = 0; i < this.wiresToRemove.size(); i++){
+			Wire w = this.wiresToRemove.get(i);
+			w.destroy();
+			this.wires.remove(w);
+		}
+		this.wiresToRemove.clear();
 	}
 	
 	public static void main(String[] args){

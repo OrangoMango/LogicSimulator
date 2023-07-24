@@ -8,7 +8,7 @@ import java.util.*;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
-import com.orangomango.logicsim.Util;
+import com.orangomango.logicsim.MainApplication;
 
 public abstract class Gate{
 	protected GraphicsContext gc;
@@ -85,6 +85,10 @@ public abstract class Gate{
 			if (!this.attached.contains(o)){
 				this.attached.add(o);
 			}
+		}
+
+		public List<Pin> getAttachedPins(){
+			return this.attached;
 		}
 
 		private boolean hasOnPin(){
@@ -172,6 +176,15 @@ public abstract class Gate{
 
 	public String getName(){
 		return this.name;
+	}
+
+	public void destroy(List<Wire> wires, List<Wire> wiresToRemove){
+		for (Pin p : this.pins){
+			for (Pin attached : p.getAttachedPins()){
+				Wire w = MainApplication.getWire(wires, p, attached);
+				wiresToRemove.add(w);
+			}
+		}
 	}
 
 	public abstract void update();
