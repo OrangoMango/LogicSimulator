@@ -150,7 +150,7 @@ public class MainApplication extends Application{
 										break;
 									}
 								}
-								if (found != null){
+								if (found != null && found != this.connG){
 									if (this.connG == null){
 										this.connG = found;
 									} else {
@@ -212,7 +212,7 @@ public class MainApplication extends Application{
 					this.selectedId = -1;
 					this.movePoint = new Point2D(e.getX(), e.getY());
 					this.deltaMove = new Point2D(0, 0);
-				} else if (found instanceof Chip){
+				} else if (found instanceof Chip && e.getClickCount() == 2){
 					ContextMenu cm = new ContextMenu();
 					MenuItem showChip = new MenuItem("Look inside");
 					final Chip chip = (Chip)found;
@@ -339,6 +339,7 @@ public class MainApplication extends Application{
 				}
 				Gate gt = null;
 				int lastPinId = Gate.Pin.PIN_ID; // Save pin id
+				boolean lastPinFlag = Gate.Pin.UPDATE_PIN_ID;
 				if (name.equals("AND")){
 					gt = new AndGate(gc, rect);
 				} else if (name.equals("LIGHT")){
@@ -351,6 +352,7 @@ public class MainApplication extends Application{
 					gt = new Chip(gc, rect, new File(System.getProperty("user.dir"), gate.getString("fileName"))); // TODO (user.dir)
 				}
 				Gate.Pin.PIN_ID = lastPinId; // Restore the last pin id
+				Gate.Pin.UPDATE_PIN_ID = lastPinFlag;
 				gt.setPins(pins);
 				tempGates.add(gt);
 			}
@@ -414,13 +416,14 @@ public class MainApplication extends Application{
 		for (Wire w : this.wires){
 			w.render();
 		}
+
 		gc.restore();
 
 		// UI
 		for (UiButton ub : this.buttons){
 			ub.render();
 		}
-		this.sideArea.render();
+		if (this.selectedId == -1) this.sideArea.render();
 
 		if (this.selectedId >= 0 && this.selectedId != 1){
 			gc.save();
