@@ -44,6 +44,8 @@ public class MainApplication extends Application{
 	private Gate selectedGate;
 	private List<UiButton> buttons = new ArrayList<>();
 	private File selectedChipFile;
+	private Point2D movePoint, deltaMove = new Point2D(0, 0);
+	private double cameraX, cameraY;
 	
 	@Override
 	public void start(Stage stage){
@@ -122,6 +124,11 @@ public class MainApplication extends Application{
 		}
 
 		canvas.setOnMousePressed(e -> {
+			Point2D clickPoint = new Point2D(e.getX(), e.getY());
+			clickPoint = clickPoint.subtract(this.cameraX, this.cameraY);
+			if (this.movePoint != null){
+				clickPoint = clickPoint.subtract(this.deltaMove);
+			}
 			if (e.getButton() == MouseButton.PRIMARY){
 				if (e.getY() < TOOLBAR_Y && e.getX() < TOOLBAR_X){
 					for (UiButton ub : this.buttons){
@@ -132,12 +139,12 @@ public class MainApplication extends Application{
 						Gate g = null;
 						switch (this.selectedId){
 							case 0:
-								g = new Switch(gc, new Rectangle2D(e.getX(), e.getY(), 50, 50));
+								g = new Switch(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50));
 								break;
 							case 1:
 								Gate.Pin found = null;
 								for (Gate gt : this.gates){
-									Gate.Pin pin = gt.getPin(e.getX(), e.getY());
+									Gate.Pin pin = gt.getPin(clickPoint.getX(), clickPoint.getY());
 									if (pin != null){
 										found = pin;
 										break;
@@ -156,22 +163,22 @@ public class MainApplication extends Application{
 								}
 								break;
 							case 2:
-								g = new Light(gc, new Rectangle2D(e.getX(), e.getY(), 50, 50));
+								g = new Light(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50));
 								break;
 							case 3:
-								g = new NotGate(gc, new Rectangle2D(e.getX(), e.getY(), 50, 50));
+								g = new NotGate(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50));
 								break;
 							case 4:
-								g = new AndGate(gc, new Rectangle2D(e.getX(), e.getY(), 50, 50));
+								g = new AndGate(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50));
 								break;
 							case 5:
 								FileChooser fc = new FileChooser();
 								fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
 								File file = fc.showOpenDialog(stage);
-								g = new Chip(gc, new Rectangle2D(e.getX(), e.getY(), 125, 0), file);
+								g = new Chip(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 125, 0), file);
 								break;
 							case 6:
-								g = new Chip(gc, new Rectangle2D(e.getX(), e.getY(), 125, 0), this.selectedChipFile);
+								g = new Chip(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 125, 0), this.selectedChipFile);
 								break;
 						}
 						if (g != null){
@@ -181,9 +188,9 @@ public class MainApplication extends Application{
 					} else {
 						this.sideArea.onClick(e.getX(), e.getY());
 						for (Gate g : this.gates){
-							Gate.Pin pin = g.getPin(e.getX(), e.getY());
+							Gate.Pin pin = g.getPin(clickPoint.getX(), clickPoint.getY());
 							if (pin == null){
-								g.onClick(e.getX(), e.getY());
+								g.onClick(clickPoint.getX(), clickPoint.getY());
 							} else {
 								this.selectedId = 1;
 								this.connG = pin;
@@ -194,13 +201,17 @@ public class MainApplication extends Application{
 			} else if (e.getButton() == MouseButton.SECONDARY){
 				Gate found = null;
 				for (Gate g : this.gates){
-					if (g.contains(e.getX(), e.getY())){
+					if (g.contains(clickPoint.getX(), clickPoint.getY())){
 						found = g;
 						break;
 					}
 				}
 				this.selectedGate = found;
-				if (found == null) this.selectedId = -1;
+				if (found == null){
+					this.selectedId = -1;
+					this.movePoint = new Point2D(e.getX(), e.getY());
+					this.deltaMove = new Point2D(0, 0);
+				}
 			}
 		});
 
@@ -211,9 +222,24 @@ public class MainApplication extends Application{
 		canvas.setOnMouseDragged(e -> {
 			if (e.getButton() == MouseButton.SECONDARY){
 				if (this.selectedGate != null){
-					this.selectedGate.setPos(e.getX(), e.getY());
+					Point2D clickPoint = new Point2D(e.getX(), e.getY());
+					clickPoint = clickPoint.subtract(this.cameraX, this.cameraY);
+					if (this.movePoint != null){
+						clickPoint = clickPoint.subtract(this.deltaMove);
+					}
+					this.selectedGate.setPos(clickPoint.getX(), clickPoint.getY());
 				} else {
-					// TODO
+					this.deltaMove = new Point2D(e.getX()-this.movePoint.getX(), e.getY()-this.movePoint.getY());
+				}
+			}
+		});
+
+		canvas.setOnMouseReleased(e -> {
+			if (e.getButton() == MouseButton.SECONDARY){
+				if (this.movePoint != null){
+					this.movePoint = null;
+					this.cameraX += this.deltaMove.getX();
+					this.cameraY += this.deltaMove.getY();
 				}
 			}
 		});
@@ -357,6 +383,11 @@ public class MainApplication extends Application{
 		gc.setFill(Color.web("#EDEDED"));
 		gc.fillRect(0, 0, WIDTH, HEIGHT);
 
+		gc.save();
+		gc.translate(this.cameraX, this.cameraY);
+		if (this.movePoint != null){
+			gc.translate(this.deltaMove.getX(), this.deltaMove.getY());
+		}
 		for (Gate g : this.gates){
 			g.update();
 			g.render();
@@ -364,6 +395,7 @@ public class MainApplication extends Application{
 		for (Wire w : this.wires){
 			w.render();
 		}
+		gc.restore();
 
 		// UI
 		for (UiButton ub : this.buttons){
