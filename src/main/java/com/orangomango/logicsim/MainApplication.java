@@ -124,6 +124,7 @@ public class MainApplication extends Application{
 		this.sideArea.addButton("NOT", () -> this.selectedId = 3);
 		this.sideArea.addButton("AND", () -> this.selectedId = 4);
 		this.sideArea.addButton("CHIP", () -> this.selectedId = 5);
+		this.sideArea.addButton("DISPLAY7", () -> this.selectedId = 7);
 
 		this.sideArea.startSection();
 		for (File file : (new File(System.getProperty("user.dir"))).listFiles()){
@@ -210,6 +211,9 @@ public class MainApplication extends Application{
 								break;
 							case 6:
 								g = new Chip(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 125, 0), this.selectedChipFile);
+								break;
+							case 7:
+								g = new Display7(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 0, 0));
 								break;
 						}
 						if (g != null){
