@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 
 import com.orangomango.logicsim.MainApplication;
+import com.orangomango.logicsim.Util;
 
 public abstract class Gate{
 	protected GraphicsContext gc;
@@ -100,21 +101,25 @@ public abstract class Gate{
 			return false;
 		}
 
-		public void setSignal(boolean on){
-			this.on = on;
+		public void updateAttachedPins(){
 			if (!this.isInput()){
 				if (this.on){
 					for (Pin p : this.attached){
-						p.on = true;
+						p.setSignal(true);
 					}
 				} else {
 					for (Pin p : this.attached){
 						if (!p.hasOnPin()){
-							p.on = false;	
+							p.setSignal(false);	
 						}
 					}
 				}
 			}
+		}
+
+		public void setSignal(boolean on){
+			if (!Util.isPowerAvailable() && on) return; // POWER DISABLED
+			this.on = on;
 		}
 
 		public boolean isOn(){
@@ -128,6 +133,8 @@ public abstract class Gate{
 		public void render(GraphicsContext gc){
 			gc.setFill(this.on ? Color.GREEN : Color.BLACK);
 			gc.fillOval(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
+			//gc.setFill(Color.GREEN);
+			//gc.fillText(""+this.id, this.rect.getMinX()+(this.isInput() ? -25 : 25), this.rect.getMinY()+15);
 		}
 	}
 
@@ -152,8 +159,8 @@ public abstract class Gate{
 		}
 	}
 
-	public boolean contains(double x, double y){
-		return this.rect.contains(x, y);
+	public Rectangle2D getRect(){
+		return this.rect;
 	}
 
 	public void setPos(double x, double y){
@@ -187,7 +194,11 @@ public abstract class Gate{
 		}
 	}
 
-	public abstract void update();
+	public void update(){
+		for (Pin p : this.pins){
+			p.updateAttachedPins();
+		}
+	}
 
 	public final void render(){
 		render(this.gc);

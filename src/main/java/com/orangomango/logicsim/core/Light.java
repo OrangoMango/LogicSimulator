@@ -7,7 +7,7 @@ import javafx.scene.paint.Color;
 public class Light extends Gate{
 	public Light(GraphicsContext gc, Rectangle2D rect){
 		super(gc, "LIGHT", rect, Color.GRAY);
-		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMaxX(), rect.getMinY(), 15, 15), true));
+		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX()-15, rect.getMinY(), 15, 15), true));
 	}
 
 	public boolean isOn(){
@@ -16,6 +16,7 @@ public class Light extends Gate{
 
 	@Override
 	public void update(){
+		super.update();
 		this.color = isOn() ? Color.YELLOW : Color.GRAY;
 	}
 }

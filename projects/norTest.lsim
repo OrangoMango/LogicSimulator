@@ -1,0 +1,559 @@
+{
+    "wires": [
+        {
+            "pin1": 7,
+            "pin2": 8,
+            "points": []
+        },
+        {
+            "pin1": 9,
+            "pin2": 10,
+            "points": []
+        },
+        {
+            "pin1": 1,
+            "pin2": 17,
+            "points": []
+        },
+        {
+            "pin1": 0,
+            "pin2": 16,
+            "points": []
+        },
+        {
+            "pin1": 18,
+            "pin2": 19,
+            "points": []
+        },
+        {
+            "pin1": 20,
+            "pin2": 21,
+            "points": []
+        },
+        {
+            "pin1": 2,
+            "pin2": 4,
+            "points": [
+                {
+                    "x": 172,
+                    "y": 664
+                },
+                {
+                    "x": 311,
+                    "y": 673
+                }
+            ]
+        },
+        {
+            "pin1": 3,
+            "pin2": 12,
+            "points": [
+                {
+                    "x": 155,
+                    "y": 890
+                },
+                {
+                    "x": 282,
+                    "y": 885
+                }
+            ]
+        },
+        {
+            "pin1": 6,
+            "pin2": 14,
+            "points": []
+        },
+        {
+            "pin1": 13,
+            "pin2": 15,
+            "points": []
+        },
+        {
+            "pin1": 6,
+            "pin2": 11,
+            "points": [
+                {
+                    "x": 495,
+                    "y": 779
+                },
+                {
+                    "x": 300,
+                    "y": 792
+                }
+            ]
+        },
+        {
+            "pin1": 13,
+            "pin2": 5,
+            "points": [
+                {
+                    "x": 539,
+                    "y": 760
+                },
+                {
+                    "x": 343,
+                    "y": 767
+                }
+            ]
+        }
+    ],
+    "gates": [
+        {
+            "rect": {
+                "w": 50,
+                "x": 180,
+                "h": 50,
+                "y": 206
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 165,
+                    "h": 15,
+                    "y": 206
+                },
+                "attached": [16],
+                "id": 0,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 180,
+                "h": 50,
+                "y": 308
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 165,
+                    "h": 15,
+                    "y": 308
+                },
+                "attached": [17],
+                "id": 1,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 169,
+                "h": 50,
+                "y": 704
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 154,
+                    "h": 15,
+                    "y": 704
+                },
+                "attached": [4],
+                "id": 2,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 158,
+                "h": 50,
+                "y": 814
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 143,
+                    "h": 15,
+                    "y": 814
+                },
+                "attached": [12],
+                "id": 3,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 125,
+                "x": 372.22222222222223,
+                "h": 40,
+                "y": 697.7777777777778
+            },
+            "fileName": "nor.lsimc",
+            "color": {
+                "red": 0,
+                "green": 0.501960813999176,
+                "blue": 0
+            },
+            "name": "CHIP",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 357.22222222222223,
+                        "h": 15,
+                        "y": 697.7777777777778
+                    },
+                    "attached": [2],
+                    "id": 4,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 357.22222222222223,
+                        "h": 15,
+                        "y": 717.7777777777778
+                    },
+                    "attached": [13],
+                    "id": 5,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 497.2222222222225,
+                        "h": 15,
+                        "y": 697.7777777777778
+                    },
+                    "attached": [
+                        14,
+                        11
+                    ],
+                    "id": 6,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 204,
+                "h": 50,
+                "y": 490
+            },
+            "color": {
+                "red": 1,
+                "green": 0,
+                "blue": 0
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 189,
+                    "h": 15,
+                    "y": 490
+                },
+                "attached": [8],
+                "id": 7,
+                "doInput": false
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 365,
+                "h": 50,
+                "y": 492
+            },
+            "color": {
+                "red": 1,
+                "green": 0.6470588445663452,
+                "blue": 0
+            },
+            "name": "NOT",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 350,
+                        "h": 15,
+                        "y": 492
+                    },
+                    "attached": [7],
+                    "id": 8,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 415,
+                        "h": 15,
+                        "y": 492
+                    },
+                    "attached": [10],
+                    "id": 9,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 504,
+                "h": 50,
+                "y": 487
+            },
+            "color": {
+                "red": 1,
+                "green": 1,
+                "blue": 0
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 554,
+                    "h": 15,
+                    "y": 487
+                },
+                "attached": [9],
+                "id": 10,
+                "doInput": true
+            }]
+        },
+        {
+            "rect": {
+                "w": 125,
+                "x": 363,
+                "h": 40,
+                "y": 808
+            },
+            "fileName": "nor.lsimc",
+            "color": {
+                "red": 0,
+                "green": 0.501960813999176,
+                "blue": 0
+            },
+            "name": "CHIP",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 348,
+                        "h": 15,
+                        "y": 808
+                    },
+                    "attached": [6],
+                    "id": 11,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 348,
+                        "h": 15,
+                        "y": 828
+                    },
+                    "attached": [3],
+                    "id": 12,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 488,
+                        "h": 15,
+                        "y": 808
+                    },
+                    "attached": [
+                        15,
+                        5
+                    ],
+                    "id": 13,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 625,
+                "h": 50,
+                "y": 688
+            },
+            "color": {
+                "red": 1,
+                "green": 1,
+                "blue": 0
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 675,
+                    "h": 15,
+                    "y": 688
+                },
+                "attached": [6],
+                "id": 14,
+                "doInput": true
+            }]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 632,
+                "h": 50,
+                "y": 797
+            },
+            "color": {
+                "red": 0.501960813999176,
+                "green": 0.501960813999176,
+                "blue": 0.501960813999176
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 682,
+                    "h": 15,
+                    "y": 797
+                },
+                "attached": [13],
+                "id": 15,
+                "doInput": true
+            }]
+        },
+        {
+            "rect": {
+                "w": 125,
+                "x": 300,
+                "h": 40,
+                "y": 260
+            },
+            "fileName": "or.lsimc",
+            "color": {
+                "red": 0,
+                "green": 1,
+                "blue": 0
+            },
+            "name": "CHIP",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 285,
+                        "h": 15,
+                        "y": 260
+                    },
+                    "attached": [0],
+                    "id": 16,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 285,
+                        "h": 15,
+                        "y": 280
+                    },
+                    "attached": [1],
+                    "id": 17,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 425,
+                        "h": 15,
+                        "y": 260
+                    },
+                    "attached": [19],
+                    "id": 18,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 500,
+                "h": 50,
+                "y": 258
+            },
+            "color": {
+                "red": 1,
+                "green": 0.6470588445663452,
+                "blue": 0
+            },
+            "name": "NOT",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 485,
+                        "h": 15,
+                        "y": 258
+                    },
+                    "attached": [18],
+                    "id": 19,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 550,
+                        "h": 15,
+                        "y": 258
+                    },
+                    "attached": [21],
+                    "id": 20,
+                    "doInput": false
+                }
+            ]
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 643,
+                "h": 50,
+                "y": 262
+            },
+            "color": {
+                "red": 1,
+                "green": 1,
+                "blue": 0
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 693,
+                    "h": 15,
+                    "y": 262
+                },
+                "attached": [20],
+                "id": 21,
+                "doInput": true
+            }]
+        }
+    ]
+}

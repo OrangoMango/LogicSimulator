@@ -100,6 +100,7 @@ public class Chip extends Gate{
 
 	@Override
 	public void update(){
+		super.update();
 		for (Gate g : this.gates){
 			g.update();
 		}

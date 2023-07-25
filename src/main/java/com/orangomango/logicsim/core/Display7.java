@@ -10,18 +10,16 @@ public class Display7 extends Gate{
 	private DisplayPiece[] pieces = new DisplayPiece[7];
 
 	private static class DisplayPiece{
-		private GraphicsContext gc;
 		private Image image;
 		private double x, y;
 
-		public DisplayPiece(GraphicsContext gc, Image image, double x, double y){
-			this.gc = gc;
+		public DisplayPiece(Image image, double x, double y){
 			this.image = image;
 			this.x = x;
 			this.y = y;
 		}
 
-		public void render(){
+		public void render(GraphicsContext gc){
 			gc.drawImage(this.image, this.x, this.y, this.image.getWidth(), this.image.getHeight());
 		}
 
@@ -36,16 +34,16 @@ public class Display7 extends Gate{
 		this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), 70, 150);
 		this.image = new Image(getClass().getResourceAsStream("/display.png"));
 		for (int i = 0; i < 7; i++){
-			this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX()-15, rect.getMinY()+15*i, 15, 15), false));
+			this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX()-15, rect.getMinY()+20*i, 15, 15), true));
 		}
 
-		this.pieces[0] = new DisplayPiece(gc, new Image(getClass().getResourceAsStream("/display-h.png")), this.rect.getMinX()+6*2, this.rect.getMinY()+5*2);
-		this.pieces[1] = new DisplayPiece(gc, new Image(getClass().getResourceAsStream("/display-v.png")), this.rect.getMinX()+26*2, this.rect.getMinY()+11*2);
-		this.pieces[2] = new DisplayPiece(gc, new Image(getClass().getResourceAsStream("/display-v.png")), this.rect.getMinX()+26*2, this.rect.getMinY()+39*2);
-		this.pieces[3] = new DisplayPiece(gc, new Image(getClass().getResourceAsStream("/display-h.png")), this.rect.getMinX()+6*2, this.rect.getMinY()+63*2);
-		this.pieces[4] = new DisplayPiece(gc, new Image(getClass().getResourceAsStream("/display-v.png")), this.rect.getMinX()+3*2, this.rect.getMinY()+39*2);
-		this.pieces[5] = new DisplayPiece(gc, new Image(getClass().getResourceAsStream("/display-v.png")), this.rect.getMinX()+3*2, this.rect.getMinY()+11*2);
-		this.pieces[6] = new DisplayPiece(gc, new Image(getClass().getResourceAsStream("/display-h.png")), this.rect.getMinX()+6*2, this.rect.getMinY()+34*2);
+		this.pieces[0] = new DisplayPiece(new Image(getClass().getResourceAsStream("/display-h.png")), this.rect.getMinX()+6*2, this.rect.getMinY()+5*2);
+		this.pieces[1] = new DisplayPiece(new Image(getClass().getResourceAsStream("/display-v.png")), this.rect.getMinX()+26*2, this.rect.getMinY()+11*2);
+		this.pieces[2] = new DisplayPiece(new Image(getClass().getResourceAsStream("/display-v.png")), this.rect.getMinX()+26*2, this.rect.getMinY()+39*2);
+		this.pieces[3] = new DisplayPiece(new Image(getClass().getResourceAsStream("/display-h.png")), this.rect.getMinX()+6*2, this.rect.getMinY()+63*2);
+		this.pieces[4] = new DisplayPiece(new Image(getClass().getResourceAsStream("/display-v.png")), this.rect.getMinX()+3*2, this.rect.getMinY()+39*2);
+		this.pieces[5] = new DisplayPiece(new Image(getClass().getResourceAsStream("/display-v.png")), this.rect.getMinX()+3*2, this.rect.getMinY()+11*2);
+		this.pieces[6] = new DisplayPiece(new Image(getClass().getResourceAsStream("/display-h.png")), this.rect.getMinX()+6*2, this.rect.getMinY()+34*2);
 	}
 
 	@Override
@@ -59,16 +57,11 @@ public class Display7 extends Gate{
 	}
 
 	@Override
-	public void update(){
-		// Does nothing
-	}
-
-	@Override
 	public void render(GraphicsContext gc){
 		super.render(gc);
 		gc.drawImage(this.image, this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
 		for (int i = 0; i < 7; i++){
-			if (this.pins.get(i).isOn()) this.pieces[i].render();
+			if (this.pins.get(i).isOn()) this.pieces[i].render(gc);
 		}
 	}
 }

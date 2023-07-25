@@ -46,7 +46,7 @@ public class ChipCanvas{
 				clickPoint = clickPoint.multiply(1/this.scale);
 				Gate found = null;
 				for (Gate g : this.chip.getGates()){
-					if (g.contains(clickPoint.getX(), clickPoint.getY())){
+					if (g.getRect().contains(clickPoint.getX(), clickPoint.getY())){
 						found = g;
 						break;
 					}

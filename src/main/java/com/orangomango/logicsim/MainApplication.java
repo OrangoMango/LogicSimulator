@@ -8,8 +8,10 @@ import javafx.scene.Cursor;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.KeyCode;
 import javafx.scene.canvas.*;
 import javafx.scene.paint.Color;
+import javafx.scene.image.WritableImage;
 import javafx.animation.*;
 import javafx.util.Duration;
 import javafx.geometry.Rectangle2D;
@@ -21,9 +23,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.embed.swing.SwingFXUtils;
 
 import java.util.*;
 import java.io.*;
+import javax.imageio.ImageIO;
+import java.awt.image.RenderedImage;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -34,7 +39,7 @@ import com.orangomango.logicsim.core.*;
 public class MainApplication extends Application{
 	private static final double WIDTH = 1000;
 	private static final double HEIGHT = 800;
-	public static final int FPS = 40;
+	public static final int FPS = 60;
 	private static final double TOOLBAR_X = 650;
 	private static final double TOOLBAR_Y = 75;
 
@@ -81,12 +86,14 @@ public class MainApplication extends Application{
 			List<Gate> gates = new ArrayList<>();
 			List<Wire> wires = new ArrayList<>();
 			if (file != null){
+				int backup = Gate.Pin.PIN_ID;
+				Gate.Pin.PIN_ID = 0;
 				JSONObject json = load(file, gc, gates, wires);
 				if (json == null){
+					Gate.Pin.PIN_ID = backup;
 					return;
 				}
 				this.currentFile = file;
-				Gate.Pin.PIN_ID = 0;
 				this.gates = gates;
 				this.wires = wires;
 			}
@@ -113,6 +120,11 @@ public class MainApplication extends Application{
 			if (file != null){
 				this.currentFile = file;
 				save(file, name.getText(), colorPicker.getValue());
+				Alert info = new Alert(Alert.AlertType.INFORMATION);
+				info.setTitle("Saved");
+				info.setHeaderText("File saved");
+				info.setContentText("File saved successfully");
+				info.showAndWait();
 			}
 		});
 		UiButton clearButton = new UiButton(gc, "CLEAR", new Rectangle2D(475, 20, 100, 35), () -> {
@@ -122,12 +134,71 @@ public class MainApplication extends Application{
 		});
 		UiButton rmWireButton = new UiButton(gc, "RM WIRE", new Rectangle2D(600, 20, 75, 35), () -> this.rmWire = true);
 		UiButton rmGateButton = new UiButton(gc, "RM GATE", new Rectangle2D(700, 20, 75, 35), () -> this.rmGate = true);
+		UiButton exportButton = new UiButton(gc, "EXPORT", new Rectangle2D(800, 20, 75, 35), () ->{
+			double minPosX = Double.POSITIVE_INFINITY;
+			double maxPosX = Double.NEGATIVE_INFINITY;
+			double minPosY = Double.POSITIVE_INFINITY;
+			double maxPosY = Double.NEGATIVE_INFINITY;
+			for (Gate g : this.gates){
+				if (g.getRect().getMinX() < minPosX){
+					minPosX = g.getRect().getMinX();
+				}
+				if (g.getRect().getMaxX() > maxPosX){
+					maxPosX = g.getRect().getMaxX();
+				}
+				if (g.getRect().getMinY() < minPosY){
+					minPosY = g.getRect().getMinY();
+				}
+				if (g.getRect().getMaxY() > maxPosY){
+					maxPosY = g.getRect().getMaxY();
+				}
+			}
+			boolean changeX = false;
+			boolean changeY = false;
+			if (minPosX < 0){
+				changeX = true;
+				minPosX = -minPosX;
+			}
+			if (minPosY < 0){
+				changeY  = true;
+				minPosY = -minPosY;
+			}
+			int w = (int)(maxPosX+minPosX)+100;
+			int h = (int)(maxPosY+minPosY)+100;
+			Canvas tempCanvas = new Canvas(w, h);
+			if (changeX) tempCanvas.getGraphicsContext2D().translate(minPosX, 0);
+			if (changeY) tempCanvas.getGraphicsContext2D().translate(0, minPosY);
+			for (Gate g : this.gates){
+				g.render(tempCanvas.getGraphicsContext2D());
+			}
+			for (Wire wire : this.wires){
+				wire.render(tempCanvas.getGraphicsContext2D());
+			}
+			WritableImage image = tempCanvas.snapshot(null, new WritableImage(w, h));
+			FileChooser fc = new FileChooser();
+			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG Image", "*.png"));
+			File file = fc.showSaveDialog(stage);
+			if (file != null){
+				RenderedImage ri = SwingFXUtils.fromFXImage(image, null);
+				try {
+					ImageIO.write(ri, "png", file);
+				} catch (IOException ex){
+					ex.printStackTrace();
+				}
+				Alert info = new Alert(Alert.AlertType.INFORMATION);
+				info.setTitle("Saved");
+				info.setHeaderText("File saved");
+				info.setContentText("File saved successfully");
+				info.showAndWait();
+			}
+		});
 		this.buttons.add(saveButton);
 		this.buttons.add(loadButton);
 		this.buttons.add(saveChipButton);
 		this.buttons.add(clearButton);
 		this.buttons.add(rmWireButton);
 		this.buttons.add(rmGateButton);
+		this.buttons.add(exportButton);
 		
 		this.sideArea = new SideArea(gc, new Rectangle2D(950, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, 350, 800));
 		this.sideArea.addButton("Switch", () -> this.selectedId = 0);
@@ -139,7 +210,7 @@ public class MainApplication extends Application{
 		this.sideArea.addButton("DISPLAY7", () -> this.selectedId = 7);
 
 		this.sideArea.startSection();
-		for (File file : (new File(System.getProperty("user.dir"))).listFiles()){
+		for (File file : (new File(System.getProperty("user.dir"), "projects")).listFiles()){
 			String nm = file.getName();
 			if (nm.endsWith(".lsimc")){
 				this.sideArea.addButton(nm.substring(0, nm.lastIndexOf(".")), () -> {
@@ -148,6 +219,13 @@ public class MainApplication extends Application{
 				});
 			}
 		}
+
+		canvas.setFocusTraversable(true);
+		canvas.setOnKeyPressed(e -> {
+			if (e.getCode() == KeyCode.P){
+				Util.toggleCircuitPower(this.gates);
+			}
+		});
 
 		canvas.setOnMousePressed(e -> {
 			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
@@ -177,6 +255,16 @@ public class MainApplication extends Application{
 									if (this.connG == null){
 										this.connG = found;
 									} else {
+										if (e.isShiftDown() && this.pinPoints.size() > 0){
+											Point2D thisPoint = new Point2D(found.getX(), found.getY());
+											Point2D ref = this.pinPoints.get(this.pinPoints.size()-1);
+											if (Math.abs(thisPoint.getX()-ref.getX()) > Math.abs(thisPoint.getY()-ref.getY())){
+												ref = new Point2D(ref.getX(), thisPoint.getY());
+											} else {
+												ref = new Point2D(thisPoint.getX(), ref.getY());
+											}
+											this.pinPoints.set(this.pinPoints.size()-1, ref);
+										}
 										this.wires.add(new Wire(gc, this.connG, found, new ArrayList<Point2D>(this.pinPoints)));
 										this.connG = null;
 										this.selectedId = -1;
@@ -240,7 +328,7 @@ public class MainApplication extends Application{
 						for (Gate g : this.gates){
 							Gate.Pin pin = g.getPin(clickPoint.getX(), clickPoint.getY());
 							if (pin == null){
-								if (this.rmGate && g.contains(clickPoint.getX(), clickPoint.getY())){
+								if (this.rmGate && g.getRect().contains(clickPoint.getX(), clickPoint.getY())){
 									this.gatesToRemove.add(g);
 									this.rmGate = false;
 								} else {
@@ -271,7 +359,7 @@ public class MainApplication extends Application{
 			} else if (e.getButton() == MouseButton.SECONDARY){
 				Gate found = null;
 				for (Gate g : this.gates){
-					if (g.contains(clickPoint.getX(), clickPoint.getY())){
+					if (g.getRect().contains(clickPoint.getX(), clickPoint.getY())){
 						found = g;
 						break;
 					}
@@ -522,6 +610,9 @@ public class MainApplication extends Application{
 
 		gc.save();
 		gc.setFill(Color.BLACK);
+
+		gc.fillText("ID:" + Gate.Pin.PIN_ID, 50, 300);
+
 		gc.setGlobalAlpha(0.5);
 		gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
 		gc.restore();
