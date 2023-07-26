@@ -10,7 +10,7 @@ public class Switch extends Gate{
 	public Switch(GraphicsContext gc, Rectangle2D rect){
 		super(gc, "SWITCH", rect, Color.RED);
 		this.onClick = () -> setOn(!this.on);
-		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMaxX(), rect.getMinY(), 15, 15), false));
+		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMaxX()-7, rect.getMinY()+7, 15, 15), false));
 	}
 
 	public void setOn(boolean v){

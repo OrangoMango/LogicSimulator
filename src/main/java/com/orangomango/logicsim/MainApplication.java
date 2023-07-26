@@ -458,6 +458,8 @@ public class MainApplication extends Application{
 				scene.setCursor(Cursor.MOVE);
 			} else if (this.selectedGate != null){
 				scene.setCursor(Cursor.HAND);
+			} else if (this.selectedId >= 0 && this.selectedId != 1){
+				scene.setCursor(Cursor.CLOSED_HAND);
 			} else {
 				scene.setCursor(Cursor.DEFAULT);
 			}
@@ -685,14 +687,6 @@ public class MainApplication extends Application{
 			ub.render();
 		}
 		if (this.selectedId == -1) this.sideArea.render();
-
-		if (this.selectedId >= 0 && this.selectedId != 1){
-			gc.save();
-			gc.setFill(Color.YELLOW);
-			gc.setGlobalAlpha(0.6);
-			gc.fillRect(mouseMoved.getX(), mouseMoved.getY(), 50, 50);
-			gc.restore();
-		}
 
 		// Remove selected gate
 		// More than 1 if the user selected multiple gates during a frame update

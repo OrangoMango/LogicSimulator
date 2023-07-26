@@ -30,10 +30,6 @@ public abstract class Gate{
 		private int id;
 		private static final Font FONT = new Font("sans-serif", 9);
 
-		// DEBUG
-		private long lastOff = System.currentTimeMillis();
-		private long timeDiff;
-
 		public static int PIN_ID = 0;
 		public static boolean UPDATE_PIN_ID = true;
 
@@ -128,12 +124,6 @@ public abstract class Gate{
 		public void setSignal(boolean on, boolean power){
 			if (!power && on) return; // Power disabled
 			this.on = on;
-
-			// DEBUG
-			if (!this.on){
-				this.lastOff = System.currentTimeMillis();
-				this.timeDiff = 0;
-			}
 		}
 
 		public boolean isOn(){
@@ -153,14 +143,6 @@ public abstract class Gate{
 			gc.setFont(FONT);
 			gc.fillText(Integer.toString(this.id), this.rect.getMinX()+(this.isInput() ? 20 : -5), this.rect.getMinY()+13);
 			gc.restore();
-
-			if (this.on){
-				gc.setFill(Color.BLACK);
-				if (this.timeDiff == 0){
-					this.timeDiff = System.currentTimeMillis()-this.lastOff;
-				}
-				gc.fillText(this.timeDiff+"ms", this.rect.getMinX(), this.rect.getMinY()-2);
-			}
 		}
 	}
 

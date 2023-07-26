@@ -52,14 +52,16 @@ public class Chip extends Gate{
 			}
 		}
 
-		this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), Math.max(this.inputGates.size(), this.outputGates.size())*20);
+		this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), Math.max(this.inputGates.size(), this.outputGates.size())*20+5);
+		double inputOffset = (this.rect.getHeight()-(this.inputGates.size()*15))/(this.inputGates.size()+1);
 		for (int i = 0; i < this.inputGates.size(); i++){
-			Gate.Pin pin = new Gate.Pin(new Rectangle2D(this.rect.getMinX()-15, this.rect.getMinY()+i*20, 15, 15), true);
+			Gate.Pin pin = new Gate.Pin(new Rectangle2D(this.rect.getMinX()-7, this.rect.getMinY()+inputOffset+i*(15+inputOffset), 15, 15), true);
 			this.pins.add(pin);
 			this.inputPins.add(pin);
 		}
+		double outputOffset = (this.rect.getHeight()-(this.outputGates.size()*15))/(this.outputGates.size()+1);
 		for (int i = 0; i < this.outputGates.size(); i++){
-			Gate.Pin pin = new Gate.Pin(new Rectangle2D(this.rect.getMaxX(), this.rect.getMinY()+i*20, 15, 15), false);
+			Gate.Pin pin = new Gate.Pin(new Rectangle2D(this.rect.getMaxX()-7, this.rect.getMinY()+outputOffset+i*(15+outputOffset), 15, 15), false);
 			this.pins.add(pin);
 			this.outputPins.add(pin);
 		}

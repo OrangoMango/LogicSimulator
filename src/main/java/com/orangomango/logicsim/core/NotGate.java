@@ -9,8 +9,8 @@ public class NotGate extends Gate implements DelayedGate{
 
 	public NotGate(GraphicsContext gc, Rectangle2D rect){
 		super(gc, "NOT", rect, Color.ORANGE);
-		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX()-15, rect.getMinY(), 15, 15), true)); // Input
-		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMaxX(), rect.getMinY(), 15, 15), false)); // Output
+		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX()-7, rect.getMinY()+7, 15, 15), true)); // Input
+		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMaxX()-7, rect.getMinY()+7, 15, 15), false)); // Output
 	}
 
 	@Override

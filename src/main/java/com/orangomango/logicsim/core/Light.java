@@ -9,7 +9,7 @@ public class Light extends Gate{
 
 	public Light(GraphicsContext gc, Rectangle2D rect){
 		super(gc, "LIGHT", rect, Color.GRAY);
-		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX()-15, rect.getMinY(), 15, 15), true));
+		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX()-7, rect.getMinY()+7, 15, 15), true));
 	}
 
 	public boolean isOn(){
