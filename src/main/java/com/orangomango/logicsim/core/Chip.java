@@ -10,6 +10,7 @@ import java.io.File;
 import org.json.JSONObject;
 
 import com.orangomango.logicsim.MainApplication;
+import com.orangomango.logicsim.Util;
 
 public class Chip extends Gate{
 	private List<Gate> gates = new ArrayList<>();
@@ -31,6 +32,14 @@ public class Chip extends Gate{
 		this.json = MainApplication.load(this.file, this.gc, this.gates, this.wires);
 		Gate.Pin.UPDATE_PIN_ID = true;
 		if (this.json == null) return;
+
+		// Turn on all the subgates
+		if (isPowered()){
+			Util.schedule(() -> {
+				Util.updateGatesPower(this.gates, false);
+				Util.updateGatesPower(this.gates, true);
+			}, Util.GATE_DELAY);
+		}
 
 		this.color = Color.color(this.json.getJSONObject("color").getDouble("red"), this.json.getJSONObject("color").getDouble("green"), this.json.getJSONObject("color").getDouble("blue"));
 		this.name = this.json.getString("chipName");
@@ -100,26 +109,27 @@ public class Chip extends Gate{
 
 	@Override
 	public void update(){
-		super.update();
 		for (Gate g : this.gates){
 			g.update();
 		}
-
 		for (int i = 0; i < this.inputPins.size(); i++){
 			Gate.Pin pin = this.inputPins.get(i);
 			((Switch)this.inputGates.get(i)).setOn(pin.isOn());
 		}
 		for (int i = 0; i < this.outputGates.size(); i++){
 			Light l = (Light)this.outputGates.get(i);
-			this.outputPins.get(i).setSignal(l.isOn());
+			this.outputPins.get(i).setSignal(l.isOn(), isPowered());
 		}
+		super.update();
 	}
 
 	@Override
 	public void render(GraphicsContext gc){
 		super.render(gc);
-		gc.setFill(Color.BLACK);
+		gc.setFill(Util.isDarkColor(this.color) ? Color.WHITE : Color.BLACK);
+		gc.save();
 		gc.setTextAlign(TextAlignment.CENTER);
-		gc.fillText(this.name, this.rect.getMinX()+this.rect.getWidth()/2, this.rect.getMinY()+this.rect.getHeight()/2);
+		gc.fillText(Util.wrapString(this.name, 5), this.rect.getMinX()+this.rect.getWidth()/2, this.rect.getMinY()+this.rect.getHeight()/2);
+		gc.restore();
 	}
 }

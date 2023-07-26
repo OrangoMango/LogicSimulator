@@ -21,6 +21,6 @@ public class Switch extends Gate{
 	@Override
 	public void update(){
 		super.update();
-		this.pins.get(0).setSignal(this.on);
+		this.pins.get(0).setSignal(this.on, isPowered());
 	}
 }

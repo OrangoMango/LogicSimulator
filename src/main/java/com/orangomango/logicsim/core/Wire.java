@@ -34,6 +34,10 @@ public class Wire{
 		return this.pin2;
 	}
 
+	public List<Point2D> getPoints(){
+		return this.points;
+	}
+
 	public void destroy(){
 		this.pin1.getAttachedPins().remove(this.pin2);
 		this.pin2.getAttachedPins().remove(this.pin1);

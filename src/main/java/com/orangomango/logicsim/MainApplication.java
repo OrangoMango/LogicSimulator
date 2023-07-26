@@ -39,7 +39,7 @@ import com.orangomango.logicsim.core.*;
 public class MainApplication extends Application{
 	private static final double WIDTH = 1000;
 	private static final double HEIGHT = 800;
-	public static final int FPS = 60;
+	public static final int FPS = 40;
 	private static final double TOOLBAR_X = 650;
 	private static final double TOOLBAR_Y = 75;
 
@@ -69,13 +69,20 @@ public class MainApplication extends Application{
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		pane.getChildren().add(canvas);
 
+		Util.toggleCircuitPower(this.gates); // Circuit starts with power off.
+
 		UiButton saveButton = new UiButton(gc, "SAVE", new Rectangle2D(50, 20, 100, 35), () -> {
 			FileChooser fc = new FileChooser();
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
-			File file = fc.showSaveDialog(stage);
+			File file = this.currentFile == null ? fc.showSaveDialog(stage) : this.currentFile;
 			if (file != null){
 				this.currentFile = file;
 				save(file);
+				Alert info = new Alert(Alert.AlertType.INFORMATION);
+				info.setTitle("Saved");
+				info.setHeaderText("File saved");
+				info.setContentText("File saved successfully");
+				info.showAndWait();
 			}
 		});
 		UiButton loadButton = new UiButton(gc, "LOAD", new Rectangle2D(175, 20, 100, 35), () -> {
@@ -131,6 +138,7 @@ public class MainApplication extends Application{
 			this.wires = new ArrayList<Wire>();
 			this.gates = new ArrayList<Gate>();
 			Gate.Pin.PIN_ID = 0;
+			this.currentFile = null;
 		});
 		UiButton rmWireButton = new UiButton(gc, "RM WIRE", new Rectangle2D(600, 20, 75, 35), () -> this.rmWire = true);
 		UiButton rmGateButton = new UiButton(gc, "RM GATE", new Rectangle2D(700, 20, 75, 35), () -> this.rmGate = true);
@@ -166,6 +174,7 @@ public class MainApplication extends Application{
 			int w = (int)(maxPosX+minPosX)+100;
 			int h = (int)(maxPosY+minPosY)+100;
 			Canvas tempCanvas = new Canvas(w, h);
+			tempCanvas.getGraphicsContext2D().translate(50, 50);
 			if (changeX) tempCanvas.getGraphicsContext2D().translate(minPosX, 0);
 			if (changeY) tempCanvas.getGraphicsContext2D().translate(0, minPosY);
 			for (Gate g : this.gates){
@@ -288,6 +297,20 @@ public class MainApplication extends Application{
 												finalPoint = new Point2D(finalPoint.getX(), ref.getY());
 											} else {
 												finalPoint = new Point2D(ref.getX(), finalPoint.getY());
+											}
+										} else if (e.isAltDown()){
+											double minDistance = Double.POSITIVE_INFINITY;
+											Point2D ref = null;
+											for (Wire w : this.wires){
+												for (Point2D p : w.getPoints()){
+													if (p.distance(finalPoint) < minDistance){
+														ref = p;
+														minDistance = p.distance(finalPoint);
+													}
+												}
+											}
+											if (ref != null){
+												finalPoint = new Point2D(ref.getX(), ref.getY());
 											}
 										}
 										this.pinPoints.add(finalPoint);
@@ -442,6 +465,22 @@ public class MainApplication extends Application{
 		}));
 		loop.setCycleCount(Animation.INDEFINITE);
 		loop.play();
+
+		Thread simulation = new Thread(() -> {
+			while (true){
+				try {
+					for (int i = 0; i < this.gates.size(); i++){
+						Gate g = this.gates.get(i);
+						g.update();
+					}
+					Thread.sleep(2);
+				} catch (InterruptedException ex){
+					ex.printStackTrace();
+				}
+			}
+		});
+		simulation.setDaemon(true);
+		simulation.start();
 		
 		stage.setResizable(false);
 		stage.setScene(scene);
@@ -609,15 +648,6 @@ public class MainApplication extends Application{
 		gc.fillRect(0, 0, WIDTH, HEIGHT);
 
 		gc.save();
-		gc.setFill(Color.BLACK);
-
-		gc.fillText("ID:" + Gate.Pin.PIN_ID, 50, 300);
-
-		gc.setGlobalAlpha(0.5);
-		gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
-		gc.restore();
-
-		gc.save();
 		gc.translate(this.cameraX, this.cameraY);
 		if (this.movePoint != null){
 			gc.translate(this.deltaMove.getX(), this.deltaMove.getY());
@@ -625,7 +655,6 @@ public class MainApplication extends Application{
 		gc.scale(this.cameraScale, this.cameraScale);
 
 		for (Gate g : this.gates){
-			g.update();
 			g.render();
 		}
 		for (Wire w : this.wires){
@@ -645,6 +674,13 @@ public class MainApplication extends Application{
 		gc.restore();
 
 		// UI
+		gc.save();
+		gc.setFill(Color.BLACK);
+		gc.fillText("ID:" + Gate.Pin.PIN_ID + "\nPower: " + Util.isPowerOn(), 50, 300);
+		gc.setGlobalAlpha(0.5);
+		gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
+		gc.restore();
+
 		for (UiButton ub : this.buttons){
 			ub.render();
 		}
@@ -664,6 +700,9 @@ public class MainApplication extends Application{
 			Gate g = this.gatesToRemove.get(i);
 			g.destroy(this.wires, this.wiresToRemove);
 			this.gates.remove(g);
+		}
+		if (this.gatesToRemove.size() > 0){
+			Gate.Pin.PIN_ID = this.gates.stream().flatMap(g -> g.getPins().stream()).mapToInt(p -> p.getId()).max().orElse(-1)+1;
 		}
 		this.gatesToRemove.clear();
 

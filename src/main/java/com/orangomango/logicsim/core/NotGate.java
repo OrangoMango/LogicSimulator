@@ -4,7 +4,9 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.paint.Color;
 
-public class NotGate extends Gate{
+public class NotGate extends Gate implements DelayedGate{
+	private boolean lastValue;
+
 	public NotGate(GraphicsContext gc, Rectangle2D rect){
 		super(gc, "NOT", rect, Color.ORANGE);
 		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX()-15, rect.getMinY(), 15, 15), true)); // Input
@@ -12,8 +14,18 @@ public class NotGate extends Gate{
 	}
 
 	@Override
+	public void setLastValue(boolean v){
+		this.lastValue = v;
+	}
+
+	@Override
+	public boolean getLastValue(){
+		return this.lastValue;
+	}
+
+	@Override
 	public void update(){
 		super.update();
-		this.pins.get(1).setSignal(!this.pins.get(0).isOn());
+		applyValue(() -> !this.pins.get(0).isOn(), v -> this.pins.get(1).setSignal(v, isPowered()));
 	}
 }

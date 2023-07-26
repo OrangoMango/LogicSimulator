@@ -3,6 +3,8 @@ package com.orangomango.logicsim.core;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
+import javafx.scene.text.Font;
 
 import java.util.*;
 import org.json.JSONObject;
@@ -17,14 +19,20 @@ public abstract class Gate{
 	protected Color color;
 	protected Runnable onClick;
 	protected List<Pin> pins = new ArrayList<>();
+	private boolean power;
 	private String name;
 
 	public static class Pin{
 		private Rectangle2D rect;
-		private boolean on;
+		private volatile boolean on;
 		private List<Pin> attached = new ArrayList<>();
 		private boolean doInput;
 		private int id;
+		private static final Font FONT = new Font("sans-serif", 9);
+
+		// DEBUG
+		private long lastOff = System.currentTimeMillis();
+		private long timeDiff;
 
 		public static int PIN_ID = 0;
 		public static boolean UPDATE_PIN_ID = true;
@@ -101,25 +109,31 @@ public abstract class Gate{
 			return false;
 		}
 
-		public void updateAttachedPins(){
+		public void updateAttachedPins(boolean power){
 			if (!this.isInput()){
 				if (this.on){
 					for (Pin p : this.attached){
-						p.setSignal(true);
+						p.setSignal(true, power);
 					}
 				} else {
 					for (Pin p : this.attached){
 						if (!p.hasOnPin()){
-							p.setSignal(false);	
+							p.setSignal(false, power);	
 						}
 					}
 				}
 			}
 		}
 
-		public void setSignal(boolean on){
-			if (!Util.isPowerAvailable() && on) return; // POWER DISABLED
+		public void setSignal(boolean on, boolean power){
+			if (!power && on) return; // Power disabled
 			this.on = on;
+
+			// DEBUG
+			if (!this.on){
+				this.lastOff = System.currentTimeMillis();
+				this.timeDiff = 0;
+			}
 		}
 
 		public boolean isOn(){
@@ -130,11 +144,23 @@ public abstract class Gate{
 			return this.id;
 		}
 
-		public void render(GraphicsContext gc){
+		public void render(GraphicsContext gc, Color gateColor){
 			gc.setFill(this.on ? Color.GREEN : Color.BLACK);
 			gc.fillOval(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
-			//gc.setFill(Color.GREEN);
-			//gc.fillText(""+this.id, this.rect.getMinX()+(this.isInput() ? -25 : 25), this.rect.getMinY()+15);
+			gc.setFill(Util.isDarkColor(gateColor) ? Color.WHITE : Color.BLACK);
+			gc.save();
+			gc.setTextAlign(this.isInput() ? TextAlignment.LEFT : TextAlignment.RIGHT);
+			gc.setFont(FONT);
+			gc.fillText(Integer.toString(this.id), this.rect.getMinX()+(this.isInput() ? 20 : -5), this.rect.getMinY()+13);
+			gc.restore();
+
+			if (this.on){
+				gc.setFill(Color.BLACK);
+				if (this.timeDiff == 0){
+					this.timeDiff = System.currentTimeMillis()-this.lastOff;
+				}
+				gc.fillText(this.timeDiff+"ms", this.rect.getMinX(), this.rect.getMinY()-2);
+			}
 		}
 	}
 
@@ -143,6 +169,7 @@ public abstract class Gate{
 		this.rect = rect;
 		this.color = color;
 		this.name = name;
+		this.power = Util.isPowerOn();
 	}
 
 	public void setPins(List<Pin> pins){
@@ -194,9 +221,22 @@ public abstract class Gate{
 		}
 	}
 
+	public void setPower(boolean v){
+		this.power = v;
+		if (!this.power){
+			for (Pin p : this.pins){
+				p.setSignal(false, this.power);
+			}
+		}
+	}
+
+	protected boolean isPowered(){
+		return this.power;
+	}
+
 	public void update(){
 		for (Pin p : this.pins){
-			p.updateAttachedPins();
+			p.updateAttachedPins(this.power);
 		}
 	}
 
@@ -208,7 +248,7 @@ public abstract class Gate{
 		gc.setFill(this.color);
 		gc.fillRect(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
 		for (Pin pin : pins){
-			pin.render(gc);
+			pin.render(gc, this.color);
 		}
 	}
 
