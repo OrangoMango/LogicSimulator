@@ -488,11 +488,11 @@ public class MainApplication extends Application{
 						this.deltaMove = new Point2D(e.getX()-this.selectionMoveStart.getX(), e.getY()-this.selectionMoveStart.getY());
 						this.selectionMoveStart = new Point2D(e.getX(), e.getY());
 						for (Gate g : this.selectedGates){
-							g.setPos(g.getRect().getMinX()+this.deltaMove.getX(), g.getRect().getMinY()+this.deltaMove.getY());
+							g.setPos(g.getRect().getMinX()+this.deltaMove.getX()/this.cameraScale, g.getRect().getMinY()+this.deltaMove.getY()/this.cameraScale);
 						}
 						for (Wire.WirePoint wp : this.selectedWirePoints){
-							wp.setX(wp.getX()+this.deltaMove.getX());
-							wp.setY(wp.getY()+this.deltaMove.getY());
+							wp.setX(wp.getX()+this.deltaMove.getX()/this.cameraScale);
+							wp.setY(wp.getY()+this.deltaMove.getY()/this.cameraScale);
 						}
 					}
 				}
@@ -531,6 +531,7 @@ public class MainApplication extends Application{
 		canvas.setOnScroll(e -> {
 			if (e.getDeltaY() != 0){
 				this.cameraScale += (e.getDeltaY() > 0 ? 0.05 : -0.05);
+				this.cameraScale = Math.max(0.3, Math.min(this.cameraScale, 2));
 			}
 		});
 
@@ -735,6 +736,22 @@ public class MainApplication extends Application{
 		gc.setFill(Color.web("#EDEDED"));
 		gc.fillRect(0, 0, WIDTH, HEIGHT);
 
+		// Render the grid
+		double gridSize = 50*this.cameraScale;
+		gridSize = Math.min(100, Math.max(gridSize, 15));
+		gc.save();
+		gc.setStroke(Color.web("#A2A2A2"));
+		gc.setLineWidth(1.5);
+		int offsetX = (int)((this.cameraX+(this.movePoint != null ? this.deltaMove.getX() : 0)) % gridSize);
+		int offsetY = (int)((this.cameraY+(this.movePoint != null ? this.deltaMove.getY() : 0)) % gridSize);
+		for (int i = offsetX; i < WIDTH; i += gridSize){
+			gc.strokeLine(i, 0, i, HEIGHT);
+		}
+		for (int i = offsetY; i < HEIGHT; i += gridSize){
+			gc.strokeLine(0, i, WIDTH, i);
+		}
+		gc.restore();
+
 		gc.save();
 		gc.translate(this.cameraX, this.cameraY);
 		if (this.movePoint != null){
@@ -790,7 +807,7 @@ public class MainApplication extends Application{
 		// UI
 		gc.save();
 		gc.setFill(Color.BLACK);
-		gc.fillText("ID:" + Gate.Pin.PIN_ID + "\nPower: " + Util.isPowerOn(), 50, 300);
+		gc.fillText(String.format("ID: %d\nPower: %s\nScale: %.2f", Gate.Pin.PIN_ID, Util.isPowerOn(), this.cameraScale), 60, 300);
 		gc.setGlobalAlpha(0.5);
 		gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
 		gc.restore();
