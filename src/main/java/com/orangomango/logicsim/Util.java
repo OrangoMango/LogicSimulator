@@ -1,6 +1,7 @@
 package com.orangomango.logicsim;
 
 import javafx.geometry.Point2D;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.paint.Color;
 
 import java.util.*;
@@ -53,6 +54,12 @@ public abstract class Util{
 			builder.append("\n");
 		}
 		return builder.toString();
+	}
+
+	public static Rectangle2D buildRect(Point2D point, double width, double height){
+		double px = width > 0 ? point.getX() : point.getX()+width;
+		double py = height > 0 ? point.getY() : point.getY()+height;
+		return new Rectangle2D(px, py, Math.abs(width), Math.abs(height));
 	}
 
 	public static boolean isDarkColor(Color color){

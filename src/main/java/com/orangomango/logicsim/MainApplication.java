@@ -51,7 +51,8 @@ public class MainApplication extends Application{
 	private List<Wire> wires = new ArrayList<>();
 	private Gate.Pin connG;
 	private List<Point2D> pinPoints = new ArrayList<>();
-	private Gate selectedGate;
+	private List<Gate> selectedGates = new ArrayList<>();
+	private List<Wire.WirePoint> selectedWirePoints = new ArrayList<>();
 	private List<UiButton> buttons = new ArrayList<>();
 	private File selectedChipFile;
 	private Point2D movePoint, deltaMove = new Point2D(0, 0); // For camera movement
@@ -61,6 +62,9 @@ public class MainApplication extends Application{
 	private Gate.Pin rmW;
 	private List<Wire> wiresToRemove = new ArrayList<>();
 	private List<Gate> gatesToRemove = new ArrayList<>();
+	private Point2D selectedRectanglePoint = null;
+	private double selectedAreaWidth, selectedAreaHeight;
+	private Point2D selectionMoveStart;
 	
 	@Override
 	public void start(Stage stage){
@@ -73,6 +77,7 @@ public class MainApplication extends Application{
 
 		UiButton saveButton = new UiButton(gc, "SAVE", new Rectangle2D(50, 20, 100, 35), () -> {
 			FileChooser fc = new FileChooser();
+			fc.setTitle("Save project");
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
 			File file = this.currentFile == null ? fc.showSaveDialog(stage) : this.currentFile;
 			if (file != null){
@@ -87,6 +92,7 @@ public class MainApplication extends Application{
 		});
 		UiButton loadButton = new UiButton(gc, "LOAD", new Rectangle2D(175, 20, 100, 35), () -> {
 			FileChooser fc = new FileChooser();
+			fc.setTitle("Load project");
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
 			File file = fc.showOpenDialog(stage);
@@ -122,6 +128,7 @@ public class MainApplication extends Application{
 			alert.getDialogPane().setContent(gpane);
 			alert.showAndWait();
 			FileChooser fc = new FileChooser();
+			fc.setTitle("Save chip");
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
 			File file = fc.showSaveDialog(stage);
 			if (file != null){
@@ -140,9 +147,15 @@ public class MainApplication extends Application{
 			Gate.Pin.PIN_ID = 0;
 			this.currentFile = null;
 		});
-		UiButton rmWireButton = new UiButton(gc, "RM WIRE", new Rectangle2D(600, 20, 75, 35), () -> this.rmWire = true);
-		UiButton rmGateButton = new UiButton(gc, "RM GATE", new Rectangle2D(700, 20, 75, 35), () -> this.rmGate = true);
-		UiButton exportButton = new UiButton(gc, "EXPORT", new Rectangle2D(800, 20, 75, 35), () ->{
+		UiButton rmWireButton = new UiButton(gc, "RM WIRE", new Rectangle2D(600, 20, 75, 35), () -> {
+			this.rmWire = true;
+			this.rmGate = false;
+		});
+		UiButton rmGateButton = new UiButton(gc, "RM GATE", new Rectangle2D(700, 20, 75, 35), () -> {
+			this.rmGate = true;
+			this.rmWire = false;
+		});
+		UiButton exportButton = new UiButton(gc, "EXPORT", new Rectangle2D(800, 20, 75, 35), () -> {
 			double minPosX = Double.POSITIVE_INFINITY;
 			double maxPosX = Double.NEGATIVE_INFINITY;
 			double minPosY = Double.POSITIVE_INFINITY;
@@ -185,6 +198,7 @@ public class MainApplication extends Application{
 			}
 			WritableImage image = tempCanvas.snapshot(null, new WritableImage(w, h));
 			FileChooser fc = new FileChooser();
+			fc.setTitle("Export to png image");
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG Image", "*.png"));
 			File file = fc.showSaveDialog(stage);
 			if (file != null){
@@ -233,6 +247,23 @@ public class MainApplication extends Application{
 		canvas.setOnKeyPressed(e -> {
 			if (e.getCode() == KeyCode.P){
 				Util.toggleCircuitPower(this.gates);
+			} else if (e.getCode() == KeyCode.DELETE){
+				if (e.isShiftDown()){
+					List<Gate.Pin> pins = new ArrayList<>();
+					for (Gate g : this.selectedGates){
+						for (Gate.Pin p : g.getPins()){
+							pins.add(p);
+						}
+					}
+					for (Wire w : this.wires){
+						if (pins.contains(w.getPin1()) && pins.contains(w.getPin2())){
+							this.wiresToRemove.add(w);
+						}
+					}
+				} else {
+					this.gatesToRemove.addAll(this.selectedGates);
+					this.selectedGates.clear();
+				}
 			}
 		});
 
@@ -302,7 +333,8 @@ public class MainApplication extends Application{
 											double minDistance = Double.POSITIVE_INFINITY;
 											Point2D ref = null;
 											for (Wire w : this.wires){
-												for (Point2D p : w.getPoints()){
+												for (Wire.WirePoint wp : w.getPoints()){
+													Point2D p = new Point2D(wp.getX(), wp.getY());
 													if (p.distance(finalPoint) < minDistance){
 														ref = p;
 														minDistance = p.distance(finalPoint);
@@ -328,6 +360,7 @@ public class MainApplication extends Application{
 								break;
 							case 5:
 								FileChooser fc = new FileChooser();
+								fc.setTitle("Load chip");
 								fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
 								File file = fc.showOpenDialog(stage);
 								if (file == null) return;
@@ -348,16 +381,22 @@ public class MainApplication extends Application{
 						}
 					} else {
 						this.sideArea.onClick(e.getX(), e.getY());
+						boolean voidClick = true;
 						for (Gate g : this.gates){
 							Gate.Pin pin = g.getPin(clickPoint.getX(), clickPoint.getY());
 							if (pin == null){
-								if (this.rmGate && g.getRect().contains(clickPoint.getX(), clickPoint.getY())){
-									this.gatesToRemove.add(g);
-									this.rmGate = false;
-								} else {
-									g.onClick(clickPoint.getX(), clickPoint.getY());
+								boolean inside = g.getRect().contains(clickPoint.getX(), clickPoint.getY());
+								if (inside){
+									if (this.rmGate){
+										this.gatesToRemove.add(g);
+										this.rmGate = false;
+									} else {
+										g.click();
+									}
+									voidClick = false;
 								}
 							} else {
+								voidClick = false;
 								if (this.rmWire){
 									if (this.rmW == null){
 										this.rmW = pin;
@@ -377,6 +416,15 @@ public class MainApplication extends Application{
 								}
 							}
 						}
+						if (voidClick || e.isControlDown()){ // No gates found
+							this.selectedRectanglePoint = clickPoint;
+							if (!e.isControlDown()){
+								this.selectedGates.clear();
+								this.selectedWirePoints.clear();
+							}
+							this.selectedAreaWidth = 0;
+							this.selectedAreaHeight = 0;
+						}
 					}
 				}
 			} else if (e.getButton() == MouseButton.SECONDARY){
@@ -387,7 +435,6 @@ public class MainApplication extends Application{
 						break;
 					}
 				}
-				this.selectedGate = found;
 				this.rmGate = false;
 				this.rmWire = false;
 				this.rmW = null;
@@ -412,6 +459,9 @@ public class MainApplication extends Application{
 					});
 					cm.getItems().add(showChip);
 					cm.show(canvas, e.getScreenX(), e.getScreenY());
+				} else if (this.selectedGates.size() > 0){
+					this.selectionMoveStart = new Point2D(e.getX(), e.getY());
+					this.deltaMove = new Point2D(0, 0);
 				}
 			}
 		});
@@ -421,23 +471,59 @@ public class MainApplication extends Application{
 		});
 
 		canvas.setOnMouseDragged(e -> {
-			if (e.getButton() == MouseButton.SECONDARY){
-				if (this.selectedGate != null){
-					Point2D clickPoint = getClickPoint(e.getX(), e.getY());
-					this.selectedGate.setPos(clickPoint.getX(), clickPoint.getY());
+			this.mouseMoved = new Point2D(e.getX(), e.getY());
+			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
+			if (e.getButton() == MouseButton.PRIMARY){
+				if (this.selectedRectanglePoint != null){
+					this.selectedAreaWidth = clickPoint.getX()-this.selectedRectanglePoint.getX();
+					this.selectedAreaHeight = clickPoint.getY()-this.selectedRectanglePoint.getY();
+				}
+			} else if (e.getButton() == MouseButton.SECONDARY){
+				if (this.selectedGates.size() == 0 || this.selectionMoveStart == null){
+					if (this.movePoint != null){
+						this.deltaMove = new Point2D(e.getX()-this.movePoint.getX(), e.getY()-this.movePoint.getY());
+					}
 				} else {
-					this.deltaMove = new Point2D(e.getX()-this.movePoint.getX(), e.getY()-this.movePoint.getY());
+					if (this.selectionMoveStart != null){
+						this.deltaMove = new Point2D(e.getX()-this.selectionMoveStart.getX(), e.getY()-this.selectionMoveStart.getY());
+						this.selectionMoveStart = new Point2D(e.getX(), e.getY());
+						for (Gate g : this.selectedGates){
+							g.setPos(g.getRect().getMinX()+this.deltaMove.getX(), g.getRect().getMinY()+this.deltaMove.getY());
+						}
+						for (Wire.WirePoint wp : this.selectedWirePoints){
+							wp.setX(wp.getX()+this.deltaMove.getX());
+							wp.setY(wp.getY()+this.deltaMove.getY());
+						}
+					}
 				}
 			}
 		});
 
 		canvas.setOnMouseReleased(e -> {
-			if (e.getButton() == MouseButton.SECONDARY){
-				this.selectedGate = null;
+			if (e.getButton() == MouseButton.PRIMARY){
+				if (this.selectedRectanglePoint != null){
+					Rectangle2D selection = Util.buildRect(this.selectedRectanglePoint, this.selectedAreaWidth, this.selectedAreaHeight);
+					for (Gate g : this.gates){
+						if (g.getRect().intersects(selection)){
+							this.selectedGates.add(g);
+						}
+					}
+					for (Wire w : this.wires){
+						for (Wire.WirePoint p : w.getPoints()){
+							if (selection.contains(p.getX(), p.getY())){
+								this.selectedWirePoints.add(p);
+							}
+						}
+					}
+				}
+				this.selectedRectanglePoint = null;
+			} else if (e.getButton() == MouseButton.SECONDARY){
 				if (this.movePoint != null){
 					this.movePoint = null;
 					this.cameraX += this.deltaMove.getX();
 					this.cameraY += this.deltaMove.getY();
+				} else if (this.selectionMoveStart != null){
+					this.selectionMoveStart = null;
 				}
 			}
 		});
@@ -456,10 +542,10 @@ public class MainApplication extends Application{
 				scene.setCursor(Cursor.CROSSHAIR);
 			} else if (this.movePoint != null){
 				scene.setCursor(Cursor.MOVE);
-			} else if (this.selectedGate != null){
-				scene.setCursor(Cursor.HAND);
-			} else if (this.selectedId >= 0 && this.selectedId != 1){
+			} else if (this.selectionMoveStart != null){
 				scene.setCursor(Cursor.CLOSED_HAND);
+			} else if (this.selectedId >= 0 && this.selectedId != 1){
+				scene.setCursor(Cursor.HAND);
 			} else {
 				scene.setCursor(Cursor.DEFAULT);
 			}
@@ -658,9 +744,25 @@ public class MainApplication extends Application{
 
 		for (Gate g : this.gates){
 			g.render();
+			if (this.selectedGates.contains(g)){
+				gc.save();
+				gc.setFill(Color.LIME);
+				gc.setGlobalAlpha(0.6);
+				gc.fillRect(g.getRect().getMinX(), g.getRect().getMinY(), g.getRect().getWidth(), g.getRect().getHeight());
+				gc.restore();
+			}
 		}
 		for (Wire w : this.wires){
 			w.render();
+			for (Wire.WirePoint wp : w.getPoints()){
+				if (this.selectedWirePoints.contains(wp)){
+					gc.save();
+					gc.setFill(Color.LIME);
+					gc.setGlobalAlpha(0.6);
+					gc.fillOval(wp.getX()-5, wp.getY()-5, 10, 10);
+					gc.restore();
+				}
+			}
 		}
 
 		if (this.connG != null){
@@ -671,6 +773,16 @@ public class MainApplication extends Application{
 			for (Point2D[] line : renderingPoints){
 				gc.strokeLine(line[0].getX(), line[0].getY(), line[1].getX(), line[1].getY());
 			}
+		}
+
+		// Selection rectangle
+		if (this.selectedRectanglePoint != null){
+			gc.save();
+			gc.setFill(Color.LIME);
+			gc.setGlobalAlpha(0.6);
+			Rectangle2D selection = Util.buildRect(this.selectedRectanglePoint, this.selectedAreaWidth, this.selectedAreaHeight);
+			gc.fillRect(selection.getMinX(), selection.getMinY(), selection.getWidth(), selection.getHeight());
+			gc.restore();
 		}
 
 		gc.restore();

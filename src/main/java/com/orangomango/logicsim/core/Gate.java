@@ -162,8 +162,8 @@ public abstract class Gate{
 		return this.pins;
 	}
 
-	public void onClick(double x, double y){
-		if (onClick != null && this.rect.contains(x, y)){
+	public void click(){
+		if (onClick != null){
 			this.onClick.run();
 		}
 	}
