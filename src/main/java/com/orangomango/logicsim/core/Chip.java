@@ -128,11 +128,17 @@ public class Chip extends Gate{
 
 	@Override
 	public void render(GraphicsContext gc){
-		super.render(gc);
-		gc.setFill(Util.isDarkColor(this.color) ? Color.WHITE : Color.BLACK);
+		gc.setFill(this.color);
+		gc.fillRoundRect(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight(), 20, 20);
 		gc.save();
+		gc.setStroke(Color.BLACK);
+		gc.setLineWidth(2);
+		gc.strokeRoundRect(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight(), 20, 20);
+		gc.setFill(Util.isDarkColor(this.color) ? Color.WHITE : Color.BLACK);
 		gc.setTextAlign(TextAlignment.CENTER);
 		gc.fillText(Util.wrapString(this.name, 5), this.rect.getMinX()+this.rect.getWidth()/2, this.rect.getMinY()+this.rect.getHeight()/2);
 		gc.restore();
+		renderPins(gc);
+		renderLabel(gc);
 	}
 }

@@ -447,7 +447,7 @@ public class MainApplication extends Application{
 					this.connG = null;
 					this.movePoint = new Point2D(e.getX(), e.getY());
 					this.deltaMove = new Point2D(0, 0);
-				} else if (found instanceof Chip){
+				} else if (found instanceof Chip && (!this.selectedGates.contains(found) || e.getClickCount() == 2)){
 					ContextMenu cm = new ContextMenu();
 					MenuItem showChip = new MenuItem("Look inside");
 					final Chip chip = (Chip)found;
