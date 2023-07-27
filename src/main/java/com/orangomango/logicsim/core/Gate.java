@@ -21,6 +21,7 @@ public abstract class Gate{
 	protected List<Pin> pins = new ArrayList<>();
 	private boolean power;
 	private String name;
+	protected String label = "Gate";
 
 	public static class Pin{
 		private Rectangle2D rect;
@@ -28,7 +29,7 @@ public abstract class Gate{
 		private List<Pin> attached = new ArrayList<>();
 		private boolean doInput;
 		private int id;
-		private static final Font FONT = new Font("sans-serif", 9);
+		private static final Font FONT = new Font("sans-serif", 10);
 
 		public static int PIN_ID = 0;
 		public static boolean UPDATE_PIN_ID = true;
@@ -137,11 +138,11 @@ public abstract class Gate{
 		public void render(GraphicsContext gc, Color gateColor){
 			gc.setFill(this.on ? Color.GREEN : Color.BLACK);
 			gc.fillOval(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
-			gc.setFill(Util.isDarkColor(gateColor) ? Color.WHITE : Color.BLACK);
+			gc.setFill(Color.RED);
 			gc.save();
-			gc.setTextAlign(this.isInput() ? TextAlignment.LEFT : TextAlignment.RIGHT);
+			gc.setTextAlign(this.isInput() ? TextAlignment.RIGHT : TextAlignment.LEFT);
 			gc.setFont(FONT);
-			gc.fillText(Integer.toString(this.id), this.rect.getMinX()+(this.isInput() ? 20 : -5), this.rect.getMinY()+13);
+			gc.fillText(Integer.toString(this.id), this.rect.getMinX()+(this.isInput() ? -8 : 23), this.rect.getMinY()+13);
 			gc.restore();
 		}
 	}
@@ -226,12 +227,25 @@ public abstract class Gate{
 		render(this.gc);
 	}
 
+	protected void renderPins(GraphicsContext gc){
+		for (Pin pin : this.pins){
+			pin.render(gc, this.color);
+		}
+	}
+
+	protected void renderLabel(GraphicsContext gc){
+		gc.setFill(Color.BLACK);
+		gc.save();
+		gc.setTextAlign(TextAlignment.CENTER);
+		gc.fillText(this.label, this.rect.getMinX()+this.rect.getWidth()/2, this.rect.getMaxY()+20);
+		gc.restore();
+	}
+
 	public void render(GraphicsContext gc){
 		gc.setFill(this.color);
 		gc.fillRect(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
-		for (Pin pin : pins){
-			pin.render(gc, this.color);
-		}
+		renderPins(gc);
+		renderLabel(gc);
 	}
 
 	public JSONObject getJSON(){

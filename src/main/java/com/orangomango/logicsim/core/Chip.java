@@ -26,6 +26,7 @@ public class Chip extends Gate{
 	public Chip(GraphicsContext gc, Rectangle2D rect, File file){
 		super(gc, "CHIP", rect, Color.BLUE);
 		this.file = file;
+		this.label = file.getName();
 
 		// Load data
 		Gate.Pin.UPDATE_PIN_ID = false;

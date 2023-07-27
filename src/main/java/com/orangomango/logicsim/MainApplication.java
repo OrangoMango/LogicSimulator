@@ -202,6 +202,9 @@ public class MainApplication extends Application{
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG Image", "*.png"));
 			File file = fc.showSaveDialog(stage);
 			if (file != null){
+				if (!file.getName().endsWith(".png")){
+					file = new File(file.getParent(), file.getName()+".png");
+				}
 				RenderedImage ri = SwingFXUtils.fromFXImage(image, null);
 				try {
 					ImageIO.write(ri, "png", file);
@@ -353,10 +356,10 @@ public class MainApplication extends Application{
 								g = new Light(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50));
 								break;
 							case 3:
-								g = new NotGate(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50));
+								g = new NotGate(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 100, 50));
 								break;
 							case 4:
-								g = new AndGate(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50));
+								g = new AndGate(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 100, 50));
 								break;
 							case 5:
 								FileChooser fc = new FileChooser();
@@ -444,7 +447,7 @@ public class MainApplication extends Application{
 					this.connG = null;
 					this.movePoint = new Point2D(e.getX(), e.getY());
 					this.deltaMove = new Point2D(0, 0);
-				} else if (found instanceof Chip && e.getClickCount() == 2){
+				} else if (found instanceof Chip){
 					ContextMenu cm = new ContextMenu();
 					MenuItem showChip = new MenuItem("Look inside");
 					final Chip chip = (Chip)found;
@@ -592,7 +595,7 @@ public class MainApplication extends Application{
 
 	private void save(File file, String chipName, Color color){
 		if (!file.getName().endsWith(".lsim") && !file.getName().endsWith(".lsimc")){
-			file = new File(file.getName()+".lsim"+(chipName == null ? "" : "c"));
+			file = new File(file.getParent(), file.getName()+".lsim"+(chipName == null ? "" : "c"));
 		}
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(file));
