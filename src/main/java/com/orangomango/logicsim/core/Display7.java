@@ -3,7 +3,6 @@ package com.orangomango.logicsim.core;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
 
 public class Display7 extends Gate{
 	private Image image;
@@ -30,7 +29,7 @@ public class Display7 extends Gate{
 	}
 
 	public Display7(GraphicsContext gc, Rectangle2D rect){
-		super(gc, "DISPLAY7", rect, Color.GRAY);
+		super(gc, "DISPLAY7", rect, null);
 		this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), 70, 150);
 		this.image = new Image(getClass().getResourceAsStream("/display.png"));
 		for (int i = 0; i < 7; i++){

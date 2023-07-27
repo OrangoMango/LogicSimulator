@@ -64,6 +64,7 @@ public abstract class Util{
 
 	public static boolean isDarkColor(Color color){
 		// Check StackOverflow
+		if (color == null) return false;
 		return color.getRed()*0.2126+color.getGreen()*0.7152+color.getBlue()*0.0722 < 127/255.0;
 	}
 
