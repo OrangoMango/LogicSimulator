@@ -13,9 +13,9 @@ public class AndGate extends Gate implements DelayedGate{
 	public AndGate(GraphicsContext gc, Rectangle2D rect){
 		super(gc, "AND", rect, Color.BLUE);
 		this.label = "And gate";
-		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX()-7, rect.getMinY()+5, 15, 15), true)); // Input
-		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX()-7, rect.getMinY()+25, 15, 15), true)); // Input
-		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMaxX()-7, rect.getMinY()+15, 15, 15), false)); // Output
+		this.pins.add(new Pin(new Rectangle2D(rect.getMinX()-7, rect.getMinY()+5, 15, 15), true)); // Input
+		this.pins.add(new Pin(new Rectangle2D(rect.getMinX()-7, rect.getMinY()+25, 15, 15), true)); // Input
+		this.pins.add(new Pin(new Rectangle2D(rect.getMaxX()-7, rect.getMinY()+15, 15, 15), false)); // Output
 	}
 
 	@Override
@@ -35,10 +35,14 @@ public class AndGate extends Gate implements DelayedGate{
 	}
 
 	@Override
-	public void render(GraphicsContext gc){
-		super.render(gc);
-		gc.setFill(Util.isDarkColor(this.color) ? Color.WHITE : Color.BLACK);
+	public void renderGate(GraphicsContext gc){
+		gc.setFill(this.color);
+		gc.fillRoundRect(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight(), 20, 20);
 		gc.save();
+		gc.setStroke(Color.BLACK);
+		gc.setLineWidth(2);
+		gc.strokeRoundRect(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight(), 20, 20);
+		gc.setFill(Util.isDarkColor(this.color) ? Color.WHITE : Color.BLACK);
 		gc.setTextAlign(TextAlignment.CENTER);
 		gc.fillText("AND", this.rect.getMinX()+this.rect.getWidth()/2, this.rect.getMinY()+this.rect.getHeight()/2);
 		gc.restore();

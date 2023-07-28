@@ -32,9 +32,9 @@ public class Display7 extends Gate{
 		super(gc, "DISPLAY7", rect, null);
 		this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), 70, 150);
 		this.image = new Image(getClass().getResourceAsStream("/display.png"));
-		this.label = "7 segment\ndisplay";
+		this.label = "7 segment display";
 		for (int i = 0; i < 7; i++){
-			this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX()-15, rect.getMinY()+20*i, 15, 15), true));
+			this.pins.add(new Pin(new Rectangle2D(rect.getMinX()-15, rect.getMinY()+20*i, 15, 15), true));
 		}
 
 		this.pieces[0] = new DisplayPiece(new Image(getClass().getResourceAsStream("/display-h.png")), this.rect.getMinX()+6*2, this.rect.getMinY()+5*2);
@@ -57,12 +57,10 @@ public class Display7 extends Gate{
 	}
 
 	@Override
-	public void render(GraphicsContext gc){
+	public void renderGate(GraphicsContext gc){
 		gc.drawImage(this.image, this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
 		for (int i = 0; i < 7; i++){
 			if (this.pins.get(i).isOn()) this.pieces[i].render(gc);
 		}
-		renderPins(gc);
-		renderLabel(gc);
 	}
 }

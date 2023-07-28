@@ -23,6 +23,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextInputDialog;
 import javafx.embed.swing.SwingFXUtils;
 
 import java.util.*;
@@ -49,7 +50,7 @@ public class MainApplication extends Application{
 	private Point2D mouseMoved = new Point2D(0, 0);
 	private List<Gate> gates = new ArrayList<>();
 	private List<Wire> wires = new ArrayList<>();
-	private Gate.Pin connG;
+	private Pin connG;
 	private List<Point2D> pinPoints = new ArrayList<>();
 	private List<Gate> selectedGates = new ArrayList<>();
 	private List<Wire.WirePoint> selectedWirePoints = new ArrayList<>();
@@ -59,7 +60,7 @@ public class MainApplication extends Application{
 	private double cameraX, cameraY;
 	private double cameraScale = 1;
 	private boolean rmWire = false, rmGate = false;
-	private Gate.Pin rmW;
+	private Pin rmW;
 	private List<Wire> wiresToRemove = new ArrayList<>();
 	private List<Gate> gatesToRemove = new ArrayList<>();
 	private Point2D selectedRectanglePoint = null;
@@ -99,11 +100,11 @@ public class MainApplication extends Application{
 			List<Gate> gates = new ArrayList<>();
 			List<Wire> wires = new ArrayList<>();
 			if (file != null){
-				int backup = Gate.Pin.PIN_ID;
-				Gate.Pin.PIN_ID = 0;
+				int backup = Pin.PIN_ID;
+				Pin.PIN_ID = 0;
 				JSONObject json = load(file, gc, gates, wires);
 				if (json == null){
-					Gate.Pin.PIN_ID = backup;
+					Pin.PIN_ID = backup;
 					return;
 				}
 				this.currentFile = file;
@@ -144,7 +145,7 @@ public class MainApplication extends Application{
 		UiButton clearButton = new UiButton(gc, "CLEAR", new Rectangle2D(475, 20, 100, 35), () -> {
 			this.wires = new ArrayList<Wire>();
 			this.gates = new ArrayList<Gate>();
-			Gate.Pin.PIN_ID = 0;
+			Pin.PIN_ID = 0;
 			this.currentFile = null;
 		});
 		UiButton rmWireButton = new UiButton(gc, "RM WIRE", new Rectangle2D(600, 20, 75, 35), () -> {
@@ -252,9 +253,9 @@ public class MainApplication extends Application{
 				Util.toggleCircuitPower(this.gates);
 			} else if (e.getCode() == KeyCode.DELETE){
 				if (e.isShiftDown()){
-					List<Gate.Pin> pins = new ArrayList<>();
+					List<Pin> pins = new ArrayList<>();
 					for (Gate g : this.selectedGates){
-						for (Gate.Pin p : g.getPins()){
+						for (Pin p : g.getPins()){
 							pins.add(p);
 						}
 					}
@@ -267,6 +268,8 @@ public class MainApplication extends Application{
 					this.gatesToRemove.addAll(this.selectedGates);
 					this.selectedGates.clear();
 				}
+			} else if (e.getCode() == KeyCode.F1){
+				Util.SHOW_PIN_ID = !Util.SHOW_PIN_ID;
 			}
 		});
 
@@ -286,9 +289,9 @@ public class MainApplication extends Application{
 								g = new Switch(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50));
 								break;
 							case 1:
-								Gate.Pin found = null;
+								Pin found = null;
 								for (Gate gt : this.gates){
-									Gate.Pin pin = gt.getPin(clickPoint.getX(), clickPoint.getY());
+									Pin pin = gt.getPin(clickPoint.getX(), clickPoint.getY());
 									if (pin != null){
 										found = pin;
 										break;
@@ -386,7 +389,7 @@ public class MainApplication extends Application{
 						this.sideArea.onClick(e.getX(), e.getY());
 						boolean voidClick = true;
 						for (Gate g : this.gates){
-							Gate.Pin pin = g.getPin(clickPoint.getX(), clickPoint.getY());
+							Pin pin = g.getPin(clickPoint.getX(), clickPoint.getY());
 							if (pin == null){
 								boolean inside = g.getRect().contains(clickPoint.getX(), clickPoint.getY());
 								if (inside){
@@ -404,7 +407,7 @@ public class MainApplication extends Application{
 									if (this.rmW == null){
 										this.rmW = pin;
 									} else {
-										Wire foundWire = getWire(this.wires, this.rmW, pin);
+										Wire foundWire = Util.getWire(this.wires, this.rmW, pin);
 										if (foundWire != null){
 											this.wiresToRemove.add(foundWire);
 										} else {
@@ -438,31 +441,54 @@ public class MainApplication extends Application{
 						break;
 					}
 				}
+				Wire.WirePoint foundPoint = null;
+				wiresLoop:
+				for (Wire w : this.wires){
+					for (Wire.WirePoint wp : w.getPoints()){
+						if (wp.contains(clickPoint.getX(), clickPoint.getY())){
+							foundPoint = wp;
+							break wiresLoop;
+						}
+					}
+				}
 				this.rmGate = false;
 				this.rmWire = false;
 				this.rmW = null;
-				if (found == null){
+				if (found == null && foundPoint == null){
 					this.selectedId = -1;
 					this.pinPoints.clear();
 					this.connG = null;
 					this.movePoint = new Point2D(e.getX(), e.getY());
 					this.deltaMove = new Point2D(0, 0);
-				} else if (found instanceof Chip && (!this.selectedGates.contains(found) || e.getClickCount() == 2)){
+				} else if (found != null && (!this.selectedGates.contains(found) || e.getClickCount() == 2)){
 					ContextMenu cm = new ContextMenu();
-					MenuItem showChip = new MenuItem("Look inside");
-					final Chip chip = (Chip)found;
-					showChip.setOnAction(ev -> {
-						Alert alert = new Alert(Alert.AlertType.INFORMATION);
-						alert.setTitle(chip.getName());
-						alert.setHeaderText(chip.getName());
-						ChipCanvas cc = new ChipCanvas(chip);
-						alert.getDialogPane().setContent(cc.getPane());
-						alert.showAndWait();
-						cc.destroy();
+					if (found instanceof Chip){
+						MenuItem showChip = new MenuItem("Look inside");
+						final Chip chip = (Chip)found;
+						showChip.setOnAction(ev -> {
+							Alert alert = new Alert(Alert.AlertType.INFORMATION);
+							alert.setTitle(chip.getName());
+							alert.setHeaderText(chip.getName());
+							ChipCanvas cc = new ChipCanvas(chip);
+							alert.getDialogPane().setContent(cc.getPane());
+							alert.showAndWait();
+							cc.destroy();
+						});
+						cm.getItems().add(showChip);
+					}
+					final Gate gate = found;
+					MenuItem changeLabel = new MenuItem("Change label");
+					changeLabel.setOnAction(ev -> {
+						TextInputDialog dialog = new TextInputDialog(gate.getLabel());
+						dialog.setTitle("Set label");
+						dialog.setHeaderText("Label name");
+						dialog.showAndWait().ifPresent(v -> {
+							gate.setLabel(v);
+						});
 					});
-					cm.getItems().add(showChip);
+					cm.getItems().add(changeLabel);
 					cm.show(canvas, e.getScreenX(), e.getScreenY());
-				} else if (this.selectedGates.size() > 0){
+				} else if (this.selectedGates.size() > 0 || this.selectedWirePoints.size() > 0){
 					this.selectionMoveStart = new Point2D(e.getX(), e.getY());
 					this.deltaMove = new Point2D(0, 0);
 				}
@@ -482,21 +508,19 @@ public class MainApplication extends Application{
 					this.selectedAreaHeight = clickPoint.getY()-this.selectedRectanglePoint.getY();
 				}
 			} else if (e.getButton() == MouseButton.SECONDARY){
-				if (this.selectedGates.size() == 0 || this.selectionMoveStart == null){
+				if (this.selectedGates.size() == 0 && this.selectedWirePoints.size() == 0 || this.selectionMoveStart == null){
 					if (this.movePoint != null){
 						this.deltaMove = new Point2D(e.getX()-this.movePoint.getX(), e.getY()-this.movePoint.getY());
 					}
-				} else {
-					if (this.selectionMoveStart != null){
-						this.deltaMove = new Point2D(e.getX()-this.selectionMoveStart.getX(), e.getY()-this.selectionMoveStart.getY());
-						this.selectionMoveStart = new Point2D(e.getX(), e.getY());
-						for (Gate g : this.selectedGates){
-							g.setPos(g.getRect().getMinX()+this.deltaMove.getX()/this.cameraScale, g.getRect().getMinY()+this.deltaMove.getY()/this.cameraScale);
-						}
-						for (Wire.WirePoint wp : this.selectedWirePoints){
-							wp.setX(wp.getX()+this.deltaMove.getX()/this.cameraScale);
-							wp.setY(wp.getY()+this.deltaMove.getY()/this.cameraScale);
-						}
+				} else if (this.selectionMoveStart != null){
+					this.deltaMove = new Point2D(e.getX()-this.selectionMoveStart.getX(), e.getY()-this.selectionMoveStart.getY());
+					this.selectionMoveStart = new Point2D(e.getX(), e.getY());
+					for (Gate g : this.selectedGates){
+						g.setPos(g.getRect().getMinX()+this.deltaMove.getX()/this.cameraScale, g.getRect().getMinY()+this.deltaMove.getY()/this.cameraScale);
+					}
+					for (Wire.WirePoint wp : this.selectedWirePoints){
+						wp.setX(wp.getX()+this.deltaMove.getX()/this.cameraScale);
+						wp.setY(wp.getY()+this.deltaMove.getY()/this.cameraScale);
 					}
 				}
 			}
@@ -633,7 +657,7 @@ public class MainApplication extends Application{
 			reader.close();
 			JSONObject json = new JSONObject(builder.toString());
 
-			int backupId = Gate.Pin.PIN_ID;
+			int backupId = Pin.PIN_ID;
 
 			// Load gates
 			for (Object o : json.getJSONArray("gates")){
@@ -641,15 +665,15 @@ public class MainApplication extends Application{
 				String name = gate.getString("name");
 				Color color = Color.color(gate.getJSONObject("color").getDouble("red"), gate.getJSONObject("color").getDouble("green"), gate.getJSONObject("color").getDouble("blue"));
 				Rectangle2D rect = new Rectangle2D(gate.getJSONObject("rect").getDouble("x"), gate.getJSONObject("rect").getDouble("y"), gate.getJSONObject("rect").getDouble("w"), gate.getJSONObject("rect").getDouble("h"));
-				List<Gate.Pin> pins = new ArrayList<>();
+				List<Pin> pins = new ArrayList<>();
 				for (Object o2 : gate.getJSONArray("pins")){
 					JSONObject pin = (JSONObject)o2;
-					Gate.Pin p = new Gate.Pin(pin);
+					Pin p = new Pin(pin);
 					pins.add(p);
 				}
 				Gate gt = null;
-				int lastPinId = Gate.Pin.PIN_ID; // Save pin id
-				boolean lastPinFlag = Gate.Pin.UPDATE_PIN_ID;
+				int lastPinId = Pin.PIN_ID; // Save pin id
+				boolean lastPinFlag = Pin.UPDATE_PIN_ID;
 				if (name.equals("AND")){
 					gt = new AndGate(gc, rect);
 				} else if (name.equals("LIGHT")){
@@ -666,15 +690,15 @@ public class MainApplication extends Application{
 						error.setHeaderText("Missing dependency");
 						error.setContentText("The following dependency is missing: "+gate.getString("fileName"));
 						error.showAndWait();
-						Gate.Pin.PIN_ID = backupId;
+						Pin.PIN_ID = backupId;
 						return null;
 					}
 					gt = new Chip(gc, rect, chipFile);
 				} else if (name.equals("DISPLAY7")){
 					gt = new Display7(gc, rect);
 				}
-				Gate.Pin.PIN_ID = lastPinId; // Restore the last pin id
-				Gate.Pin.UPDATE_PIN_ID = lastPinFlag;
+				Pin.PIN_ID = lastPinId; // Restore the last pin id
+				Pin.UPDATE_PIN_ID = lastPinFlag;
 				gt.setPins(pins);
 				tempGates.add(gt);
 			}
@@ -685,10 +709,10 @@ public class MainApplication extends Application{
 				for (Object o2 : gate.getJSONArray("pins")){
 					JSONObject pin = (JSONObject)o2;
 					int pinId = pin.getInt("id");
-					Gate.Pin currentPin = getPinById(tempGates, pinId);
+					Pin currentPin = getPinById(tempGates, pinId);
 					for (Object o3 : pin.getJSONArray("attached")){
 						Integer apinId = (Integer)o3;
-						Gate.Pin apin = getPinById(tempGates, apinId);
+						Pin apin = getPinById(tempGates, apinId);
 						currentPin.attach(apin);
 					}
 				}
@@ -697,8 +721,8 @@ public class MainApplication extends Application{
 			// Load wires
 			for (Object o : json.getJSONArray("wires")){
 				JSONObject wire = (JSONObject)o;
-				Gate.Pin p1 = getPinById(tempGates, wire.getInt("pin1"));
-				Gate.Pin p2 = getPinById(tempGates, wire.getInt("pin2"));
+				Pin p1 = getPinById(tempGates, wire.getInt("pin1"));
+				Pin p2 = getPinById(tempGates, wire.getInt("pin2"));
 				List<Point2D> points = new ArrayList<>();
 				for (Object o2 : wire.getJSONArray("points")){
 					JSONObject p = (JSONObject)o2;
@@ -714,21 +738,12 @@ public class MainApplication extends Application{
 		}
 	}
 
-	private static Gate.Pin getPinById(List<Gate> gates, int id){
+	private static Pin getPinById(List<Gate> gates, int id){
 		for (Gate g : gates){
-			for (Gate.Pin p : g.getPins()){
+			for (Pin p : g.getPins()){
 				if (p.getId() == id){
 					return p;
 				}
-			}
-		}
-		return null;
-	}
-
-	public static Wire getWire(List<Wire> wires, Gate.Pin p1, Gate.Pin p2){
-		for (Wire w : wires){
-			if ((w.getPin1() == p1 && w.getPin2() == p2) || (w.getPin1() == p2 && w.getPin2() == p1)){
-				return w;
 			}
 		}
 		return null;
@@ -745,12 +760,12 @@ public class MainApplication extends Application{
 		gc.save();
 		gc.setStroke(Color.web("#A2A2A2"));
 		gc.setLineWidth(1.5);
-		int offsetX = (int)((this.cameraX+(this.movePoint != null ? this.deltaMove.getX() : 0)) % gridSize);
-		int offsetY = (int)((this.cameraY+(this.movePoint != null ? this.deltaMove.getY() : 0)) % gridSize);
-		for (int i = offsetX; i < WIDTH; i += gridSize){
+		double offsetX = (this.cameraX+(this.movePoint != null ? this.deltaMove.getX() : 0)) % gridSize;
+		double offsetY = (this.cameraY+(this.movePoint != null ? this.deltaMove.getY() : 0)) % gridSize;
+		for (double i = offsetX; i < WIDTH; i += gridSize){
 			gc.strokeLine(i, 0, i, HEIGHT);
 		}
-		for (int i = offsetY; i < HEIGHT; i += gridSize){
+		for (double i = offsetY; i < HEIGHT; i += gridSize){
 			gc.strokeLine(0, i, WIDTH, i);
 		}
 		gc.restore();
@@ -776,11 +791,7 @@ public class MainApplication extends Application{
 			w.render();
 			for (Wire.WirePoint wp : w.getPoints()){
 				if (this.selectedWirePoints.contains(wp)){
-					gc.save();
-					gc.setFill(Color.LIME);
-					gc.setGlobalAlpha(0.6);
-					gc.fillOval(wp.getX()-5, wp.getY()-5, 10, 10);
-					gc.restore();
+					wp.render(gc);
 				}
 			}
 		}
@@ -810,7 +821,7 @@ public class MainApplication extends Application{
 		// UI
 		gc.save();
 		gc.setFill(Color.BLACK);
-		gc.fillText(String.format("ID: %d\nPower: %s\nScale: %.2f", Gate.Pin.PIN_ID, Util.isPowerOn(), this.cameraScale), 60, 300);
+		gc.fillText(String.format("ID: %d\nPower: %s\nScale: %.2f", Pin.PIN_ID, Util.isPowerOn(), this.cameraScale), 60, 300);
 		gc.setGlobalAlpha(0.5);
 		gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
 		gc.restore();
@@ -828,7 +839,7 @@ public class MainApplication extends Application{
 			this.gates.remove(g);
 		}
 		if (this.gatesToRemove.size() > 0){
-			Gate.Pin.PIN_ID = this.gates.stream().flatMap(g -> g.getPins().stream()).mapToInt(p -> p.getId()).max().orElse(-1)+1;
+			Pin.PIN_ID = this.gates.stream().flatMap(g -> g.getPins().stream()).mapToInt(p -> p.getId()).max().orElse(-1)+1;
 		}
 		this.gatesToRemove.clear();
 

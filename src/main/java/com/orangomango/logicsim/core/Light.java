@@ -11,7 +11,7 @@ public class Light extends Gate{
 	public Light(GraphicsContext gc, Rectangle2D rect){
 		super(gc, "LIGHT", rect, null);
 		this.image = new Image(getClass().getResourceAsStream("/light.png"));
-		this.pins.add(new Gate.Pin(new Rectangle2D(rect.getMinX()-7, rect.getMinY()+7, 15, 15), true));
+		this.pins.add(new Pin(new Rectangle2D(rect.getMinX()-7, rect.getMinY()+7, 15, 15), true));
 		this.label = "Light";
 	}
 
@@ -28,9 +28,7 @@ public class Light extends Gate{
 	}
 
 	@Override
-	public void render(GraphicsContext gc){
+	public void renderGate(GraphicsContext gc){
 		gc.drawImage(this.image, 1+(isOn() ? 52 : 0), 1, 50, 50, this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
-		renderPins(gc);
-		renderLabel(gc);
 	}
 }

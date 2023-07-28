@@ -6,13 +6,12 @@ import javafx.scene.paint.Color;
 
 import java.util.*;
 
-import com.orangomango.logicsim.core.Gate;
-import com.orangomango.logicsim.core.Chip;
-import com.orangomango.logicsim.core.DelayedGate;
+import com.orangomango.logicsim.core.*;
 
 public abstract class Util{
 	public static final int GATE_DELAY = 15;
 	private static boolean CIRCUIT_POWER = true;
+	public static boolean SHOW_PIN_ID = false;
 
 	public static boolean isPowerOn(){
 		return CIRCUIT_POWER;
@@ -88,5 +87,14 @@ public abstract class Util{
 		}
 		renderingPoints.add(new Point2D[]{last, new Point2D(end.getX(), end.getY())});
 		return renderingPoints;
+	}
+
+	public static Wire getWire(List<Wire> wires, Pin p1, Pin p2){
+		for (Wire w : wires){
+			if ((w.getPin1() == p1 && w.getPin2() == p2) || (w.getPin1() == p2 && w.getPin2() == p1)){
+				return w;
+			}
+		}
+		return null;
 	}
 }

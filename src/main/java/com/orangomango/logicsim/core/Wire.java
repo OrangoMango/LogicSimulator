@@ -14,7 +14,7 @@ import com.orangomango.logicsim.Util;
 
 public class Wire{
 	private GraphicsContext gc;
-	private Gate.Pin pin1, pin2;
+	private Pin pin1, pin2;
 	private List<WirePoint> points = new ArrayList<>();
 
 	public static class WirePoint{
@@ -40,9 +40,22 @@ public class Wire{
 		public void setY(double y){
 			this.y = y;
 		}
+
+		public boolean contains(double x, double y){
+			Rectangle2D rect = new Rectangle2D(this.x-5, this.y-5, 10, 10);
+			return rect.contains(x, y);
+		}
+
+		public void render(GraphicsContext gc){
+			gc.save();
+			gc.setFill(Color.LIME);
+			gc.setGlobalAlpha(0.6);
+			gc.fillOval(this.x-5, this.y-5, 10, 10);
+			gc.restore();
+		}
 	}
 
-	public Wire(GraphicsContext gc, Gate.Pin p1, Gate.Pin p2, List<Point2D> list){
+	public Wire(GraphicsContext gc, Pin p1, Pin p2, List<Point2D> list){
 		this.gc = gc;
 		this.pin1 = p1;
 		this.pin2 = p2;
@@ -53,11 +66,11 @@ public class Wire{
 		this.pin2.attach(this.pin1);
 	}
 
-	public Gate.Pin getPin1(){
+	public Pin getPin1(){
 		return this.pin1;
 	}
 
-	public Gate.Pin getPin2(){
+	public Pin getPin2(){
 		return this.pin2;
 	}
 
