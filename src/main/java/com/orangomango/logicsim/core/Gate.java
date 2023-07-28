@@ -4,8 +4,10 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
+import javafx.scene.input.MouseEvent;
 
 import java.util.*;
+import java.util.function.Consumer;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -15,11 +17,12 @@ public abstract class Gate{
 	protected GraphicsContext gc;
 	protected Rectangle2D rect;
 	protected Color color;
-	protected Runnable onClick;
+	protected Consumer<MouseEvent> onClick;
 	protected List<Pin> pins = new ArrayList<>();
 	private boolean power;
 	private String name;
 	protected String label = "Gate";
+	protected boolean labelDown = true;
 
 	public Gate(GraphicsContext gc, String name, Rectangle2D rect, Color color){
 		this.gc = gc;
@@ -37,9 +40,9 @@ public abstract class Gate{
 		return this.pins;
 	}
 
-	public void click(){
+	public void click(MouseEvent e){
 		if (onClick != null){
-			this.onClick.run();
+			this.onClick.accept(e);
 		}
 	}
 
@@ -121,8 +124,13 @@ public abstract class Gate{
 		}
 		gc.setFill(Color.BLACK);
 		gc.save();
-		gc.setTextAlign(TextAlignment.CENTER);
-		gc.fillText(Util.wrapString(this.label, 7), this.rect.getMinX()+this.rect.getWidth()/2, this.rect.getMaxY()+20);
+		if (this.labelDown){
+			gc.setTextAlign(TextAlignment.CENTER);
+			gc.fillText(Util.wrapString(this.label, 7), this.rect.getMinX()+this.rect.getWidth()/2, this.rect.getMaxY()+20);
+		} else {
+			gc.setTextAlign(TextAlignment.LEFT);
+			gc.fillText(Util.wrapString(this.label, 7), this.rect.getMaxX()+6, this.rect.getMinY()+this.rect.getHeight()/2);
+		}
 		gc.restore();
 	}
 

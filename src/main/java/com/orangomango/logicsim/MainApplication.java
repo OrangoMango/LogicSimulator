@@ -63,9 +63,12 @@ public class MainApplication extends Application{
 	private Pin rmW;
 	private List<Wire> wiresToRemove = new ArrayList<>();
 	private List<Gate> gatesToRemove = new ArrayList<>();
+	private List<Pin> pinsToRemove = new ArrayList<>();
 	private Point2D selectedRectanglePoint = null;
 	private double selectedAreaWidth, selectedAreaHeight;
 	private Point2D selectionMoveStart;
+	private Point2D busStartPoint, busTempEndPoint;
+	private int busAmount = 1;
 	
 	@Override
 	public void start(Stage stage){
@@ -235,6 +238,8 @@ public class MainApplication extends Application{
 		this.sideArea.addButton("AND", () -> this.selectedId = 4);
 		this.sideArea.addButton("CHIP", () -> this.selectedId = 5);
 		this.sideArea.addButton("DISPLAY7", () -> this.selectedId = 7);
+		this.sideArea.addButton("BUS", () -> this.selectedId = 8);
+		this.sideArea.addButton("3SBUFFER", () -> this.selectedId = 9);
 
 		this.sideArea.startSection();
 		for (File file : (new File(System.getProperty("user.dir"), "projects")).listFiles()){
@@ -267,6 +272,14 @@ public class MainApplication extends Application{
 				} else {
 					this.gatesToRemove.addAll(this.selectedGates);
 					this.selectedGates.clear();
+				}
+			} else if (e.getCode() == KeyCode.Z){
+				if (this.busStartPoint != null && this.busAmount > 1){
+					this.busAmount--;
+				}
+			} else if (e.getCode() == KeyCode.X){
+				if (this.busStartPoint != null){
+					this.busAmount++;
 				}
 			} else if (e.getCode() == KeyCode.F1){
 				Util.SHOW_PIN_ID = !Util.SHOW_PIN_ID;
@@ -380,64 +393,77 @@ public class MainApplication extends Application{
 							case 7:
 								g = new Display7(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 0, 0));
 								break;
+							case 8:
+								this.busStartPoint = clickPoint;
+								break;
+							case 9:
+								g = new TriStateBuffer(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 100, 50));
+								break;
 						}
 						if (g != null){
 							if (loaded) this.gates.add(g);
 							this.selectedId = -1;
 						}
 					} else {
-						this.sideArea.onClick(e.getX(), e.getY());
-						boolean voidClick = true;
-						for (Gate g : this.gates){
-							Pin pin = g.getPin(clickPoint.getX(), clickPoint.getY());
-							if (pin == null){
-								boolean inside = g.getRect().contains(clickPoint.getX(), clickPoint.getY());
-								if (inside){
-									if (this.rmGate){
-										this.gatesToRemove.add(g);
-										this.rmGate = false;
-									} else {
-										g.click();
-									}
-									voidClick = false;
-								}
-							} else {
-								voidClick = false;
-								if (this.rmWire){
-									if (this.rmW == null){
-										this.rmW = pin;
-									} else {
-										Wire foundWire = Util.getWire(this.wires, this.rmW, pin);
-										if (foundWire != null){
-											this.wiresToRemove.add(foundWire);
+						boolean sideAreaClicked = this.sideArea.onClick(e.getX(), e.getY());
+						if (!sideAreaClicked){
+							boolean voidClick = true;
+							for (Gate g : this.gates){
+								Pin pin = g.getPin(clickPoint.getX(), clickPoint.getY());
+								if (pin == null){
+									boolean inside = g.getRect().contains(clickPoint.getX(), clickPoint.getY());
+									if (inside){
+										if (this.rmGate){
+											this.gatesToRemove.add(g);
+											this.rmGate = false;
 										} else {
-											System.out.println("No wire found");
+											g.click(e);
 										}
-										this.rmW = null;
-										this.rmWire = false;
+										voidClick = false;
 									}
 								} else {
-									this.selectedId = 1;
-									this.connG = pin;	
+									voidClick = false;
+									if (this.rmWire){
+										if (this.rmW == null){
+											this.rmW = pin;
+										} else {
+											Wire foundWire = Util.getWire(this.wires, this.rmW, pin);
+											if (foundWire != null){
+												this.wiresToRemove.add(foundWire);
+											} else {
+												System.out.println("No wire found");
+											}
+											this.rmW = null;
+											this.rmWire = false;
+										}
+									} else {
+										this.selectedId = 1;
+										this.connG = pin;	
+									}
 								}
 							}
-						}
-						if (voidClick || e.isControlDown()){ // No gates found
-							this.selectedRectanglePoint = clickPoint;
-							if (!e.isControlDown()){
-								this.selectedGates.clear();
-								this.selectedWirePoints.clear();
+							if (voidClick || e.isControlDown()){ // No gates found
+								this.selectedRectanglePoint = clickPoint;
+								if (!e.isControlDown()){
+									this.selectedGates.clear();
+									this.selectedWirePoints.clear();
+								}
+								this.selectedAreaWidth = 0;
+								this.selectedAreaHeight = 0;
 							}
-							this.selectedAreaWidth = 0;
-							this.selectedAreaHeight = 0;
 						}
 					}
 				}
 			} else if (e.getButton() == MouseButton.SECONDARY){
 				Gate found = null;
+				Pin pinFound = null;
 				for (Gate g : this.gates){
+					Pin pin = g.getPin(clickPoint.getX(), clickPoint.getY());
 					if (g.getRect().contains(clickPoint.getX(), clickPoint.getY())){
 						found = g;
+						if (pin != null){
+							pinFound = pin;
+						}
 						break;
 					}
 				}
@@ -486,6 +512,14 @@ public class MainApplication extends Application{
 							gate.setLabel(v);
 						});
 					});
+					if (pinFound != null){
+						final Pin pin = pinFound;
+						if (gate instanceof Bus){
+							MenuItem removePin = new MenuItem("Remove pin");
+							removePin.setOnAction(ev -> this.pinsToRemove.add(pin));
+							cm.getItems().add(removePin);
+						}
+					}
 					cm.getItems().add(changeLabel);
 					cm.show(canvas, e.getScreenX(), e.getScreenY());
 				} else if (this.selectedGates.size() > 0 || this.selectedWirePoints.size() > 0){
@@ -506,6 +540,8 @@ public class MainApplication extends Application{
 				if (this.selectedRectanglePoint != null){
 					this.selectedAreaWidth = clickPoint.getX()-this.selectedRectanglePoint.getX();
 					this.selectedAreaHeight = clickPoint.getY()-this.selectedRectanglePoint.getY();
+				} else if (this.busStartPoint != null){
+					this.busTempEndPoint = clickPoint;
 				}
 			} else if (e.getButton() == MouseButton.SECONDARY){
 				if (this.selectedGates.size() == 0 && this.selectedWirePoints.size() == 0 || this.selectionMoveStart == null){
@@ -542,6 +578,20 @@ public class MainApplication extends Application{
 							}
 						}
 					}
+				} else if (this.busStartPoint != null){
+					if (this.busTempEndPoint != null){
+						double width = this.busTempEndPoint.getX()-this.busStartPoint.getX();
+						double height = this.busTempEndPoint.getY()-this.busStartPoint.getY();
+						if (width > height){
+							for (int i = 0; i < this.busAmount; i++) this.gates.add(new Bus(gc, new Rectangle2D(this.busStartPoint.getX(), this.busStartPoint.getY()+i*20, width, 10), this));
+						} else {
+							for (int i = 0; i < this.busAmount; i++) this.gates.add(new Bus(gc, new Rectangle2D(this.busStartPoint.getX()+i*20, this.busStartPoint.getY(), 10, height), this));
+						}
+					}
+					this.busStartPoint = null;
+					this.busTempEndPoint = null;
+					this.selectedId = -1;
+					this.busAmount = 1;
 				}
 				this.selectedRectanglePoint = null;
 			} else if (e.getButton() == MouseButton.SECONDARY){
@@ -603,7 +653,7 @@ public class MainApplication extends Application{
 		stage.show();
 	}
 
-	private Point2D getClickPoint(double x, double y){
+	public Point2D getClickPoint(double x, double y){
 		Point2D clickPoint = new Point2D(x, y);
 		clickPoint = clickPoint.subtract(this.cameraX, this.cameraY);
 		if (this.movePoint != null){
@@ -806,6 +856,17 @@ public class MainApplication extends Application{
 			}
 		}
 
+		if (this.busStartPoint != null && this.busTempEndPoint != null){
+			double busWidth = this.busTempEndPoint.getX()-this.busStartPoint.getX();
+			double busHeight = this.busTempEndPoint.getY()-this.busStartPoint.getY();
+			gc.setFill(Color.GRAY);
+			if (busWidth > busHeight){
+				for (int i = 0; i < this.busAmount; i++) gc.fillRect(this.busStartPoint.getX(), this.busStartPoint.getY()+i*20, busWidth, 10);
+			} else {
+				for (int i = 0; i < this.busAmount; i++) gc.fillRect(this.busStartPoint.getX()+i*20, this.busStartPoint.getY(), 10, busHeight);
+			}
+		}
+
 		// Selection rectangle
 		if (this.selectedRectanglePoint != null){
 			gc.save();
@@ -831,8 +892,7 @@ public class MainApplication extends Application{
 		}
 		if (this.selectedId == -1) this.sideArea.render();
 
-		// Remove selected gate
-		// More than 1 if the user selected multiple gates during a frame update
+		// Remove selected gates
 		for (int i = 0; i < this.gatesToRemove.size(); i++){
 			Gate g = this.gatesToRemove.get(i);
 			g.destroy(this.wires, this.wiresToRemove);
@@ -843,8 +903,14 @@ public class MainApplication extends Application{
 		}
 		this.gatesToRemove.clear();
 
-		// Remove selected wire
-		// More than 1 if the user selected multiple wires during a frame update
+		// Remove selected pins
+		for (int i = 0; i < this.pinsToRemove.size(); i++){
+			Pin p = this.pinsToRemove.get(i);
+			p.destroy(this.gates, this.wires, this.wiresToRemove);
+		}
+		this.pinsToRemove.clear();
+
+		// Remove selected wires
 		for (int i = 0; i < this.wiresToRemove.size(); i++){
 			Wire w = this.wiresToRemove.get(i);
 			w.destroy();

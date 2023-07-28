@@ -18,6 +18,7 @@ public class Pin{
 	private List<Pin> attached = new ArrayList<>();
 	private boolean doInput;
 	private int id;
+	private boolean connected = true;
 	private static final Font FONT = new Font("sans-serif", 10);
 
 	public static int PIN_ID = 0;
@@ -56,12 +57,40 @@ public class Pin{
 		return json;
 	}
 
+	public void destroy(List<Gate> gates, List<Wire> wires, List<Wire> wiresToRemove){
+		for (Gate g : gates){
+			for (Pin p : g.getPins()){
+				if (p.getAttachedPins().contains(this)){
+					Wire w = Util.getWire(wires, p, this);
+					wiresToRemove.add(w);
+				}
+			}
+		}
+		for (Gate g : gates){
+			g.getPins().remove(this);
+		}
+		if (this.id == PIN_ID-1){
+			PIN_ID--;
+		}
+	}
+
 	public double getX(){
 		return (this.rect.getMinX()+this.rect.getMaxX())/2;
 	}
 
 	public double getY(){
 		return (this.rect.getMinY()+this.rect.getMaxY())/2;
+	}
+
+	public void setConnected(boolean c, boolean power){
+		this.connected = c;
+		if (!this.connected){
+			setSignal(false, power);
+		}
+	}
+
+	public boolean isConnected(){
+		return this.connected;
 	}
 
 	public boolean contains(double x, double y){
@@ -100,19 +129,21 @@ public class Pin{
 			if (this.on){
 				for (Pin p : this.attached){
 					p.setSignal(true, power);
+					p.setConnected(this.connected, power);
 				}
 			} else {
 				for (Pin p : this.attached){
 					if (!p.hasOnPin()){
-						p.setSignal(false, power);	
+						p.setSignal(false, power);
 					}
+					p.setConnected(this.connected, power);
 				}
 			}
 		}
 	}
 
 	public void setSignal(boolean on, boolean power){
-		if (!power && on) return; // Power disabled
+		if (!power || !this.connected && on) return; // Power disabled
 		this.on = on;
 	}
 
@@ -127,6 +158,10 @@ public class Pin{
 	public void render(GraphicsContext gc, Color gateColor){
 		gc.setFill(this.on ? Color.GREEN : Color.BLACK);
 		gc.fillOval(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
+		gc.setStroke(this.doInput ? Color.BLUE : Color.RED);
+		if (!this.connected) gc.setStroke(Color.PURPLE);
+		gc.setLineWidth(1.5);
+		gc.strokeOval(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
 		if (Util.SHOW_PIN_ID){
 			gc.setFill(Color.RED);
 			gc.save();

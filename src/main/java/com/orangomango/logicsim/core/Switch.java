@@ -11,7 +11,7 @@ public class Switch extends Gate{
 	public Switch(GraphicsContext gc, Rectangle2D rect){
 		super(gc, "SWITCH", rect, null);
 		this.image = new Image(getClass().getResourceAsStream("/switch.png"));
-		this.onClick = () -> setOn(!this.on);
+		this.onClick = e -> setOn(!this.on);
 		this.pins.add(new Pin(new Rectangle2D(rect.getMaxX()-7, rect.getMinY()+7, 15, 15), false));
 		this.label = "Switch";
 	}

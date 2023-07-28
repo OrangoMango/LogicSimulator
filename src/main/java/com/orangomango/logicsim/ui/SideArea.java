@@ -40,20 +40,24 @@ public class SideArea{
 		return this.opened;
 	}
 
-	public void onClick(double x, double y){
+	public boolean onClick(double x, double y){
 		if (this.opened){
 			if (this.closedButton.contains(x+this.area.getWidth(), y)){
 				this.opened = false;
+				return true;
 			} else {
 				for (UiButton ub : this.buttons){
 					ub.onClick(x, y);
 				}
+				return this.area.contains(x, y);
 			}
 		} else {
 			if (this.closedButton.contains(x, y)){
 				this.opened = true;
+				return true;
 			}
 		}
+		return false;
 	}
 
 	public void render(){

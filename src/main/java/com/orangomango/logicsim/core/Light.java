@@ -5,7 +5,6 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 
 public class Light extends Gate{
-	private boolean lastValue;
 	private Image image;
 
 	public Light(GraphicsContext gc, Rectangle2D rect){
@@ -17,14 +16,6 @@ public class Light extends Gate{
 
 	public boolean isOn(){
 		return this.pins.get(0).isOn();
-	}
-
-	@Override
-	public void update(){
-		super.update();
-		if (this.lastValue != isOn()){
-			this.lastValue = isOn();
-		}
 	}
 
 	@Override
