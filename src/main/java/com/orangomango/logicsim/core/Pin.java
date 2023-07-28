@@ -67,7 +67,7 @@ public class Pin{
 			}
 		}
 		for (Gate g : gates){
-			g.getPins().remove(this);
+			if (g.getPins().contains(this)) g.getPins().remove(this);
 		}
 		if (this.id == PIN_ID-1){
 			PIN_ID--;

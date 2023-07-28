@@ -143,11 +143,13 @@ public abstract class Gate{
 		r.put("w", this.rect.getWidth());
 		r.put("h", this.rect.getHeight());
 		json.put("rect", r);
-		JSONObject c = new JSONObject();
-		c.put("red", this.color.getRed());
-		c.put("green", this.color.getGreen());
-		c.put("blue", this.color.getBlue());
-		json.put("color", c);
+		if (this.color != null){
+			JSONObject c = new JSONObject();
+			c.put("red", this.color.getRed());
+			c.put("green", this.color.getGreen());
+			c.put("blue", this.color.getBlue());
+			json.put("color", c);
+		}
 		JSONArray array = new JSONArray();
 		for (Pin p : this.pins){
 			array.put(p.getJSON());

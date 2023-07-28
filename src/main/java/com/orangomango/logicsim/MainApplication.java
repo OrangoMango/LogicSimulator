@@ -417,7 +417,16 @@ public class MainApplication extends Application{
 											this.gatesToRemove.add(g);
 											this.rmGate = false;
 										} else {
-											g.click(e);
+											// Add pin if this is a Bus
+											if (g instanceof Bus){
+												if (g.getRect().getWidth() > g.getRect().getHeight()){
+													g.getPins().add(new Pin(new Rectangle2D(e.getX()-7.5, g.getRect().getMinY()+g.getRect().getHeight()/2-7.5, 15, 15), e.isShiftDown()));
+												} else {
+													g.getPins().add(new Pin(new Rectangle2D(g.getRect().getMinX()+g.getRect().getWidth()/2-7.5, e.getY()-7.5, 15, 15), e.isShiftDown()));
+												}
+											} else {
+												g.click(e);
+											}
 										}
 										voidClick = false;
 									}
@@ -583,9 +592,9 @@ public class MainApplication extends Application{
 						double width = this.busTempEndPoint.getX()-this.busStartPoint.getX();
 						double height = this.busTempEndPoint.getY()-this.busStartPoint.getY();
 						if (width > height){
-							for (int i = 0; i < this.busAmount; i++) this.gates.add(new Bus(gc, new Rectangle2D(this.busStartPoint.getX(), this.busStartPoint.getY()+i*20, width, 10), this));
+							for (int i = 0; i < this.busAmount; i++) this.gates.add(new Bus(gc, new Rectangle2D(this.busStartPoint.getX(), this.busStartPoint.getY()+i*20, width, 10)));
 						} else {
-							for (int i = 0; i < this.busAmount; i++) this.gates.add(new Bus(gc, new Rectangle2D(this.busStartPoint.getX()+i*20, this.busStartPoint.getY(), 10, height), this));
+							for (int i = 0; i < this.busAmount; i++) this.gates.add(new Bus(gc, new Rectangle2D(this.busStartPoint.getX()+i*20, this.busStartPoint.getY(), 10, height)));
 						}
 					}
 					this.busStartPoint = null;
@@ -713,7 +722,7 @@ public class MainApplication extends Application{
 			for (Object o : json.getJSONArray("gates")){
 				JSONObject gate = (JSONObject)o;
 				String name = gate.getString("name");
-				Color color = Color.color(gate.getJSONObject("color").getDouble("red"), gate.getJSONObject("color").getDouble("green"), gate.getJSONObject("color").getDouble("blue"));
+				Color color = gate.optJSONObject("color") == null ? null : Color.color(gate.getJSONObject("color").getDouble("red"), gate.getJSONObject("color").getDouble("green"), gate.getJSONObject("color").getDouble("blue"));
 				Rectangle2D rect = new Rectangle2D(gate.getJSONObject("rect").getDouble("x"), gate.getJSONObject("rect").getDouble("y"), gate.getJSONObject("rect").getDouble("w"), gate.getJSONObject("rect").getDouble("h"));
 				List<Pin> pins = new ArrayList<>();
 				for (Object o2 : gate.getJSONArray("pins")){
@@ -746,6 +755,10 @@ public class MainApplication extends Application{
 					gt = new Chip(gc, rect, chipFile);
 				} else if (name.equals("DISPLAY7")){
 					gt = new Display7(gc, rect);
+				} else if (name.equals("BUS")){
+					gt = new Bus(gc, rect);
+				} else if (name.equals("3SBUFFER")){
+					gt = new TriStateBuffer(gc, rect);
 				}
 				Pin.PIN_ID = lastPinId; // Restore the last pin id
 				Pin.UPDATE_PIN_ID = lastPinFlag;
