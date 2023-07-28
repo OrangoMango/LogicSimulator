@@ -110,6 +110,28 @@ public class Chip extends Gate{
 		}
 	}
 
+	public String getLabel(Pin p){
+		if (p.isInput()){
+			for (int i = 0; i < this.inputPins.size(); i++){
+				Pin pin = this.inputPins.get(i);
+				Gate gate = this.inputGates.get(i);
+				if (pin == p){
+					return gate.getLabel();
+				}
+			}
+			return null;
+		} else {
+			for (int i = 0; i < this.outputPins.size(); i++){
+				Pin pin = this.outputPins.get(i);
+				Gate gate = this.outputGates.get(i);
+				if (pin == p){
+					return gate.getLabel();
+				}
+			}
+			return null;
+		}
+	}
+
 	@Override
 	public void update(){
 		for (Gate g : this.gates){

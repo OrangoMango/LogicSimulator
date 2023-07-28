@@ -69,6 +69,7 @@ public class MainApplication extends Application{
 	private Point2D selectionMoveStart;
 	private Point2D busStartPoint, busTempEndPoint;
 	private int busAmount = 1;
+	private UiTooltip tooltip;
 	
 	@Override
 	public void start(Stage stage){
@@ -525,6 +526,25 @@ public class MainApplication extends Application{
 
 		canvas.setOnMouseMoved(e -> {
 			this.mouseMoved = new Point2D(e.getX(), e.getY());
+			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
+			Gate found = null;
+			Pin pinFound = null;
+			for (Gate g : this.gates){
+				Pin pin = g.getPin(clickPoint.getX(), clickPoint.getY());
+				if (g.getRect().contains(clickPoint.getX(), clickPoint.getY())){
+					found = g;
+					if (pin != null){
+						pinFound = pin;
+					}
+					break;
+				}
+			}
+
+			if (found != null && pinFound != null && found instanceof Chip){
+				this.tooltip = new UiTooltip(gc, ((Chip)found).getLabel(pinFound), e.getX(), e.getY());
+			} else {
+				this.tooltip = null;
+			}
 		});
 
 		canvas.setOnMouseDragged(e -> {
@@ -930,6 +950,8 @@ public class MainApplication extends Application{
 		gc.setFill(Util.isPowerOn() ? Color.LIME : Color.RED);
 		gc.fillRoundRect(900, 15, 45, 45, 15, 15);
 		if (this.selectedId == -1) this.sideArea.render();
+
+		if (this.tooltip != null) this.tooltip.render();
 
 		// Remove selected gates
 		for (int i = 0; i < this.gatesToRemove.size(); i++){
