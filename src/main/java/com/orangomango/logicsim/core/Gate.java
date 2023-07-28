@@ -155,6 +155,7 @@ public abstract class Gate{
 			array.put(p.getJSON());
 		}
 		json.put("pins", array);
+		json.put("label", this.label);
 		return json;
 	}
 }

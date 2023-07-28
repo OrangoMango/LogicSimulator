@@ -153,7 +153,6 @@ public class MainApplication extends Application{
 			this.gates = new ArrayList<Gate>();
 			Pin.PIN_ID = 0;
 			this.currentFile = null;
-			buildSideArea(gc);
 		});
 		UiButton rmWireButton = new UiButton(gc, "RM WIRE", new Rectangle2D(600, 20, 75, 35), () -> {
 			this.rmWire = true;
@@ -773,6 +772,7 @@ public class MainApplication extends Application{
 				Pin.PIN_ID = lastPinId; // Restore the last pin id
 				Pin.UPDATE_PIN_ID = lastPinFlag;
 				gt.setPins(pins);
+				gt.setLabel(gate.getString("label"));
 				tempGates.add(gt);
 			}
 
