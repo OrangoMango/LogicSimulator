@@ -4,6 +4,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.geometry.Rectangle2D;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
+import javafx.scene.image.Image;
 
 import java.util.*;
 
@@ -14,11 +15,13 @@ public class SideArea{
 	private List<UiButton> buttons = new ArrayList<>();
 	private int amount = 0;
 	private double extraY;
+	private Image btnImage;
 
 	public SideArea(GraphicsContext gc, Rectangle2D closedBtn, Rectangle2D area){
 		this.gc = gc;
 		this.closedButton = closedBtn;
 		this.area = area;
+		this.btnImage = new Image(getClass().getResourceAsStream("/sidebutton.png"));
 	}
 
 	public void addButton(String text, Runnable r){
@@ -65,8 +68,7 @@ public class SideArea{
 		if (this.opened){
 			gc.translate(-this.area.getWidth(), 0);
 		}
-		gc.setFill(Color.GRAY);
-		gc.fillRect(this.closedButton.getMinX(), this.closedButton.getMinY(), this.closedButton.getWidth(), this.closedButton.getHeight());
+		gc.drawImage(this.btnImage, 1+(this.opened ? 0 : 52), 1, 50, 75, this.closedButton.getMinX(), this.closedButton.getMinY(), this.closedButton.getWidth(), this.closedButton.getHeight());
 		gc.restore();
 		if (this.opened){
 			gc.save();

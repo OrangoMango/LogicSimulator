@@ -92,6 +92,7 @@ public class MainApplication extends Application{
 				info.setHeaderText("File saved");
 				info.setContentText("File saved successfully");
 				info.showAndWait();
+				buildSideArea(gc);
 			}
 		});
 		UiButton loadButton = new UiButton(gc, "LOAD", new Rectangle2D(175, 20, 100, 35), () -> {
@@ -113,6 +114,7 @@ public class MainApplication extends Application{
 				this.currentFile = file;
 				this.gates = gates;
 				this.wires = wires;
+				buildSideArea(gc);
 			}
 		});
 		UiButton saveChipButton = new UiButton(gc, "SAVE CHIP", new Rectangle2D(300, 20, 150, 35), () -> {
@@ -143,6 +145,7 @@ public class MainApplication extends Application{
 				info.setHeaderText("File saved");
 				info.setContentText("File saved successfully");
 				info.showAndWait();
+				buildSideArea(gc);
 			}
 		});
 		UiButton clearButton = new UiButton(gc, "CLEAR", new Rectangle2D(475, 20, 100, 35), () -> {
@@ -150,6 +153,7 @@ public class MainApplication extends Application{
 			this.gates = new ArrayList<Gate>();
 			Pin.PIN_ID = 0;
 			this.currentFile = null;
+			buildSideArea(gc);
 		});
 		UiButton rmWireButton = new UiButton(gc, "RM WIRE", new Rectangle2D(600, 20, 75, 35), () -> {
 			this.rmWire = true;
@@ -230,27 +234,7 @@ public class MainApplication extends Application{
 		this.buttons.add(rmGateButton);
 		this.buttons.add(exportButton);
 		
-		this.sideArea = new SideArea(gc, new Rectangle2D(950, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, 350, 800));
-		this.sideArea.addButton("Switch", () -> this.selectedId = 0);
-		this.sideArea.addButton("Wire", () -> this.selectedId = 1);
-		this.sideArea.addButton("Light", () -> this.selectedId = 2);
-		this.sideArea.addButton("NOT", () -> this.selectedId = 3);
-		this.sideArea.addButton("AND", () -> this.selectedId = 4);
-		this.sideArea.addButton("CHIP", () -> this.selectedId = 5);
-		this.sideArea.addButton("DISPLAY7", () -> this.selectedId = 7);
-		this.sideArea.addButton("BUS", () -> this.selectedId = 8);
-		this.sideArea.addButton("3SBUFFER", () -> this.selectedId = 9);
-
-		this.sideArea.startSection();
-		for (File file : (new File(System.getProperty("user.dir"), "projects")).listFiles()){
-			String nm = file.getName();
-			if (nm.endsWith(".lsimc")){
-				this.sideArea.addButton(nm.substring(0, nm.lastIndexOf(".")), () -> {
-					this.selectedId = 6;
-					this.selectedChipFile = file;
-				});
-			}
-		}
+		buildSideArea(gc);
 
 		canvas.setFocusTraversable(true);
 		canvas.setOnKeyPressed(e -> {
@@ -662,6 +646,32 @@ public class MainApplication extends Application{
 		stage.show();
 	}
 
+	private void buildSideArea(GraphicsContext gc){
+		this.sideArea = new SideArea(gc, new Rectangle2D(950, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, 350, 800));
+		this.sideArea.addButton("Switch", () -> this.selectedId = 0);
+		this.sideArea.addButton("Wire", () -> this.selectedId = 1);
+		this.sideArea.addButton("Light", () -> this.selectedId = 2);
+		this.sideArea.addButton("NOT", () -> this.selectedId = 3);
+		this.sideArea.addButton("AND", () -> this.selectedId = 4);
+		this.sideArea.addButton("CHIP", () -> this.selectedId = 5);
+		this.sideArea.addButton("DISPLAY7", () -> this.selectedId = 7);
+		this.sideArea.addButton("BUS", () -> this.selectedId = 8);
+		this.sideArea.addButton("3SBUFFER", () -> this.selectedId = 9);
+
+		if (this.currentFile != null){
+			this.sideArea.startSection();
+			for (File file : (new File(this.currentFile.getParent())).listFiles()){
+				String nm = file.getName();
+				if (nm.endsWith(".lsimc")){
+					this.sideArea.addButton(nm.substring(0, nm.lastIndexOf(".")), () -> {
+						this.selectedId = 6;
+						this.selectedChipFile = file;
+					});
+				}
+			}
+		}
+	}
+
 	public Point2D getClickPoint(double x, double y){
 		Point2D clickPoint = new Point2D(x, y);
 		clickPoint = clickPoint.subtract(this.cameraX, this.cameraY);
@@ -840,7 +850,14 @@ public class MainApplication extends Application{
 		}
 		gc.scale(this.cameraScale, this.cameraScale);
 
+		Point2D topLeft = getClickPoint(0, 0);
+		Point2D bottomRight = getClickPoint(WIDTH, HEIGHT);
+		Rectangle2D screen = new Rectangle2D(topLeft.getX(), topLeft.getY(), bottomRight.getX()-topLeft.getX(), bottomRight.getY()-topLeft.getY());
+
 		for (Gate g : this.gates){
+			if (!screen.intersects(g.getRect())){
+				continue;
+			}
 			g.render();
 			if (this.selectedGates.contains(g)){
 				gc.save();
@@ -851,6 +868,11 @@ public class MainApplication extends Application{
 			}
 		}
 		for (Wire w : this.wires){
+			if (!screen.contains(w.getPin1().getX(), w.getPin1().getY()) && !screen.contains(w.getPin2().getX(), w.getPin2().getY())){
+				if (!w.getPoints().stream().filter(wp -> screen.contains(wp.getX(), wp.getY())).findAny().isPresent()){
+					continue;
+				}
+			}
 			w.render();
 			for (Wire.WirePoint wp : w.getPoints()){
 				if (this.selectedWirePoints.contains(wp)){
@@ -903,6 +925,8 @@ public class MainApplication extends Application{
 		for (UiButton ub : this.buttons){
 			ub.render();
 		}
+		gc.setFill(Util.isPowerOn() ? Color.LIME : Color.RED);
+		gc.fillRoundRect(900, 15, 45, 45, 15, 15);
 		if (this.selectedId == -1) this.sideArea.render();
 
 		// Remove selected gates
