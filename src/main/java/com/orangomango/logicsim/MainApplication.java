@@ -133,19 +133,21 @@ public class MainApplication extends Application{
 			gpane.add(colorPicker, 0, 1, 2, 1);
 			alert.getDialogPane().setContent(gpane);
 			alert.showAndWait();
-			FileChooser fc = new FileChooser();
-			fc.setTitle("Save chip");
-			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
-			File file = fc.showSaveDialog(stage);
-			if (file != null){
-				this.currentFile = file;
-				save(file, name.getText(), colorPicker.getValue());
-				Alert info = new Alert(Alert.AlertType.INFORMATION);
-				info.setTitle("Saved");
-				info.setHeaderText("File saved");
-				info.setContentText("File saved successfully");
-				info.showAndWait();
-				buildSideArea(gc);
+			if (!name.getText().equals("")){
+				FileChooser fc = new FileChooser();
+				fc.setTitle("Save chip");
+				fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
+				File file = fc.showSaveDialog(stage);
+				if (file != null){
+					this.currentFile = file;
+					save(file, name.getText(), colorPicker.getValue());
+					Alert info = new Alert(Alert.AlertType.INFORMATION);
+					info.setTitle("Saved");
+					info.setHeaderText("File saved");
+					info.setContentText("File saved successfully");
+					info.showAndWait();
+					buildSideArea(gc);
+				}
 			}
 		});
 		UiButton clearButton = new UiButton(gc, "CLEAR", new Rectangle2D(475, 20, 100, 35), () -> {
@@ -403,9 +405,9 @@ public class MainApplication extends Application{
 											// Add pin if this is a Bus
 											if (g instanceof Bus){
 												if (g.getRect().getWidth() > g.getRect().getHeight()){
-													g.getPins().add(new Pin(new Rectangle2D(e.getX()-7.5, g.getRect().getMinY()+g.getRect().getHeight()/2-7.5, 15, 15), e.isShiftDown()));
+													g.getPins().add(new Pin(new Rectangle2D(clickPoint.getX()-7.5, g.getRect().getMinY()+g.getRect().getHeight()/2-7.5, 15, 15), e.isShiftDown()));
 												} else {
-													g.getPins().add(new Pin(new Rectangle2D(g.getRect().getMinX()+g.getRect().getWidth()/2-7.5, e.getY()-7.5, 15, 15), e.isShiftDown()));
+													g.getPins().add(new Pin(new Rectangle2D(g.getRect().getMinX()+g.getRect().getWidth()/2-7.5, clickPoint.getY()-7.5, 15, 15), e.isShiftDown()));
 												}
 											} else {
 												g.click(e);
@@ -536,7 +538,7 @@ public class MainApplication extends Application{
 					this.busTempEndPoint = clickPoint;
 				}
 			} else if (e.getButton() == MouseButton.SECONDARY){
-				if (this.selectedGates.size() == 0 && this.selectedWirePoints.size() == 0 || this.selectionMoveStart == null){
+				if ((this.selectedGates.size() == 0 && this.selectedWirePoints.size() == 0) || this.selectionMoveStart == null){
 					if (this.movePoint != null){
 						this.deltaMove = new Point2D(e.getX()-this.movePoint.getX(), e.getY()-this.movePoint.getY());
 					}

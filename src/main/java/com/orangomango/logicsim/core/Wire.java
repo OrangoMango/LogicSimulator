@@ -80,7 +80,13 @@ public class Wire{
 
 	public void destroy(){
 		this.pin1.getAttachedPins().remove(this.pin2);
+		if (this.pin1.getAttachedPins().size() == 0){
+			this.pin1.setSignal(false, Util.isPowerOn());
+		}
 		this.pin2.getAttachedPins().remove(this.pin1);
+		if (this.pin2.getAttachedPins().size() == 0){
+			this.pin2.setSignal(false, Util.isPowerOn());
+		}
 	}
 
 	public JSONObject getJSON(){

@@ -143,7 +143,9 @@ public class Pin{
 	}
 
 	public void setSignal(boolean on, boolean power){
-		if (!power || !this.connected && on) return; // Power disabled
+		if ((!power || !this.connected) && on){
+			return; // Power disabled
+		}
 		this.on = on;
 	}
 
