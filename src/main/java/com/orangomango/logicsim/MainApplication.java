@@ -24,6 +24,7 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ButtonType;
 import javafx.embed.swing.SwingFXUtils;
 
 import java.util.*;
@@ -150,12 +151,12 @@ public class MainApplication extends Application{
 			gpane.add(name, 1, 0);
 			gpane.add(colorPicker, 0, 1, 2, 1);
 			alert.getDialogPane().setContent(gpane);
-			alert.showAndWait();
-			if (!name.getText().equals(defaultName)){
+			ButtonType btn = alert.showAndWait().orElse(null);
+			if (btn == ButtonType.OK){
 				FileChooser fc = new FileChooser();
 				fc.setTitle("Save chip");
 				fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
-				File file = fc.showSaveDialog(stage);
+				File file = this.currentFile == null ? fc.showSaveDialog(stage) : this.currentFile;
 				if (file != null){
 					this.currentFile = file;
 					save(file, name.getText(), colorPicker.getValue());
