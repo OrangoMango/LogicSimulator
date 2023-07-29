@@ -53,6 +53,10 @@ public class Chip extends Gate{
 			}
 		}
 
+		// Sort the gates
+		this.inputGates.sort((g1, g2) -> Double.compare(g1.getRect().getMinY()+g1.getRect().getHeight()/2, g2.getRect().getMinY()+g2.getRect().getHeight()/2));
+		this.outputGates.sort((g1, g2) -> Double.compare(g1.getRect().getMinY()+g1.getRect().getHeight()/2, g2.getRect().getMinY()+g2.getRect().getHeight()/2));
+
 		this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), Math.max(this.inputGates.size(), this.outputGates.size())*20+5);
 		double inputOffset = (this.rect.getHeight()-(this.inputGates.size()*15))/(this.inputGates.size()+1);
 		for (int i = 0; i < this.inputGates.size(); i++){
@@ -116,7 +120,7 @@ public class Chip extends Gate{
 				Pin pin = this.inputPins.get(i);
 				Gate gate = this.inputGates.get(i);
 				if (pin == p){
-					return gate.getLabel();
+					return gate.getLabel().equals("Switch") ? "Input pin" : gate.getLabel();
 				}
 			}
 			return null;
@@ -125,7 +129,7 @@ public class Chip extends Gate{
 				Pin pin = this.outputPins.get(i);
 				Gate gate = this.outputGates.get(i);
 				if (pin == p){
-					return gate.getLabel();
+					return gate.getLabel().equals("Light") ? "Output pin" : gate.getLabel();
 				}
 			}
 			return null;

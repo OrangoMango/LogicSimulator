@@ -85,7 +85,7 @@ public class MainApplication extends Application{
 			FileChooser fc = new FileChooser();
 			fc.setTitle("Save project");
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
-			File file = this.currentFile == null ? fc.showSaveDialog(stage) : this.currentFile;
+			File file = this.currentFile == null || this.currentFile.getName().endsWith(".lsimc") ? fc.showSaveDialog(stage) : this.currentFile;
 			if (file != null){
 				this.currentFile = file;
 				save(file);
@@ -120,6 +120,22 @@ public class MainApplication extends Application{
 			}
 		});
 		UiButton saveChipButton = new UiButton(gc, "SAVE CHIP", new Rectangle2D(300, 20, 150, 35), () -> {
+			String defaultName = "";
+			Color defaultColor = Color.BLUE;
+			try {
+				if (this.currentFile != null && this.currentFile.getName().endsWith(".lsimc")){
+					BufferedReader reader = new BufferedReader(new FileReader(this.currentFile));
+					StringBuilder builder = new StringBuilder();
+					reader.lines().forEach(builder::append);
+					reader.close();
+					JSONObject json = new JSONObject(builder.toString());
+					defaultColor = Color.color(json.getJSONObject("color").getDouble("red"), json.getJSONObject("color").getDouble("green"), json.getJSONObject("color").getDouble("blue"));
+					defaultName = json.getString("chipName");
+				}
+			} catch (IOException ex){
+				ex.printStackTrace();
+			}
+				
 			Alert alert = new Alert(Alert.AlertType.INFORMATION);
 			alert.setHeaderText("Create chip");
 			alert.setTitle("Create chip");
@@ -128,14 +144,14 @@ public class MainApplication extends Application{
 			gpane.setHgap(5);
 			gpane.setVgap(5);
 			Label nameL = new Label("Name: ");
-			TextField name = new TextField();
-			ColorPicker colorPicker = new ColorPicker(Color.BLUE);
+			TextField name = new TextField(defaultName);
+			ColorPicker colorPicker = new ColorPicker(defaultColor);
 			gpane.add(nameL, 0, 0);
 			gpane.add(name, 1, 0);
 			gpane.add(colorPicker, 0, 1, 2, 1);
 			alert.getDialogPane().setContent(gpane);
 			alert.showAndWait();
-			if (!name.getText().equals("")){
+			if (!name.getText().equals(defaultName)){
 				FileChooser fc = new FileChooser();
 				fc.setTitle("Save chip");
 				fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
@@ -369,7 +385,10 @@ public class MainApplication extends Application{
 								fc.setTitle("Load chip");
 								fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
 								File file = fc.showOpenDialog(stage);
-								if (file == null) return;
+								if (file == null){
+									this.selectedId = -1;
+									return;
+								}
 								g = new Chip(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 125, 0), file);
 								loaded = ((Chip)g).getJSONData() != null;
 								break;
@@ -551,8 +570,12 @@ public class MainApplication extends Application{
 				}
 			}
 
-			if (found != null && pinFound != null && found instanceof Chip){
-				this.tooltip = new UiTooltip(gc, ((Chip)found).getLabel(pinFound), e.getX(), e.getY());
+			if (found != null && pinFound != null){
+				if (found instanceof Chip){
+					this.tooltip = new UiTooltip(gc, ((Chip)found).getLabel(pinFound), e.getX(), e.getY());
+				} else {
+					this.tooltip = new UiTooltip(gc, pinFound.isInput() ? "Input pin" : "Output pin", e.getX(), e.getY());
+				}
 			} else {
 				this.tooltip = null;
 			}
@@ -729,7 +752,12 @@ public class MainApplication extends Application{
 
 	private void save(File file, String chipName, Color color){
 		if (!file.getName().endsWith(".lsim") && !file.getName().endsWith(".lsimc")){
+			boolean replace = false;
+			if (file == this.currentFile){
+				replace = true;
+			}
 			file = new File(file.getParent(), file.getName()+".lsim"+(chipName == null ? "" : "c"));
+			if (replace) this.currentFile = file;
 		}
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(file));
