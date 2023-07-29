@@ -9,6 +9,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Alert;
+import javafx.scene.Cursor;
 
 import com.orangomango.logicsim.core.Chip;
 import com.orangomango.logicsim.core.Gate;
@@ -92,7 +93,14 @@ public class ChipCanvas{
 			}
 		});
 
-		this.loop = new Timeline(new KeyFrame(Duration.millis(1000.0/MainApplication.FPS), e -> update(gc)));
+		this.loop = new Timeline(new KeyFrame(Duration.millis(1000.0/MainApplication.FPS), e -> {
+			update(gc);
+			if (this.movePoint != null){
+				canvas.setCursor(Cursor.MOVE);
+			} else {
+				canvas.setCursor(Cursor.DEFAULT);
+			}
+		}));
 		this.loop.setCycleCount(Animation.INDEFINITE);
 		this.loop.play();
 

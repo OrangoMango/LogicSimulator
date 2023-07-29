@@ -148,6 +148,7 @@ public class Chip extends Gate{
 		for (int i = 0; i < this.outputGates.size(); i++){
 			Light l = (Light)this.outputGates.get(i);
 			this.outputPins.get(i).setSignal(l.isOn(), isPowered());
+			this.outputPins.get(i).setConnected(l.getPins().get(0).isConnected(), isPowered());
 		}
 		super.update();
 	}

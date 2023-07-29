@@ -61,7 +61,7 @@ public abstract class Gate{
 
 	public Pin getPin(double x, double y){
 		for (Pin pin : this.pins){
-			if (pin.contains(x, y)){
+			if (pin.getRect().contains(x, y)){
 				return pin;
 			}
 		}

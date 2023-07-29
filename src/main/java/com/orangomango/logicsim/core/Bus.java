@@ -48,6 +48,19 @@ public class Bus extends Gate{
 		}
 	}
 
+	public void setRect(Rectangle2D rect){
+		if (this.rect.getWidth() > this.rect.getHeight()){
+			for (Pin p : this.pins){
+				p.setRect(new Rectangle2D((p.getRect().getMinX()-this.rect.getMinX())/this.rect.getWidth()*rect.getWidth()+rect.getMinX(), rect.getMinY()+rect.getHeight()/2-7.5, p.getRect().getWidth(), p.getRect().getHeight()));
+			}
+		} else {
+			for (Pin p : this.pins){
+				p.setRect(new Rectangle2D(rect.getMinX()+rect.getWidth()/2-7.5, (p.getRect().getMinY()-this.rect.getMinY())/this.rect.getHeight()*rect.getHeight()+rect.getMinY(), p.getRect().getWidth(), p.getRect().getHeight()));
+			}
+		}
+		this.rect = rect;
+	}
+
 	@Override
 	public void update(){
 		super.update();

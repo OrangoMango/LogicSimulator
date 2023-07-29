@@ -38,6 +38,13 @@ import org.json.JSONArray;
 import com.orangomango.logicsim.ui.*;
 import com.orangomango.logicsim.core.*;
 
+/**
+ * Logic simulator made in Java/JavaFX
+ * Using AND and NOT gates you can build every other chip.
+ * 
+ * @author OrangoMango [https://orangomango.github.io]
+ * @version 1.0
+ */
 public class MainApplication extends Application{
 	private static final double WIDTH = 1000;
 	private static final double HEIGHT = 800;
@@ -72,6 +79,7 @@ public class MainApplication extends Application{
 	private int busAmount = 1;
 	private UiTooltip tooltip;
 	private Bus resizingBus = null;
+	private Pin movingBusPin = null;
 	
 	@Override
 	public void start(Stage stage){
@@ -285,6 +293,19 @@ public class MainApplication extends Application{
 				if (this.busStartPoint != null){
 					this.busAmount++;
 				}
+			} else if (e.getCode() == KeyCode.R){
+				boolean allBus = !this.selectedGates.stream().filter(g -> !(g instanceof Bus)).findAny().isPresent();
+				if (this.selectedGates.size() > 0 && allBus){
+					Gate ref = this.selectedGates.get(0);
+					for (int i = 1; i < this.selectedGates.size(); i++){
+						Gate g = this.selectedGates.get(i);
+						if (ref.getRect().getWidth() > ref.getRect().getHeight()){
+							((Bus)g).setRect(new Rectangle2D(ref.getRect().getMinX(), ref.getRect().getMinY()+i*20, ref.getRect().getWidth(), ref.getRect().getHeight()));
+						} else {
+							((Bus)g).setRect(new Rectangle2D(ref.getRect().getMinX()+i*20, ref.getRect().getMinY(), ref.getRect().getWidth(), ref.getRect().getHeight()));
+						}
+					}
+				}
 			} else if (e.getCode() == KeyCode.F1){
 				Util.SHOW_PIN_ID = !Util.SHOW_PIN_ID;
 			}
@@ -463,8 +484,12 @@ public class MainApplication extends Application{
 											this.rmWire = false;
 										}
 									} else {
-										this.selectedId = 1;
-										this.connG = pin;	
+										if (e.isShiftDown() && g instanceof Bus){
+											this.movingBusPin = pin;
+										} else {
+											this.selectedId = 1;
+											this.connG = pin;
+										}
 									}
 								}
 							}
@@ -593,6 +618,17 @@ public class MainApplication extends Application{
 					if (clickPoint.getX() > this.busStartPoint.getX()+100 || clickPoint.getY() > this.busStartPoint.getY()+100) this.busTempEndPoint = clickPoint;
 				} else if (this.resizingBus != null){
 					this.resizingBus.resize(clickPoint.getX(), clickPoint.getY());
+				} else if (this.movingBusPin != null){
+					Gate found = this.gates.stream().filter(g -> g.getPins().contains(this.movingBusPin)).findFirst().get();
+					if (found.getRect().getWidth() > found.getRect().getHeight()){
+						if (clickPoint.getX()+7.5 > found.getRect().getMinX()+20 && clickPoint.getX()+7.5 < found.getRect().getMaxX()-20){
+							this.movingBusPin.setRect(new Rectangle2D(clickPoint.getX(), this.movingBusPin.getRect().getMinY(), 15, 15));
+						}
+					} else {
+						if (clickPoint.getY()+7.5 > found.getRect().getMinY()+20 && clickPoint.getY()+7.5 < found.getRect().getMaxY()-20){
+							this.movingBusPin.setRect(new Rectangle2D(this.movingBusPin.getRect().getMinX(), clickPoint.getY(), 15, 15));
+						}
+					}
 				}
 			} else if (e.getButton() == MouseButton.SECONDARY){
 				if ((this.selectedGates.size() == 0 && this.selectedWirePoints.size() == 0) || this.selectionMoveStart == null){
@@ -646,6 +682,7 @@ public class MainApplication extends Application{
 				}
 				this.selectedRectanglePoint = null;
 				this.resizingBus = null;
+				this.movingBusPin = null;
 			} else if (e.getButton() == MouseButton.SECONDARY){
 				if (this.movePoint != null){
 					this.movePoint = null;
@@ -988,7 +1025,7 @@ public class MainApplication extends Application{
 		// UI
 		gc.save();
 		gc.setFill(Color.BLACK);
-		gc.fillText(String.format("ID: %d\nPower: %s\nScale: %.2f", Pin.PIN_ID, Util.isPowerOn(), this.cameraScale), 60, 300);
+		gc.fillText(String.format("ID: %d\nPower: %s\nScale: %.2f", Pin.PIN_ID, Util.isPowerOn(), this.cameraScale), 60, 700);
 		gc.setGlobalAlpha(0.5);
 		gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
 		gc.restore();

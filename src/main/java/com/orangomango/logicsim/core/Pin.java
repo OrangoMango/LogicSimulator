@@ -93,12 +93,16 @@ public class Pin{
 		return this.connected;
 	}
 
-	public boolean contains(double x, double y){
-		return this.rect.contains(x, y);
-	}
-
 	public void move(double x, double y){
 		this.rect = new Rectangle2D(this.rect.getMinX()+x, this.rect.getMinY()+y, this.rect.getWidth(), this.rect.getHeight());
+	}
+
+	public void setRect(Rectangle2D rect){
+		this.rect = rect;
+	}
+
+	public Rectangle2D getRect(){
+		return this.rect;
 	}
 
 	public boolean isInput(){
