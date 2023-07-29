@@ -13,6 +13,41 @@ public class Bus extends Gate{
 		this.labelDown = this.rect.getWidth() <= this.rect.getHeight();
 	}
 
+	public boolean isOnBorder(double x, double y){
+		if (this.rect.contains(x, y)){
+			if (this.rect.getWidth() > this.rect.getHeight()){
+				return x-this.rect.getMinX() <= 15 || this.rect.getMaxX()-x <= 15;
+			} else {
+				return y-this.rect.getMinY() <= 15 || this.rect.getMaxY()-y <= 15;
+			}
+		}
+		return false;
+	}
+
+	public void resize(double x, double y){
+		if (this.rect.getWidth() > this.rect.getHeight()){
+			double diff = x-this.rect.getMinX();
+			if (diff < 100){
+				return;
+			}
+			double maxPinWidth = this.pins.stream().mapToDouble(p -> p.getX()).max().orElse(0);
+			if (diff < maxPinWidth+15-this.rect.getMinX()){
+				return;
+			}
+			this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), diff, this.rect.getHeight());
+		} else {
+			double diff = y-this.rect.getMinY();
+			if (diff < 100){
+				return;
+			}
+			double maxPinHeight = this.pins.stream().mapToDouble(p -> p.getY()).max().orElse(0);
+			if (diff < maxPinHeight+15-this.rect.getMinY()){
+				return;
+			}
+			this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), diff);
+		}
+	}
+
 	@Override
 	public void update(){
 		super.update();
@@ -20,10 +55,11 @@ public class Bus extends Gate{
 		long puttingOn = this.pins.stream().filter(p -> p.isInput() && p.getAttachedPins().size() > 0 && p.isConnected() && p.isOn()).count();
 		long puttingOff = this.pins.stream().filter(p -> p.isInput() && p.getAttachedPins().size() > 0 && p.isConnected() && !p.isOn()).count();
 		if (puttingOn > 0 && puttingOff > 0){
-			// Unstable state where multiple pins are trying to put data on the bus
+			// Unstable state where multiple pins are trying to put different data on the bus
 			this.color = Color.ORANGE;
 			this.on = false;
 		} else {
+			if (puttingOn == 0) this.on = false;
 			this.color = this.on ? Color.web("#B2FE73") : Color.GRAY;
 		}
 		this.pins.stream().filter(p -> !p.isInput()).forEach(p -> p.setSignal(this.on, isPowered()));

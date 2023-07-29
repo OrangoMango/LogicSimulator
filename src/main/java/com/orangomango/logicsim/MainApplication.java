@@ -70,6 +70,7 @@ public class MainApplication extends Application{
 	private Point2D busStartPoint, busTempEndPoint;
 	private int busAmount = 1;
 	private UiTooltip tooltip;
+	private Bus resizingBus = null;
 	
 	@Override
 	public void start(Stage stage){
@@ -406,9 +407,19 @@ public class MainApplication extends Application{
 											// Add pin if this is a Bus
 											if (g instanceof Bus){
 												if (g.getRect().getWidth() > g.getRect().getHeight()){
-													g.getPins().add(new Pin(new Rectangle2D(clickPoint.getX()-7.5, g.getRect().getMinY()+g.getRect().getHeight()/2-7.5, 15, 15), e.isShiftDown()));
+													boolean isOnBorder = ((Bus)g).isOnBorder(clickPoint.getX(), clickPoint.getY());
+													if (isOnBorder){
+														this.resizingBus = (Bus)g;
+													} else {
+														g.getPins().add(new Pin(new Rectangle2D(clickPoint.getX()-7.5, g.getRect().getMinY()+g.getRect().getHeight()/2-7.5, 15, 15), e.isShiftDown()));
+													}
 												} else {
-													g.getPins().add(new Pin(new Rectangle2D(g.getRect().getMinX()+g.getRect().getWidth()/2-7.5, clickPoint.getY()-7.5, 15, 15), e.isShiftDown()));
+													boolean isOnBorder = ((Bus)g).isOnBorder(clickPoint.getX(), clickPoint.getY());
+													if (isOnBorder){
+														this.resizingBus = (Bus)g;
+													} else {
+														g.getPins().add(new Pin(new Rectangle2D(g.getRect().getMinX()+g.getRect().getWidth()/2-7.5, clickPoint.getY()-7.5, 15, 15), e.isShiftDown()));
+													}
 												}
 											} else {
 												g.click(e);
@@ -555,7 +566,9 @@ public class MainApplication extends Application{
 					this.selectedAreaWidth = clickPoint.getX()-this.selectedRectanglePoint.getX();
 					this.selectedAreaHeight = clickPoint.getY()-this.selectedRectanglePoint.getY();
 				} else if (this.busStartPoint != null){
-					this.busTempEndPoint = clickPoint;
+					if (clickPoint.getX() > this.busStartPoint.getX()+100 || clickPoint.getY() > this.busStartPoint.getY()+100) this.busTempEndPoint = clickPoint;
+				} else if (this.resizingBus != null){
+					this.resizingBus.resize(clickPoint.getX(), clickPoint.getY());
 				}
 			} else if (e.getButton() == MouseButton.SECONDARY){
 				if ((this.selectedGates.size() == 0 && this.selectedWirePoints.size() == 0) || this.selectionMoveStart == null){
@@ -608,6 +621,7 @@ public class MainApplication extends Application{
 					this.busAmount = 1;
 				}
 				this.selectedRectanglePoint = null;
+				this.resizingBus = null;
 			} else if (e.getButton() == MouseButton.SECONDARY){
 				if (this.movePoint != null){
 					this.movePoint = null;
@@ -638,6 +652,12 @@ public class MainApplication extends Application{
 				scene.setCursor(Cursor.CLOSED_HAND);
 			} else if (this.selectedId >= 0 && this.selectedId != 1){
 				scene.setCursor(Cursor.HAND);
+			} else if (this.resizingBus != null){
+				if (this.resizingBus.getRect().getWidth() > this.resizingBus.getRect().getHeight()){
+					scene.setCursor(Cursor.H_RESIZE);
+				} else {
+					scene.setCursor(Cursor.V_RESIZE);
+				}
 			} else {
 				scene.setCursor(Cursor.DEFAULT);
 			}
