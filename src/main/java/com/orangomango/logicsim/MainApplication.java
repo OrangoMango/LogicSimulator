@@ -89,8 +89,6 @@ public class MainApplication extends Application{
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		pane.getChildren().add(canvas);
 
-		Util.toggleCircuitPower(this.gates); // Circuit starts with power off.
-
 		UiButton saveButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_save.png")), "SAVE", new Rectangle2D(50, 20, 50, 50), () -> {
 			FileChooser fc = new FileChooser();
 			fc.setTitle("Save project");
@@ -224,6 +222,9 @@ public class MainApplication extends Application{
 			int w = (int)(maxPosX+minPosX)+100;
 			int h = (int)(maxPosY+minPosY)+100;
 			Canvas tempCanvas = new Canvas(w, h);
+			tempCanvas.getGraphicsContext2D().clearRect(0, 0, w, h);
+			tempCanvas.getGraphicsContext2D().setFill(Color.web("#9595D3"));
+			tempCanvas.getGraphicsContext2D().fillRect(0, 0, w, h);
 			tempCanvas.getGraphicsContext2D().translate(50, 50);
 			if (changeX) tempCanvas.getGraphicsContext2D().translate(minPosX, 0);
 			if (changeY) tempCanvas.getGraphicsContext2D().translate(0, minPosY);
@@ -937,14 +938,14 @@ public class MainApplication extends Application{
 	
 	private void update(GraphicsContext gc){
 		gc.clearRect(0, 0, WIDTH, HEIGHT);
-		gc.setFill(Color.web("#EDEDED"));
+		gc.setFill(Color.web("#9595D3"));
 		gc.fillRect(0, 0, WIDTH, HEIGHT);
 
 		// Render the grid
 		double gridSize = 50*this.cameraScale;
 		gridSize = Math.min(100, Math.max(gridSize, 15));
 		gc.save();
-		gc.setStroke(Color.web("#A2A2A2"));
+		gc.setStroke(Color.web("#3A5D73"));
 		gc.setLineWidth(1.5);
 		double offsetX = (this.cameraX+(this.movePoint != null ? this.deltaMove.getX() : 0)) % gridSize;
 		double offsetY = (this.cameraY+(this.movePoint != null ? this.deltaMove.getY() : 0)) % gridSize;

@@ -42,7 +42,7 @@ public class UiButton{
 			gc.fillText(Util.wrapString(this.text, 5), this.button.getMinX()+this.button.getWidth()/2, this.button.getMinY()+this.button.getHeight()/2);
 		} else {
 			gc.drawImage(this.image, this.button.getMinX(), this.button.getMinY(), this.button.getWidth(), this.button.getHeight());	
-			gc.setFill(Color.BLACK);
+			gc.setFill(Color.WHITE);
 			gc.setTextAlign(TextAlignment.CENTER);
 			gc.fillText(this.text, this.button.getMinX()+this.button.getWidth()/2, this.button.getMaxY()+20);
 		}
