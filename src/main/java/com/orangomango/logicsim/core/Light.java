@@ -10,7 +10,7 @@ public class Light extends Gate{
 	public Light(GraphicsContext gc, Rectangle2D rect){
 		super(gc, "LIGHT", rect, null);
 		this.image = new Image(getClass().getResourceAsStream("/light.png"));
-		this.pins.add(new Pin(new Rectangle2D(rect.getMinX()-7, rect.getMinY()+7, 15, 15), true));
+		this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-7, rect.getMinY()+7, 15, 15), true));
 		this.label = "Light";
 	}
 

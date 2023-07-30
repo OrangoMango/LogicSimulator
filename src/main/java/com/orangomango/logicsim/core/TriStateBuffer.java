@@ -11,9 +11,9 @@ public class TriStateBuffer extends Gate{
 	public TriStateBuffer(GraphicsContext gc, Rectangle2D rect){
 		super(gc, "3SBUFFER", rect, Color.web("#A28585"));
 		this.label = "Tri-state buffer";
-		this.pins.add(new Pin(new Rectangle2D(rect.getMinX()-7, rect.getMinY()+7, 15, 15), true)); // Input
-		this.pins.add(new Pin(new Rectangle2D(rect.getMinX()-7, rect.getMinY()+28, 15, 15), true)); // Input
-		this.pins.add(new Pin(new Rectangle2D(rect.getMaxX()-7, rect.getMinY()+15, 15, 15), false)); // Output
+		this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-7, rect.getMinY()+7, 15, 15), true)); // Input
+		this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-7, rect.getMinY()+28, 15, 15), true)); // Input
+		this.pins.add(new Pin(this, new Rectangle2D(rect.getMaxX()-7, rect.getMinY()+15, 15, 15), false)); // Output
 	}
 
 	@Override

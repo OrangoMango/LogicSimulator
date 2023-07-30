@@ -454,14 +454,14 @@ public class MainApplication extends Application{
 													if (isOnBorder){
 														this.resizingBus = (Bus)g;
 													} else {
-														g.getPins().add(new Pin(new Rectangle2D(clickPoint.getX()-7.5, g.getRect().getMinY()+g.getRect().getHeight()/2-7.5, 15, 15), e.isShiftDown()));
+														g.getPins().add(new Pin(g, new Rectangle2D(clickPoint.getX()-7.5, g.getRect().getMinY()+g.getRect().getHeight()/2-7.5, 15, 15), e.isShiftDown()));
 													}
 												} else {
 													boolean isOnBorder = ((Bus)g).isOnBorder(clickPoint.getX(), clickPoint.getY());
 													if (isOnBorder){
 														this.resizingBus = (Bus)g;
 													} else {
-														g.getPins().add(new Pin(new Rectangle2D(g.getRect().getMinX()+g.getRect().getWidth()/2-7.5, clickPoint.getY()-7.5, 15, 15), e.isShiftDown()));
+														g.getPins().add(new Pin(g, new Rectangle2D(g.getRect().getMinX()+g.getRect().getWidth()/2-7.5, clickPoint.getY()-7.5, 15, 15), e.isShiftDown()));
 													}
 												}
 											} else {
@@ -603,10 +603,11 @@ public class MainApplication extends Application{
 			}
 
 			if (found != null && pinFound != null){
+				String extra = pinFound.isConnected() ? "Connected" : "Disconnected";
 				if (found instanceof Chip){
-					this.tooltip = new UiTooltip(gc, ((Chip)found).getLabel(pinFound), e.getX(), e.getY());
+					this.tooltip = new UiTooltip(gc, ((Chip)found).getLabel(pinFound)+"\n"+extra, e.getX(), e.getY());
 				} else {
-					this.tooltip = new UiTooltip(gc, pinFound.isInput() ? "Input pin" : "Output pin", e.getX(), e.getY());
+					this.tooltip = new UiTooltip(gc, (pinFound.isInput() ? "Input pin" : "Output pin")+"\n"+extra, e.getX(), e.getY());
 				}
 			} else {
 				this.tooltip = null;
@@ -625,7 +626,7 @@ public class MainApplication extends Application{
 				} else if (this.resizingBus != null){
 					this.resizingBus.resize(clickPoint.getX(), clickPoint.getY());
 				} else if (this.movingBusPin != null){
-					Gate found = this.gates.stream().filter(g -> g.getPins().contains(this.movingBusPin)).findFirst().get();
+					Gate found = this.movingBusPin.getOwner();
 					if (found.getRect().getWidth() > found.getRect().getHeight()){
 						if (clickPoint.getX()+7.5 > found.getRect().getMinX()+20 && clickPoint.getX()+7.5 < found.getRect().getMaxX()-20){
 							this.movingBusPin.setRect(new Rectangle2D(clickPoint.getX(), this.movingBusPin.getRect().getMinY(), 15, 15));

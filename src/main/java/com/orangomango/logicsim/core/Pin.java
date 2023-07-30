@@ -19,15 +19,25 @@ public class Pin{
 	private boolean doInput;
 	private int id;
 	private boolean connected = true;
+	private Gate owner;
 	private static final Font FONT = new Font("sans-serif", 10);
 
 	public static int PIN_ID = 0;
 	public static boolean UPDATE_PIN_ID = true;
 
-	public Pin(Rectangle2D r, boolean doIn){
+	public Pin(Gate owner, Rectangle2D r, boolean doIn){
+		this.owner = owner;
 		this.rect = r;
 		this.doInput = doIn;
 		this.id = PIN_ID++;
+	}
+
+	public void setOwner(Gate owner){
+		this.owner = owner;
+	}
+
+	public Gate getOwner(){
+		return this.owner;
 	}
 
 	public Pin(JSONObject json){
@@ -66,9 +76,7 @@ public class Pin{
 				}
 			}
 		}
-		for (Gate g : gates){
-			if (g.getPins().contains(this)) g.getPins().remove(this);
-		}
+		this.owner.getPins().remove(this);
 		if (this.id == PIN_ID-1){
 			PIN_ID--;
 		}
@@ -129,7 +137,7 @@ public class Pin{
 	}
 
 	public void updateAttachedPins(boolean power){
-		if (!this.isInput()){
+		if (!this.isInput()){ // Only output pins decide.
 			if (this.on){
 				for (Pin p : this.attached){
 					p.setSignal(true, power);

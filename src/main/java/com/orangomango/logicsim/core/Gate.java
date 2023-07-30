@@ -34,6 +34,9 @@ public abstract class Gate{
 
 	public void setPins(List<Pin> pins){
 		this.pins = pins;
+		for (Pin p : this.pins){
+			p.setOwner(this);
+		}
 	}
 
 	public List<Pin> getPins(){

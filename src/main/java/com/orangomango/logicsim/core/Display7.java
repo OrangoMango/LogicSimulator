@@ -34,7 +34,7 @@ public class Display7 extends Gate{
 		this.image = new Image(getClass().getResourceAsStream("/display.png"));
 		this.label = "7 segment display";
 		for (int i = 0; i < 7; i++){
-			this.pins.add(new Pin(new Rectangle2D(rect.getMinX()-15, rect.getMinY()+20*i, 15, 15), true));
+			this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-15, rect.getMinY()+20*i, 15, 15), true));
 		}
 
 		this.pieces[0] = new DisplayPiece(new Image(getClass().getResourceAsStream("/display-h.png")), this.rect.getMinX()+6*2, this.rect.getMinY()+5*2);

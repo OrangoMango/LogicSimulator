@@ -20,10 +20,10 @@ public class UiTooltip{
 		gc.save();
 		gc.setFill(Color.BLACK);
 		gc.setGlobalAlpha(0.6);
-		gc.fillRoundRect(this.x, this.y, 85, 25, 15, 15);
+		gc.fillRoundRect(this.x, this.y, 95, 45, 15, 15);
 		gc.setFill(Color.WHITE);
 		gc.setTextAlign(TextAlignment.CENTER);
-		gc.fillText(this.text, this.x+42, this.y+17);
+		gc.fillText(this.text, this.x+95/2.0, this.y+45/2.0-5);
 		gc.restore();
 	}
 }
