@@ -1030,6 +1030,9 @@ public class MainApplication extends Application{
 			gc.setGlobalAlpha(0.6);
 			Rectangle2D selection = Util.buildRect(this.selectedRectanglePoint, this.selectedAreaWidth, this.selectedAreaHeight);
 			gc.fillRect(selection.getMinX(), selection.getMinY(), selection.getWidth(), selection.getHeight());
+			gc.setStroke(Color.GREEN);
+			gc.setLineWidth(1);
+			gc.strokeRect(selection.getMinX(), selection.getMinY(), selection.getWidth(), selection.getHeight());
 			gc.restore();
 		}
 

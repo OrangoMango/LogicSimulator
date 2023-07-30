@@ -75,17 +75,17 @@ public class Bus extends Gate{
 	public void update(){
 		super.update();
 		Predicate<Pin> acceptablePins = p -> p.isInput() && p.getAttachedPins().size() > 0 && p.isConnected();
-		this.pins.stream().filter(acceptablePins).forEach(p -> this.on = p.isOn());
+		this.pins.stream().filter(acceptablePins).forEach(p -> setOn(p.isOn()));
 		long puttingOn = this.pins.stream().filter(acceptablePins.and(p -> p.isOn())).count();
 		long puttingOff = this.pins.stream().filter(acceptablePins.and(p -> !p.isOn())).count();
 		if (puttingOn > 0 && puttingOff > 0){
 			// Unstable state where multiple pins are trying to put different data on the bus
 			this.color = Color.ORANGE;
-			this.on = false;
+			setOn(false);
 		} else {
-			if (puttingOn == 0) this.on = false;
+			if (puttingOn == 0) setOn(false);
 			this.color = this.on ? Color.web("#B2FE73") : Color.GRAY;
 		}
-		this.pins.stream().filter(p -> !p.isInput()).forEach(p -> p.setSignal(this.on, isPowered()));
+		this.pins.stream().filter(p -> !p.isInput()).forEach(p -> p.setSignal(isOn(), isPowered()));
 	}
 }
