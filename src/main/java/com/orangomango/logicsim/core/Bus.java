@@ -16,9 +16,9 @@ public class Bus extends Gate{
 	public boolean isOnBorder(double x, double y){
 		if (this.rect.contains(x, y)){
 			if (this.rect.getWidth() > this.rect.getHeight()){
-				return x-this.rect.getMinX() <= 15 || this.rect.getMaxX()-x <= 15;
+				return this.rect.getMaxX()-x <= 15;
 			} else {
-				return y-this.rect.getMinY() <= 15 || this.rect.getMaxY()-y <= 15;
+				return this.rect.getMaxY()-y <= 15;
 			}
 		}
 		return false;

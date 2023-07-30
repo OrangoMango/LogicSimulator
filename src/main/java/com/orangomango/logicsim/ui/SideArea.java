@@ -29,7 +29,7 @@ public class SideArea{
 		final int maxRow = (int)Math.floor(area.getWidth()/(75+distance));
 		Point2D pos = new Point2D(distance+(this.amount%maxRow)*(75+distance), distance+(this.amount/maxRow)*(75+distance)+this.extraY);
 		pos = pos.add(area.getMinX(), area.getMinY());
-		UiButton ub = new UiButton(this.gc, text, new Rectangle2D(pos.getX(), pos.getY(), 75, 75), r);
+		UiButton ub = new UiButton(this.gc, null, text, new Rectangle2D(pos.getX(), pos.getY(), 75, 75), r);
 		this.buttons.add(ub);
 		this.amount++;
 	}

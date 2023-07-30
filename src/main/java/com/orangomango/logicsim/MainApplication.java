@@ -11,6 +11,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.canvas.*;
 import javafx.scene.paint.Color;
+import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.animation.*;
 import javafx.util.Duration;
@@ -50,7 +51,7 @@ public class MainApplication extends Application{
 	private static final double HEIGHT = 800;
 	public static final int FPS = 40;
 	private static final double TOOLBAR_X = 650;
-	private static final double TOOLBAR_Y = 75;
+	private static final double TOOLBAR_Y = 100;
 
 	private SideArea sideArea;
 	private File currentFile = null;
@@ -90,7 +91,7 @@ public class MainApplication extends Application{
 
 		Util.toggleCircuitPower(this.gates); // Circuit starts with power off.
 
-		UiButton saveButton = new UiButton(gc, "SAVE", new Rectangle2D(50, 20, 100, 35), () -> {
+		UiButton saveButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_save.png")), "SAVE", new Rectangle2D(50, 20, 50, 50), () -> {
 			FileChooser fc = new FileChooser();
 			fc.setTitle("Save project");
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
@@ -106,7 +107,7 @@ public class MainApplication extends Application{
 				buildSideArea(gc);
 			}
 		});
-		UiButton loadButton = new UiButton(gc, "LOAD", new Rectangle2D(175, 20, 100, 35), () -> {
+		UiButton loadButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_load.png")), "LOAD", new Rectangle2D(150, 20, 50, 50), () -> {
 			FileChooser fc = new FileChooser();
 			fc.setTitle("Load project");
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
@@ -128,7 +129,7 @@ public class MainApplication extends Application{
 				buildSideArea(gc);
 			}
 		});
-		UiButton saveChipButton = new UiButton(gc, "SAVE CHIP", new Rectangle2D(300, 20, 150, 35), () -> {
+		UiButton saveChipButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_savechip.png")), "SAVE CHIP", new Rectangle2D(250, 20, 50, 50), () -> {
 			String defaultName = "";
 			Color defaultColor = Color.BLUE;
 			try {
@@ -177,21 +178,21 @@ public class MainApplication extends Application{
 				}
 			}
 		});
-		UiButton clearButton = new UiButton(gc, "CLEAR", new Rectangle2D(475, 20, 100, 35), () -> {
+		UiButton clearButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_clear.png")), "CLEAR", new Rectangle2D(350, 20, 50, 50), () -> {
 			this.wires = new ArrayList<Wire>();
 			this.gates = new ArrayList<Gate>();
 			Pin.PIN_ID = 0;
 			this.currentFile = null;
 		});
-		UiButton rmWireButton = new UiButton(gc, "RM WIRE", new Rectangle2D(600, 20, 75, 35), () -> {
+		UiButton rmWireButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_rmwire.png")), "RM WIRE", new Rectangle2D(450, 20, 50, 50), () -> {
 			this.rmWire = true;
 			this.rmGate = false;
 		});
-		UiButton rmGateButton = new UiButton(gc, "RM GATE", new Rectangle2D(700, 20, 75, 35), () -> {
+		UiButton rmGateButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_rmgate.png")), "RM GATE", new Rectangle2D(550, 20, 50, 50), () -> {
 			this.rmGate = true;
 			this.rmWire = false;
 		});
-		UiButton exportButton = new UiButton(gc, "EXPORT", new Rectangle2D(800, 20, 75, 35), () -> {
+		UiButton exportButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_export.png")), "EXPORT", new Rectangle2D(650, 20, 50, 50), () -> {
 			double minPosX = Double.POSITIVE_INFINITY;
 			double maxPosX = Double.NEGATIVE_INFINITY;
 			double minPosY = Double.POSITIVE_INFINITY;
@@ -537,6 +538,10 @@ public class MainApplication extends Application{
 					this.connG = null;
 					this.movePoint = new Point2D(e.getX(), e.getY());
 					this.deltaMove = new Point2D(0, 0);
+					if (this.busStartPoint != null){
+						this.busStartPoint = null;
+						this.busTempEndPoint = null;
+					}
 				} else if (found != null && (!this.selectedGates.contains(found) || e.getClickCount() == 2)){
 					ContextMenu cm = new ContextMenu();
 					if (found instanceof Chip){
@@ -615,7 +620,7 @@ public class MainApplication extends Application{
 					this.selectedAreaWidth = clickPoint.getX()-this.selectedRectanglePoint.getX();
 					this.selectedAreaHeight = clickPoint.getY()-this.selectedRectanglePoint.getY();
 				} else if (this.busStartPoint != null){
-					if (clickPoint.getX() > this.busStartPoint.getX()+100 || clickPoint.getY() > this.busStartPoint.getY()+100) this.busTempEndPoint = clickPoint;
+					if (Math.abs(clickPoint.getX()-this.busStartPoint.getX()) > 100 || Math.abs(clickPoint.getY()-this.busStartPoint.getY()) > 100) this.busTempEndPoint = clickPoint;
 				} else if (this.resizingBus != null){
 					this.resizingBus.resize(clickPoint.getX(), clickPoint.getY());
 				} else if (this.movingBusPin != null){
@@ -669,10 +674,10 @@ public class MainApplication extends Application{
 					if (this.busTempEndPoint != null){
 						double width = this.busTempEndPoint.getX()-this.busStartPoint.getX();
 						double height = this.busTempEndPoint.getY()-this.busStartPoint.getY();
-						if (width > height){
-							for (int i = 0; i < this.busAmount; i++) this.gates.add(new Bus(gc, new Rectangle2D(this.busStartPoint.getX(), this.busStartPoint.getY()+i*20, width, 10)));
+						if (Math.abs(width) > Math.abs(height)){
+							for (int i = 0; i < this.busAmount; i++) this.gates.add(new Bus(gc, Util.buildRect(new Point2D(this.busStartPoint.getX(), this.busStartPoint.getY()+i*20), width, 10)));
 						} else {
-							for (int i = 0; i < this.busAmount; i++) this.gates.add(new Bus(gc, new Rectangle2D(this.busStartPoint.getX()+i*20, this.busStartPoint.getY(), 10, height)));
+							for (int i = 0; i < this.busAmount; i++) this.gates.add(new Bus(gc, Util.buildRect(new Point2D(this.busStartPoint.getX()+i*20, this.busStartPoint.getY()), 10, height)));
 						}
 					}
 					this.busStartPoint = null;
@@ -753,12 +758,12 @@ public class MainApplication extends Application{
 		this.sideArea.addButton("Switch", () -> this.selectedId = 0);
 		this.sideArea.addButton("Wire", () -> this.selectedId = 1);
 		this.sideArea.addButton("Light", () -> this.selectedId = 2);
-		this.sideArea.addButton("NOT", () -> this.selectedId = 3);
-		this.sideArea.addButton("AND", () -> this.selectedId = 4);
-		this.sideArea.addButton("CHIP", () -> this.selectedId = 5);
-		this.sideArea.addButton("DISPLAY7", () -> this.selectedId = 7);
-		this.sideArea.addButton("BUS", () -> this.selectedId = 8);
-		this.sideArea.addButton("3SBUFFER", () -> this.selectedId = 9);
+		this.sideArea.addButton("NOT gate", () -> this.selectedId = 3);
+		this.sideArea.addButton("AND gate", () -> this.selectedId = 4);
+		this.sideArea.addButton("Chip", () -> this.selectedId = 5);
+		this.sideArea.addButton("7 segment display", () -> this.selectedId = 7);
+		this.sideArea.addButton("Bus", () -> this.selectedId = 8);
+		this.sideArea.addButton("Tri-state buffer", () -> this.selectedId = 9);
 
 		if (this.currentFile != null){
 			this.sideArea.startSection();
@@ -1003,10 +1008,16 @@ public class MainApplication extends Application{
 			double busWidth = this.busTempEndPoint.getX()-this.busStartPoint.getX();
 			double busHeight = this.busTempEndPoint.getY()-this.busStartPoint.getY();
 			gc.setFill(Color.GRAY);
-			if (busWidth > busHeight){
-				for (int i = 0; i < this.busAmount; i++) gc.fillRect(this.busStartPoint.getX(), this.busStartPoint.getY()+i*20, busWidth, 10);
+			if (Math.abs(busWidth) > Math.abs(busHeight)){
+				for (int i = 0; i < this.busAmount; i++){
+					Rectangle2D busRect = Util.buildRect(new Point2D(this.busStartPoint.getX(), this.busStartPoint.getY()+i*20), busWidth, 10);
+					gc.fillRect(busRect.getMinX(), busRect.getMinY(), busRect.getWidth(), busRect.getHeight());
+				}
 			} else {
-				for (int i = 0; i < this.busAmount; i++) gc.fillRect(this.busStartPoint.getX()+i*20, this.busStartPoint.getY(), 10, busHeight);
+				for (int i = 0; i < this.busAmount; i++){
+					Rectangle2D busRect = Util.buildRect(new Point2D(this.busStartPoint.getX()+i*20, this.busStartPoint.getY()), 10, busHeight);
+					gc.fillRect(busRect.getMinX(), busRect.getMinY(), busRect.getWidth(), busRect.getHeight());
+				}
 			}
 		}
 
@@ -1034,7 +1045,7 @@ public class MainApplication extends Application{
 			ub.render();
 		}
 		gc.setFill(Util.isPowerOn() ? Color.LIME : Color.RED);
-		gc.fillRoundRect(900, 15, 45, 45, 15, 15);
+		gc.fillRoundRect(775, 15, 45, 45, 15, 15);
 		if (this.selectedId == -1) this.sideArea.render();
 
 		if (this.tooltip != null) this.tooltip.render();
