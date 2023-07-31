@@ -121,7 +121,8 @@ public class Bus extends Gate{
 
 	private Stream<Pin> buildStream(){
 		Stream<Pin> stream = this.pins.stream();
-		for (Bus bus : this.connections){
+		for (int i = 0; i < this.connections.size(); i++){
+			Bus bus = this.connections.get(i);
 			stream = Stream.concat(stream, bus.pins.stream());
 		}
 		return stream;

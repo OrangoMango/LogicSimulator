@@ -2,6 +2,7 @@ package com.orangomango.logicsim.ui;
 
 import javafx.scene.layout.StackPane;
 import javafx.scene.canvas.*;
+import javafx.scene.paint.Color;
 import javafx.animation.*;
 import javafx.util.Duration;
 import javafx.geometry.Point2D;
@@ -114,6 +115,8 @@ public class ChipCanvas{
 
 	private void update(GraphicsContext gc){
 		gc.clearRect(0, 0, WIDTH, HEIGHT);
+		gc.setFill(Color.web("#9595D3"));
+		gc.fillRect(0, 0, WIDTH, HEIGHT);
 		gc.save();
 		gc.translate(this.cameraX, this.cameraY);
 		if (this.movePoint != null){
