@@ -4,23 +4,71 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.paint.Color;
 
+import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 public class Bus extends Gate{
 	private boolean on = false;
+	private List<Bus> connections = new ArrayList<>();
+	private int id;
+
+	private static int BUS_ID = 0;
+
+	public Bus(GraphicsContext gc, Rectangle2D rect, int id){
+		super(gc, "BUS", rect, Color.GRAY);
+		this.id = id;
+		this.label = "Bus #"+this.id;
+		this.labelDown = this.rect.getWidth() <= this.rect.getHeight();
+	}
 
 	public Bus(GraphicsContext gc, Rectangle2D rect){
-		super(gc, "BUS", rect, Color.GRAY);
-		this.label = "Bus";
-		this.labelDown = this.rect.getWidth() <= this.rect.getHeight();
+		this(gc, rect, BUS_ID++);
+	}
+
+	public int getId(){
+		return this.id;
+	}
+
+	public void connectBus(Bus bus){
+		if (!this.connections.contains(bus)){
+			this.connections.add(bus);
+			bus.connections.add(this);
+		}
+	}
+
+	public void clearConnections(){
+		for (Bus bus : this.connections){
+			bus.connections.remove(this);
+		}
+		this.connections.clear();
+	}
+
+	@Override
+	public JSONObject getJSON(){
+		JSONObject json = super.getJSON();
+		json.put("id", this.id);
+		JSONArray ids = new JSONArray();
+		for (Bus bus : this.connections){
+			ids.put(bus.getId());
+		}
+		json.put("connections", ids);
+		return json;
+	}
+
+
+	@Override
+	public void destroy(List<Wire> wires, List<Wire> wiresToRemove){
+		super.destroy(wires, wiresToRemove);
+		for (Bus bus : this.connections){
+			bus.connections.remove(this);
+		}
 	}
 
 	public boolean isOn(){
 		return this.on;
-	}
-
-	public void setOn(boolean v){
-		this.on = v;
 	}
 
 	public boolean isOnBorder(double x, double y){
@@ -71,21 +119,29 @@ public class Bus extends Gate{
 		this.rect = rect;
 	}
 
+	private Stream<Pin> buildStream(){
+		Stream<Pin> stream = this.pins.stream();
+		for (Bus bus : this.connections){
+			stream = Stream.concat(stream, bus.pins.stream());
+		}
+		return stream;
+	}
+
 	@Override
 	public void update(){
 		super.update();
 		Predicate<Pin> acceptablePins = p -> p.isInput() && p.getAttachedPins().size() > 0 && p.isConnected();
-		this.pins.stream().filter(acceptablePins).forEach(p -> setOn(p.isOn()));
-		long puttingOn = this.pins.stream().filter(acceptablePins.and(p -> p.isOn())).count();
-		long puttingOff = this.pins.stream().filter(acceptablePins.and(p -> !p.isOn())).count();
+		buildStream().filter(acceptablePins).forEach(p -> this.on = p.isOn());
+		long puttingOn = buildStream().filter(acceptablePins.and(p -> p.isOn())).count();
+		long puttingOff = buildStream().filter(acceptablePins.and(p -> !p.isOn())).count();
 		if (puttingOn > 0 && puttingOff > 0){
-			// Unstable state where multiple pins are trying to put different data on the bus
+			// Unstable state where multiple pins are trying to put different data onto the bus
 			this.color = Color.ORANGE;
-			setOn(false);
+			this.on = false;
 		} else {
-			if (puttingOn == 0) setOn(false);
+			if (puttingOn == 0) this.on = false;
 			this.color = this.on ? Color.web("#B2FE73") : Color.GRAY;
 		}
-		this.pins.stream().filter(p -> !p.isInput()).forEach(p -> p.setSignal(isOn(), isPowered()));
+		buildStream().filter(p -> !p.isInput()).forEach(p -> p.setSignal(isOn(), isPowered()));
 	}
 }

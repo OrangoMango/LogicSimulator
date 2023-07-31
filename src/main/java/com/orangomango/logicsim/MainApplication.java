@@ -68,7 +68,7 @@ public class MainApplication extends Application{
 	private Point2D movePoint, deltaMove = new Point2D(0, 0); // For camera movement
 	private double cameraX, cameraY;
 	private double cameraScale = 1;
-	private boolean rmWire = false, rmGate = false;
+	private boolean rmWire = false, rmGate = false, connBus = false;
 	private Pin rmW;
 	private List<Wire> wiresToRemove = new ArrayList<>();
 	private List<Gate> gatesToRemove = new ArrayList<>();
@@ -81,6 +81,7 @@ public class MainApplication extends Application{
 	private UiTooltip tooltip;
 	private Bus resizingBus = null;
 	private Pin movingBusPin = null;
+	private Bus connB;
 	
 	@Override
 	public void start(Stage stage){
@@ -185,10 +186,12 @@ public class MainApplication extends Application{
 		UiButton rmWireButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_rmwire.png")), "RM WIRE", new Rectangle2D(450, 20, 50, 50), () -> {
 			this.rmWire = true;
 			this.rmGate = false;
+			this.connBus = false;
 		});
 		UiButton rmGateButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_rmgate.png")), "RM GATE", new Rectangle2D(550, 20, 50, 50), () -> {
 			this.rmGate = true;
 			this.rmWire = false;
+			this.connBus = false;
 		});
 		UiButton exportButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_export.png")), "EXPORT", new Rectangle2D(650, 20, 50, 50), () -> {
 			double minPosX = Double.POSITIVE_INFINITY;
@@ -256,6 +259,11 @@ public class MainApplication extends Application{
 				info.showAndWait();
 			}
 		});
+		UiButton busConnectButton  = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_connbus.png")), "CONNECT BUS", new Rectangle2D(750, 20, 50, 50), () -> {
+			this.connBus = true;
+			this.rmGate = false;
+			this.rmWire = false;
+		});;
 		this.buttons.add(saveButton);
 		this.buttons.add(loadButton);
 		this.buttons.add(saveChipButton);
@@ -263,6 +271,7 @@ public class MainApplication extends Application{
 		this.buttons.add(rmWireButton);
 		this.buttons.add(rmGateButton);
 		this.buttons.add(exportButton);
+		this.buttons.add(busConnectButton);
 		
 		buildSideArea(gc);
 
@@ -449,18 +458,27 @@ public class MainApplication extends Application{
 										} else {
 											// Add pin if this is a Bus
 											if (g instanceof Bus){
-												if (g.getRect().getWidth() > g.getRect().getHeight()){
-													boolean isOnBorder = ((Bus)g).isOnBorder(clickPoint.getX(), clickPoint.getY());
-													if (isOnBorder){
-														this.resizingBus = (Bus)g;
+												Bus bus = (Bus)g;
+												if (this.connBus){
+													if (this.connB == null){
+														this.connB = bus;
 													} else {
+														this.connB.connectBus(bus);
+														this.connB = null;
+														this.connBus = false;
+													}
+												} else if (g.getRect().getWidth() > g.getRect().getHeight()){
+													boolean isOnBorder = bus.isOnBorder(clickPoint.getX(), clickPoint.getY());
+													if (isOnBorder){
+														this.resizingBus = bus;
+													} else if (clickPoint.getX()-g.getRect().getMinX() > 30 && g.getRect().getMaxX()-clickPoint.getX() > 30){
 														g.getPins().add(new Pin(g, new Rectangle2D(clickPoint.getX()-7.5, g.getRect().getMinY()+g.getRect().getHeight()/2-7.5, 15, 15), e.isShiftDown()));
 													}
 												} else {
-													boolean isOnBorder = ((Bus)g).isOnBorder(clickPoint.getX(), clickPoint.getY());
+													boolean isOnBorder = bus.isOnBorder(clickPoint.getX(), clickPoint.getY());
 													if (isOnBorder){
-														this.resizingBus = (Bus)g;
-													} else {
+														this.resizingBus = bus;
+													} else if (clickPoint.getY()-g.getRect().getMinY() > 30 && g.getRect().getMaxY()-clickPoint.getY() > 30){
 														g.getPins().add(new Pin(g, new Rectangle2D(g.getRect().getMinX()+g.getRect().getWidth()/2-7.5, clickPoint.getY()-7.5, 15, 15), e.isShiftDown()));
 													}
 												}
@@ -532,6 +550,7 @@ public class MainApplication extends Application{
 				}
 				this.rmGate = false;
 				this.rmWire = false;
+				this.connBus = false;
 				this.rmW = null;
 				if (found == null && foundPoint == null){
 					this.selectedId = -1;
@@ -558,6 +577,11 @@ public class MainApplication extends Application{
 							cc.destroy();
 						});
 						cm.getItems().add(showChip);
+					} else if (found instanceof Bus){
+						MenuItem clearConn = new MenuItem("Clear connections");
+						final Bus bus = (Bus)found;
+						clearConn.setOnAction(ev -> bus.clearConnections());
+						cm.getItems().add(clearConn);
 					}
 					final Gate gate = found;
 					MenuItem changeLabel = new MenuItem("Change label");
@@ -712,7 +736,7 @@ public class MainApplication extends Application{
 
 		Timeline loop = new Timeline(new KeyFrame(Duration.millis(1000.0/FPS), e -> {
 			update(gc);
-			if (this.rmWire || this.rmGate){
+			if (this.rmWire || this.rmGate || this.connBus){
 				scene.setCursor(Cursor.CROSSHAIR);
 			} else if (this.movePoint != null){
 				scene.setCursor(Cursor.MOVE);
@@ -841,6 +865,7 @@ public class MainApplication extends Application{
 			JSONObject json = new JSONObject(builder.toString());
 
 			int backupId = Pin.PIN_ID;
+			Map<Bus, JSONArray> busConnections = new HashMap<>();
 
 			// Load gates
 			for (Object o : json.getJSONArray("gates")){
@@ -880,7 +905,8 @@ public class MainApplication extends Application{
 				} else if (name.equals("DISPLAY7")){
 					gt = new Display7(gc, rect);
 				} else if (name.equals("BUS")){
-					gt = new Bus(gc, rect);
+					gt = new Bus(gc, rect, gate.getInt("id"));
+					busConnections.put((Bus)gt, gate.getJSONArray("connections"));
 				} else if (name.equals("3SBUFFER")){
 					gt = new TriStateBuffer(gc, rect);
 				}
@@ -917,6 +943,18 @@ public class MainApplication extends Application{
 					points.add(new Point2D(p.getDouble("x"), p.getDouble("y")));
 				}
 				tempWires.add(new Wire(gc, p1, p2, points));
+			}
+
+			// Connect buses
+			for (Gate g : tempGates){
+				if (g instanceof Bus){
+					Bus bus = (Bus)g;
+					JSONArray array = busConnections.get(bus);
+					for (Object o : array){
+						Bus attachedBus = (Bus)tempGates.stream().filter(gt -> gt instanceof Bus && ((Bus)gt).getId() == (int)o).findFirst().get();
+						bus.connectBus(attachedBus);
+					}
+				}
 			}
 
 			return json;
@@ -1050,7 +1088,7 @@ public class MainApplication extends Application{
 			ub.render();
 		}
 		gc.setFill(Util.isPowerOn() ? Color.LIME : Color.RED);
-		gc.fillRoundRect(775, 15, 45, 45, 15, 15);
+		gc.fillRoundRect(850, 15, 45, 45, 15, 15);
 		if (this.selectedId == -1) this.sideArea.render();
 
 		if (this.tooltip != null) this.tooltip.render();

@@ -19,7 +19,7 @@ public class Light extends Gate{
 	}
 
 	@Override
-	public void renderGate(GraphicsContext gc){
+	protected void renderGate(GraphicsContext gc){
 		gc.drawImage(this.image, 1+(isOn() ? 52 : 0), 1, 50, 50, this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
 	}
 }

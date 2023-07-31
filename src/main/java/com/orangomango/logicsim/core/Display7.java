@@ -57,7 +57,7 @@ public class Display7 extends Gate{
 	}
 
 	@Override
-	public void renderGate(GraphicsContext gc){
+	protected void renderGate(GraphicsContext gc){
 		gc.drawImage(this.image, this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
 		for (int i = 0; i < 7; i++){
 			if (this.pins.get(i).isOn()) this.pieces[i].render(gc);

@@ -35,7 +35,7 @@ public class AndGate extends Gate implements DelayedGate{
 	}
 
 	@Override
-	public void renderGate(GraphicsContext gc){
+	protected void renderGate(GraphicsContext gc){
 		gc.setFill(this.color);
 		gc.fillRoundRect(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight(), 20, 20);
 		gc.save();

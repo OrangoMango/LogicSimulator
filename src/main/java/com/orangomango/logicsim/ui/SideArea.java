@@ -18,6 +18,7 @@ public class SideArea{
 	private double extraY;
 	private Image btnImage;
 	private double openedX;
+	private volatile boolean animating;
 
 	public SideArea(GraphicsContext gc, Rectangle2D closedBtn, Rectangle2D area){
 		this.gc = gc;
@@ -46,13 +47,18 @@ public class SideArea{
 	}
 
 	public boolean onClick(double x, double y){
+		if (this.animating) return false;
 		final int moveAmount = 15;
 		final int moveTime = 10;
 		if (isOpen()){
 			if (this.closedButton.contains(x+this.area.getWidth(), y)){
+				this.animating = true;
 				Timeline animation = new Timeline(new KeyFrame(Duration.millis(moveTime), e -> this.openedX -= moveAmount));
 				animation.setCycleCount((int)(this.area.getWidth()/moveAmount));
-				animation.setOnFinished(e -> this.openedX = 0);
+				animation.setOnFinished(e -> {
+					this.openedX = 0;
+					this.animating = false;
+				});
 				animation.play();
 				return true;
 			} else {
@@ -63,9 +69,13 @@ public class SideArea{
 			}
 		} else {
 			if (this.closedButton.contains(x, y)){
+				this.animating = true;
 				Timeline animation = new Timeline(new KeyFrame(Duration.millis(moveTime), e -> this.openedX += moveAmount));
 				animation.setCycleCount((int)(this.area.getWidth()/moveAmount));
-				animation.setOnFinished(e -> this.openedX = this.area.getWidth());
+				animation.setOnFinished(e -> {
+					this.openedX = this.area.getWidth();
+					this.animating = false;
+				});
 				animation.play();
 				return true;
 			}
