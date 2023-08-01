@@ -633,6 +633,12 @@ public class MainApplication extends Application{
 				} else {
 					this.tooltip = new UiTooltip(gc, (pinFound.isInput() ? "Input pin" : "Output pin")+"\n"+extra, e.getX(), e.getY());
 				}
+			} else if (found != null){
+				if (found instanceof Bus){
+					Bus bus = (Bus)found;
+					String output = "Bus #"+bus.getId()+"\nConnected:\n"+bus.getConnections().stream().mapToInt(Bus::getId).boxed().toList();
+					this.tooltip = new UiTooltip(gc, output, e.getX(), e.getY());
+				}
 			} else {
 				this.tooltip = null;
 			}

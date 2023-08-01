@@ -46,6 +46,10 @@ public class Bus extends Gate{
 		this.connections.clear();
 	}
 
+	public List<Bus> getConnections(){
+		return this.connections;
+	}
+
 	@Override
 	public JSONObject getJSON(){
 		JSONObject json = super.getJSON();

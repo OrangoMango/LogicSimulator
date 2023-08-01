@@ -20,7 +20,7 @@ public class UiTooltip{
 		gc.save();
 		gc.setFill(Color.BLACK);
 		gc.setGlobalAlpha(0.6);
-		gc.fillRoundRect(this.x, this.y, 95, 45, 15, 15);
+		gc.fillRoundRect(this.x, this.y, 95, 20*this.text.split("\n").length, 15, 15);
 		gc.setFill(Color.WHITE);
 		gc.setTextAlign(TextAlignment.CENTER);
 		gc.fillText(this.text, this.x+95/2.0, this.y+45/2.0-5);
