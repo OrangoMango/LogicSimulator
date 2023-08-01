@@ -1,5 +1,5 @@
 # ![icon](icon.png) LogicSimulator
-This is a simple logic gate simulator made in Java using the JavaFX framework.
+This is a simple circuit simulator made in Java using the JavaFX framework.
 
 # Features
 ## Building blocks
@@ -58,7 +58,28 @@ This is a simple logic gate simulator made in Java using the JavaFX framework.
 	* to open the gate properties menu where you can change the label, remove a pin (if you clicked on a bus pin), and so on
 	* to look inside a chip
 
+# Examples
+* [1 bit register](examples/1bitRegister.png)
+* [4 bit adder](examples/4bAdder.png)
+* [4 bit register](examples/4bRegister.png)
+* [7 segment driver](examples/7sDriver.png)
+* [1 bit adder](examples/adder.png)
+* [4 bit ALU](examples/alu.png)
+* [Buffer](examples/buffer.png)
+* [Bus buffer](examples/busBuffer.png)
+* [Dabble](examples/dabble.png)
+* [D Flip-Flop](examples/dFlipFlop.png)
+* [Double dabble](examples/doubleDabble.png)
+* [NAND gate](examples/nand.png)
+* [NOR gate](examples/nor.png)
+* [OR gate](examples/or.png)
+* [Set-Reset Flip-Flop](examples/srFlipFlop.png)
+* [Set-Reset latch](examples/srLatch.png)
+* [XOR gate](examples/xor.png)
+
 # Simulator screenshots and exports
 ![export](example.png)  
 ![sc1](sc1.png)  
-![sc2](sc2.png)
+![sc2](sc2.png)  
+
+Thanks to @SebLague who inspired me to make this :)
