@@ -1,0 +1,404 @@
+{
+    "wires": [
+        {
+            "pin1": 0,
+            "pin2": 3,
+            "points": []
+        },
+        {
+            "pin1": 2,
+            "pin2": 4,
+            "points": []
+        },
+        {
+            "pin1": 2,
+            "pin2": 6,
+            "points": []
+        },
+        {
+            "pin1": 1,
+            "pin2": 7,
+            "points": []
+        },
+        {
+            "pin1": 8,
+            "pin2": 13,
+            "points": []
+        },
+        {
+            "pin1": 5,
+            "pin2": 9,
+            "points": []
+        },
+        {
+            "pin1": 11,
+            "pin2": 15,
+            "points": []
+        },
+        {
+            "pin1": 14,
+            "pin2": 16,
+            "points": []
+        },
+        {
+            "pin1": 11,
+            "pin2": 12,
+            "points": [
+                {
+                    "x": 766.5,
+                    "y": 349
+                },
+                {
+                    "x": 608,
+                    "y": 349
+                },
+                {
+                    "x": 608,
+                    "y": 389.5
+                }
+            ]
+        },
+        {
+            "pin1": 14,
+            "pin2": 10,
+            "points": [
+                {
+                    "x": 783,
+                    "y": 359
+                },
+                {
+                    "x": 624,
+                    "y": 359
+                },
+                {
+                    "x": 624,
+                    "y": 307.5
+                }
+            ]
+        }
+    ],
+    "gates": [
+        {
+            "rect": {
+                "w": 50,
+                "x": 254,
+                "h": 50,
+                "y": 218
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 297,
+                    "h": 15,
+                    "y": 225
+                },
+                "attached": [3],
+                "id": 0,
+                "doInput": false
+            }],
+            "label": "RESET"
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 245,
+                "h": 50,
+                "y": 468
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 288,
+                    "h": 15,
+                    "y": 475
+                },
+                "attached": [7],
+                "id": 1,
+                "doInput": false
+            }],
+            "label": "SET"
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 321,
+                "h": 50,
+                "y": 338
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 364,
+                    "h": 15,
+                    "y": 345
+                },
+                "attached": [
+                    4,
+                    6
+                ],
+                "id": 2,
+                "doInput": false
+            }],
+            "label": "ENABLE"
+        },
+        {
+            "rect": {
+                "w": 100,
+                "x": 442,
+                "h": 50,
+                "y": 224
+            },
+            "color": {
+                "red": 0,
+                "green": 0,
+                "blue": 1
+            },
+            "name": "AND",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 435,
+                        "h": 15,
+                        "y": 231
+                    },
+                    "attached": [0],
+                    "id": 3,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 435,
+                        "h": 15,
+                        "y": 252
+                    },
+                    "attached": [2],
+                    "id": 4,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 535,
+                        "h": 15,
+                        "y": 239
+                    },
+                    "attached": [9],
+                    "id": 5,
+                    "doInput": false
+                }
+            ],
+            "label": "And gate"
+        },
+        {
+            "rect": {
+                "w": 100,
+                "x": 442,
+                "h": 50,
+                "y": 434
+            },
+            "color": {
+                "red": 0,
+                "green": 0,
+                "blue": 1
+            },
+            "name": "AND",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 435,
+                        "h": 15,
+                        "y": 441
+                    },
+                    "attached": [2],
+                    "id": 6,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 435,
+                        "h": 15,
+                        "y": 462
+                    },
+                    "attached": [1],
+                    "id": 7,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 535,
+                        "h": 15,
+                        "y": 449
+                    },
+                    "attached": [13],
+                    "id": 8,
+                    "doInput": false
+                }
+            ],
+            "label": "And gate"
+        },
+        {
+            "rect": {
+                "w": 125,
+                "x": 641,
+                "h": 45,
+                "y": 275
+            },
+            "fileName": "nor.lsimc",
+            "color": {
+                "red": 0,
+                "green": 0.501960813999176,
+                "blue": 0
+            },
+            "name": "CHIP",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 634,
+                        "h": 15,
+                        "y": 280
+                    },
+                    "attached": [5],
+                    "id": 9,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 634,
+                        "h": 15,
+                        "y": 300
+                    },
+                    "attached": [14],
+                    "id": 10,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 759,
+                        "h": 15,
+                        "y": 290
+                    },
+                    "attached": [
+                        15,
+                        12
+                    ],
+                    "id": 11,
+                    "doInput": false
+                }
+            ],
+            "label": "nor.lsimc"
+        },
+        {
+            "rect": {
+                "w": 125,
+                "x": 640,
+                "h": 45,
+                "y": 377
+            },
+            "fileName": "nor.lsimc",
+            "color": {
+                "red": 0,
+                "green": 0.501960813999176,
+                "blue": 0
+            },
+            "name": "CHIP",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 633,
+                        "h": 15,
+                        "y": 382
+                    },
+                    "attached": [11],
+                    "id": 12,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 633,
+                        "h": 15,
+                        "y": 402
+                    },
+                    "attached": [8],
+                    "id": 13,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 758,
+                        "h": 15,
+                        "y": 392
+                    },
+                    "attached": [
+                        16,
+                        10
+                    ],
+                    "id": 14,
+                    "doInput": false
+                }
+            ],
+            "label": "nor.lsimc"
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 817,
+                "h": 50,
+                "y": 215
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 810,
+                    "h": 15,
+                    "y": 222
+                },
+                "attached": [11],
+                "id": 15,
+                "doInput": true
+            }],
+            "label": "Q"
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 824,
+                "h": 50,
+                "y": 386
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 817,
+                    "h": 15,
+                    "y": 393
+                },
+                "attached": [14],
+                "id": 16,
+                "doInput": true
+            }],
+            "label": "not Q"
+        }
+    ],
+    "color": {
+        "red": 0.7019608020782471,
+        "green": 0.501960813999176,
+        "blue": 0.10196078568696976
+    },
+    "chipName": "S-R LATCH"
+}

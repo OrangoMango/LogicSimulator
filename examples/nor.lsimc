@@ -1,0 +1,185 @@
+{
+    "wires": [
+        {
+            "pin1": 0,
+            "pin2": 4,
+            "points": []
+        },
+        {
+            "pin1": 1,
+            "pin2": 5,
+            "points": []
+        },
+        {
+            "pin1": 6,
+            "pin2": 2,
+            "points": []
+        },
+        {
+            "pin1": 3,
+            "pin2": 7,
+            "points": []
+        }
+    ],
+    "gates": [
+        {
+            "rect": {
+                "w": 50,
+                "x": 245,
+                "h": 50,
+                "y": 230
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 288,
+                    "h": 15,
+                    "y": 237
+                },
+                "attached": [4],
+                "id": 0,
+                "doInput": false
+            }],
+            "label": "Switch"
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 263,
+                "h": 50,
+                "y": 381
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 306,
+                    "h": 15,
+                    "y": 388
+                },
+                "attached": [5],
+                "id": 1,
+                "doInput": false
+            }],
+            "label": "Switch"
+        },
+        {
+            "rect": {
+                "w": 100,
+                "x": 624,
+                "h": 50,
+                "y": 278
+            },
+            "color": {
+                "red": 1,
+                "green": 0.6470588445663452,
+                "blue": 0
+            },
+            "name": "NOT",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 617,
+                        "h": 15,
+                        "y": 293
+                    },
+                    "attached": [6],
+                    "id": 2,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 717,
+                        "h": 15,
+                        "y": 293
+                    },
+                    "attached": [7],
+                    "id": 3,
+                    "doInput": false
+                }
+            ],
+            "label": "Not gate"
+        },
+        {
+            "rect": {
+                "w": 125,
+                "x": 419,
+                "h": 45,
+                "y": 285
+            },
+            "fileName": "or.lsimc",
+            "color": {
+                "red": 0,
+                "green": 1,
+                "blue": 0
+            },
+            "name": "CHIP",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 412,
+                        "h": 15,
+                        "y": 290
+                    },
+                    "attached": [0],
+                    "id": 4,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 412,
+                        "h": 15,
+                        "y": 310
+                    },
+                    "attached": [1],
+                    "id": 5,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 537,
+                        "h": 15,
+                        "y": 300
+                    },
+                    "attached": [2],
+                    "id": 6,
+                    "doInput": false
+                }
+            ],
+            "label": "or.lsimc"
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 804,
+                "h": 50,
+                "y": 282
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 797,
+                    "h": 15,
+                    "y": 289
+                },
+                "attached": [3],
+                "id": 7,
+                "doInput": true
+            }],
+            "label": "Light"
+        }
+    ],
+    "color": {
+        "red": 0,
+        "green": 0.501960813999176,
+        "blue": 0
+    },
+    "chipName": "NOR"
+}

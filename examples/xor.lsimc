@@ -1,0 +1,268 @@
+{
+    "wires": [
+        {
+            "pin1": 0,
+            "pin2": 2,
+            "points": []
+        },
+        {
+            "pin1": 1,
+            "pin2": 3,
+            "points": []
+        },
+        {
+            "pin1": 4,
+            "pin2": 8,
+            "points": []
+        },
+        {
+            "pin1": 7,
+            "pin2": 9,
+            "points": []
+        },
+        {
+            "pin1": 0,
+            "pin2": 5,
+            "points": []
+        },
+        {
+            "pin1": 1,
+            "pin2": 6,
+            "points": []
+        },
+        {
+            "pin1": 10,
+            "pin2": 11,
+            "points": []
+        }
+    ],
+    "gates": [
+        {
+            "rect": {
+                "w": 50,
+                "x": 310,
+                "h": 50,
+                "y": 244
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 353,
+                    "h": 15,
+                    "y": 251
+                },
+                "attached": [
+                    2,
+                    5
+                ],
+                "id": 0,
+                "doInput": false
+            }],
+            "label": "Switch"
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 302,
+                "h": 50,
+                "y": 459
+            },
+            "name": "SWITCH",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 345,
+                    "h": 15,
+                    "y": 466
+                },
+                "attached": [
+                    3,
+                    6
+                ],
+                "id": 1,
+                "doInput": false
+            }],
+            "label": "Switch"
+        },
+        {
+            "rect": {
+                "w": 125,
+                "x": 464,
+                "h": 45,
+                "y": 258
+            },
+            "fileName": "or.lsimc",
+            "color": {
+                "red": 0,
+                "green": 1,
+                "blue": 0
+            },
+            "name": "CHIP",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 457,
+                        "h": 15,
+                        "y": 263
+                    },
+                    "attached": [0],
+                    "id": 2,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 457,
+                        "h": 15,
+                        "y": 283
+                    },
+                    "attached": [1],
+                    "id": 3,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 582,
+                        "h": 15,
+                        "y": 273
+                    },
+                    "attached": [8],
+                    "id": 4,
+                    "doInput": false
+                }
+            ],
+            "label": "or.lsimc"
+        },
+        {
+            "rect": {
+                "w": 125,
+                "x": 461,
+                "h": 45,
+                "y": 435
+            },
+            "fileName": "nand.lsimc",
+            "color": {
+                "red": 0,
+                "green": 0,
+                "blue": 1
+            },
+            "name": "CHIP",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 454,
+                        "h": 15,
+                        "y": 440
+                    },
+                    "attached": [0],
+                    "id": 5,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 454,
+                        "h": 15,
+                        "y": 460
+                    },
+                    "attached": [1],
+                    "id": 6,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 579,
+                        "h": 15,
+                        "y": 450
+                    },
+                    "attached": [9],
+                    "id": 7,
+                    "doInput": false
+                }
+            ],
+            "label": "nand.lsimc"
+        },
+        {
+            "rect": {
+                "w": 100,
+                "x": 653,
+                "h": 50,
+                "y": 335
+            },
+            "color": {
+                "red": 0,
+                "green": 0,
+                "blue": 1
+            },
+            "name": "AND",
+            "pins": [
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 646,
+                        "h": 15,
+                        "y": 342
+                    },
+                    "attached": [4],
+                    "id": 8,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 646,
+                        "h": 15,
+                        "y": 363
+                    },
+                    "attached": [7],
+                    "id": 9,
+                    "doInput": true
+                },
+                {
+                    "rect": {
+                        "w": 15,
+                        "x": 746,
+                        "h": 15,
+                        "y": 350
+                    },
+                    "attached": [11],
+                    "id": 10,
+                    "doInput": false
+                }
+            ],
+            "label": "And gate"
+        },
+        {
+            "rect": {
+                "w": 50,
+                "x": 845,
+                "h": 50,
+                "y": 347
+            },
+            "name": "LIGHT",
+            "pins": [{
+                "rect": {
+                    "w": 15,
+                    "x": 838,
+                    "h": 15,
+                    "y": 354
+                },
+                "attached": [10],
+                "id": 11,
+                "doInput": true
+            }],
+            "label": "Light"
+        }
+    ],
+    "color": {
+        "red": 0.7019608020782471,
+        "green": 0.9019607901573181,
+        "blue": 0.7019608020782471
+    },
+    "chipName": "XOR"
+}
