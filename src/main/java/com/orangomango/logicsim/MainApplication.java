@@ -759,7 +759,7 @@ public class MainApplication extends Application{
 			} else {
 				scene.setCursor(Cursor.DEFAULT);
 			}
-			stage.setTitle("LogicSim"+(this.currentFile == null ? "" : " - "+this.currentFile.getName()));
+			stage.setTitle("LogicSim v1.0"+(this.currentFile == null ? "" : " - "+this.currentFile.getName()));
 		}));
 		loop.setCycleCount(Animation.INDEFINITE);
 		loop.play();
