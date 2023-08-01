@@ -781,6 +781,7 @@ public class MainApplication extends Application{
 		simulation.start();
 		
 		stage.setResizable(false);
+		stage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
 		stage.setScene(scene);
 		stage.show();
 	}
