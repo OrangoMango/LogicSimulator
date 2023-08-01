@@ -40,7 +40,7 @@ This is a simple logic gate simulator made in Java using the JavaFX framework.
 
 # Mouse usage help
 * Use the scroll wheel to scale the canvas
-* Use `Right click`:
+* Use `Left click`:
 	* on pins to enter wire-placing mode
 	* to place the chosen block from the menu on the right
 	* to toggle a switch on/off
@@ -51,11 +51,12 @@ This is a simple logic gate simulator made in Java using the JavaFX framework.
 	* to delete a wire if you clicked on the `RM WIRE` button
 	* to move a pin of the bus if the `Shift` key is pressed too
 	* to define a selection area or if you click on the background to unselect the current selection
-* Use `Left click`:
+* Use `Right click`:
 	* to interrupt an action like creating a bus, deleting a gate or a wire
 	* to move the camera
 	* to move selected gates or selected wire points
 	* to open the gate properties menu where you can change the label, remove a pin (if you clicked on a bus pin), and so on
+	* to look inside a chip
 
 # Simulator screenshots and exports
 ![export](example.png)  
