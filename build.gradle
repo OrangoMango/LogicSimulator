@@ -20,7 +20,7 @@ tasks.withType(JavaCompile) {
 
 application {
     mainModule = 'com.orangomango.logicsim'
-    mainClass = 'com.orangomango.logicsim.MainApplication'
+    mainClass = 'com.orangomango.logicsim.Launcher'
 }
 
 javafx {

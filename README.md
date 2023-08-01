@@ -82,4 +82,4 @@ This is a simple circuit simulator made in Java using the JavaFX framework.
 ![sc1](sc1.png)  
 ![sc2](sc2.png)  
 
-Thanks to @SebLague who inspired me to make this :)
+Thanks to [@SebLague](https://github.com/SebLague) who inspired me to make this :)
