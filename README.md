@@ -1,5 +1,6 @@
 # ![icon](icon.png) LogicSimulator
 This is a simple circuit simulator made in Java using the JavaFX framework.
+[![Screenshot_20230801-202809](https://github.com/OrangoMango/LogicSimulator/assets/61402409/6ad3fe71-0436-404d-b642-3cef2cb989af)](https://orangomango.itch.io/logicsimulator)
 
 # Features
 ## Building blocks
@@ -48,7 +49,7 @@ This is a simple circuit simulator made in Java using the JavaFX framework.
 	* to place a pin on a bus (use `Shift` to toggle between an input/output pin)
 	* to resize a bus horizontally or vertically
 	* to connect buses together if you clicked on the `CONNECT BUS` button
-	* to delete a wire if you clicked on the `RM WIRE` button
+	* to delete a wire if you clicked on the `RM WIRE` button (click on 2 pins)
 	* to move a pin of the bus if the `Shift` key is pressed too
 	* to define a selection area or if you click on the background to unselect the current selection
 * Use `Right click`:
