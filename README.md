@@ -56,3 +56,8 @@ This is a simple logic gate simulator made in Java using the JavaFX framework.
 	* to move the camera
 	* to move selected gates or selected wire points
 	* to open the gate properties menu where you can change the label, remove a pin (if you clicked on a bus pin), and so on
+
+# Simulator screenshots and exports
+![export](example.png)  
+![sc1](sc1.png)  
+![sc2](sc2.png)
