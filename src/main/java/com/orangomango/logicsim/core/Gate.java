@@ -7,7 +7,6 @@ import javafx.scene.text.TextAlignment;
 import javafx.scene.input.MouseEvent;
 
 import java.util.*;
-import java.util.function.Consumer;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -17,7 +16,7 @@ public abstract class Gate{
 	protected GraphicsContext gc;
 	protected Rectangle2D rect;
 	protected Color color;
-	protected Consumer<MouseEvent> onClick;
+	protected Runnable onClick;
 	protected List<Pin> pins = new ArrayList<>();
 	private boolean power;
 	private String name;
@@ -45,7 +44,7 @@ public abstract class Gate{
 
 	public void click(MouseEvent e){
 		if (onClick != null){
-			this.onClick.accept(e);
+			this.onClick.run();
 		}
 	}
 
