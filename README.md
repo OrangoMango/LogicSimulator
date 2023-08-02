@@ -1,5 +1,9 @@
 # ![icon](icon.png) LogicSimulator
 This is a simple circuit simulator made in Java using the JavaFX framework.
+
+# Download
+Available for Windows, Linux and MacOS.  
+
 [![Screenshot_20230801-202809](https://github.com/OrangoMango/LogicSimulator/assets/61402409/6ad3fe71-0436-404d-b642-3cef2cb989af)](https://orangomango.itch.io/logicsimulator)
 
 # Features
@@ -60,6 +64,7 @@ This is a simple circuit simulator made in Java using the JavaFX framework.
 	* to look inside a chip
 
 # Examples
+Individual project files are available in the `examples` directory.
 * [1 bit register](https://github.com/OrangoMango/LogicSimulator/raw/main/examples/1bitRegister.png)
 * [4 bit adder](https://github.com/OrangoMango/LogicSimulator/raw/main/examples/4bAdder.png)
 * [4 bit register](https://github.com/OrangoMango/LogicSimulator/raw/main/examples/4bRegister.png)
