@@ -5,6 +5,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.paint.Color;
 
 import java.util.*;
+import dev.webfx.platform.scheduler.Scheduler;
 
 import com.orangomango.logicsim.core.*;
 
@@ -68,14 +69,7 @@ public abstract class Util{
 	}
 
 	public static void schedule(Runnable r, int delay){
-		new Thread(() -> {
-			try {
-				Thread.sleep(delay);
-				r.run();
-			} catch (InterruptedException ex){
-				ex.printStackTrace();
-			}
-		}).start();
+		Scheduler.scheduleDelay(delay, r);
 	}
 
 	public static List<Point2D[]> getPointsList(Point2D start, Point2D end, List<Point2D> points){

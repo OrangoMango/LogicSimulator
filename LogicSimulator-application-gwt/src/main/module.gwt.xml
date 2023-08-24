@@ -77,6 +77,12 @@
     <inherits name="com.google.gwt.user.User"/>
     <!--=================================< java-nio-emul >==================================-->
     <inherits name="org.gwtproject.nio.GwtNioSupport"/>
+    <!--============================< webfx-extras-filepicker >=============================-->
+    <source path="dev/webfx/extras/filepicker"/>
+    <source path="dev/webfx/extras/filepicker/spi"/>
+    <source path="dev/webfx/extras/filepicker/spi/impl"/>
+    <!--==========================< webfx-extras-filepicker-gwt >===========================-->
+    <source path="dev/webfx/extras/filepicker/spi/impl/gwt"/>
     <!--=================================< webfx-kit-gwt >==================================-->
     <source path="dev/webfx/kit/launcher/spi/impl/gwt"/>
     <source path="dev/webfx/kit/mapper/spi/impl/gwt"/>

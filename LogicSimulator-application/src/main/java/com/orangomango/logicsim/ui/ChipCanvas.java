@@ -16,6 +16,9 @@ import com.orangomango.logicsim.core.Chip;
 import com.orangomango.logicsim.core.Gate;
 import com.orangomango.logicsim.MainApplication;
 
+@interface GwtIncompatible{}
+
+@GwtIncompatible
 public class ChipCanvas{
 	private static final int WIDTH = 500;
 	private static final int HEIGHT = 400;

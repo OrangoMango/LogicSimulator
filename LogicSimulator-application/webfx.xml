@@ -3,6 +3,7 @@
 
     <exported-packages>
         <source-packages/>
+        <resource-package>images</resource-package>
     </exported-packages>
 
     <dependencies>

@@ -5,7 +5,7 @@ import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 import javafx.scene.Scene;
 import javafx.scene.Cursor;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.TilePane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.KeyCode;
@@ -21,17 +21,20 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ColorPicker;
+//import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.ButtonType;
+//import javafx.scene.control.TextInputDialog;
+//import javafx.scene.control.ButtonType;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import dev.webfx.platform.json.*;
 import dev.webfx.platform.file.FileReader;
 import dev.webfx.platform.file.File;
+import dev.webfx.extras.filepicker.FilePicker;
+import dev.webfx.platform.scheduler.Scheduler;
+import dev.webfx.platform.resource.Resource;
 
 import com.orangomango.logicsim.ui.*;
 import com.orangomango.logicsim.core.*;
@@ -79,15 +82,24 @@ public class MainApplication extends Application{
 	private Bus resizingBus = null;
 	private Pin movingBusPin = null;
 	private Bus connB;
+	private File pickedFile;
 	
 	@Override
 	public void start(Stage stage){
-		StackPane pane = new StackPane();
+		TilePane pane = new TilePane();
+
+		FilePicker picker = FilePicker.create();
+		picker.getSelectedFiles().addListener((javafx.beans.InvalidationListener)obs -> {
+			List<File> files = picker.getSelectedFiles();
+			if (files.size() > 0) this.pickedFile = files.get(0);
+		});
+		pane.getChildren().add(picker.getView());
+
 		Canvas canvas = new Canvas(WIDTH, HEIGHT);
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		pane.getChildren().add(canvas);
 
-		UiButton saveButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_save.png")), "SAVE", new Rectangle2D(50, 20, 50, 50), () -> {
+		UiButton saveButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_save.png", MainApplication.class)), "SAVE", new Rectangle2D(50, 20, 50, 50), () -> {
 			/*FileChooser fc = new FileChooser();
 			fc.setTitle("Save project");
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
@@ -103,7 +115,7 @@ public class MainApplication extends Application{
 				buildSideArea(gc);
 			}*/
 		});
-		UiButton loadButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_load.png")), "LOAD", new Rectangle2D(150, 20, 50, 50), () -> {
+		UiButton loadButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_load.png", MainApplication.class)), "LOAD", new Rectangle2D(150, 20, 50, 50), () -> {
 			File file = uploadFile(true, true);
 			List<Gate> gates = new ArrayList<>();
 			List<Wire> wires = new ArrayList<>();
@@ -121,7 +133,7 @@ public class MainApplication extends Application{
 				buildSideArea(gc);
 			}
 		});
-		UiButton saveChipButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_savechip.png")), "SAVE CHIP", new Rectangle2D(250, 20, 50, 50), () -> {
+		UiButton saveChipButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_savechip.png", MainApplication.class)), "SAVE CHIP", new Rectangle2D(250, 20, 50, 50), () -> {
 			/*String defaultName = "";
 			Color defaultColor = Color.BLUE;
 			try {
@@ -170,23 +182,23 @@ public class MainApplication extends Application{
 				}
 			}*/
 		});
-		UiButton clearButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_clear.png")), "CLEAR", new Rectangle2D(350, 20, 50, 50), () -> {
+		UiButton clearButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_clear.png", MainApplication.class)), "CLEAR", new Rectangle2D(350, 20, 50, 50), () -> {
 			this.wires = new ArrayList<Wire>();
 			this.gates = new ArrayList<Gate>();
 			Pin.PIN_ID = 0;
 			this.currentFile = null;
 		});
-		UiButton rmWireButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_rmwire.png")), "RM WIRE", new Rectangle2D(450, 20, 50, 50), () -> {
+		UiButton rmWireButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_rmwire.png", MainApplication.class)), "RM WIRE", new Rectangle2D(450, 20, 50, 50), () -> {
 			this.rmWire = true;
 			this.rmGate = false;
 			this.connBus = false;
 		});
-		UiButton rmGateButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_rmgate.png")), "RM GATE", new Rectangle2D(550, 20, 50, 50), () -> {
+		UiButton rmGateButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_rmgate.png", MainApplication.class)), "RM GATE", new Rectangle2D(550, 20, 50, 50), () -> {
 			this.rmGate = true;
 			this.rmWire = false;
 			this.connBus = false;
 		});
-		UiButton exportButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_export.png")), "EXPORT", new Rectangle2D(650, 20, 50, 50), () -> {
+		UiButton exportButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_export.png", MainApplication.class)), "EXPORT", new Rectangle2D(650, 20, 50, 50), () -> {
 			/*double minPosX = Double.POSITIVE_INFINITY;
 			double maxPosX = Double.NEGATIVE_INFINITY;
 			double minPosY = Double.POSITIVE_INFINITY;
@@ -252,7 +264,7 @@ public class MainApplication extends Application{
 				info.showAndWait();
 			}*/
 		});
-		UiButton busConnectButton  = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_connbus.png")), "CONNECT BUS", new Rectangle2D(750, 20, 50, 50), () -> {
+		UiButton busConnectButton  = new UiButton(gc, new Image(Resource.toUrl("/images/button_connbus.png", MainApplication.class)), "CONNECT BUS", new Rectangle2D(750, 20, 50, 50), () -> {
 			this.connBus = true;
 			this.rmGate = false;
 			this.rmWire = false;
@@ -556,7 +568,7 @@ public class MainApplication extends Application{
 					ContextMenu cm = new ContextMenu();
 					if (found instanceof Chip){
 						MenuItem showChip = new MenuItem("Look inside");
-						final Chip chip = (Chip)found;
+						/*final Chip chip = (Chip)found;
 						showChip.setOnAction(ev -> {
 							Alert alert = new Alert(Alert.AlertType.INFORMATION);
 							alert.setTitle(chip.getName());
@@ -565,7 +577,7 @@ public class MainApplication extends Application{
 							alert.getDialogPane().setContent(cc.getPane());
 							alert.showAndWait();
 							cc.destroy();
-						});
+						});*/
 						cm.getItems().add(showChip);
 					} else if (found instanceof Bus){
 						MenuItem clearConn = new MenuItem("Clear connections");
@@ -575,14 +587,15 @@ public class MainApplication extends Application{
 					}
 					final Gate gate = found;
 					MenuItem changeLabel = new MenuItem("Change label");
-					changeLabel.setOnAction(ev -> {
+					/*changeLabel.setOnAction(ev -> {
 						TextInputDialog dialog = new TextInputDialog(gate.getLabel());
 						dialog.setTitle("Set label");
 						dialog.setHeaderText("Label name");
 						dialog.showAndWait().ifPresent(v -> {
 							gate.setLabel(v);
 						});
-					});
+					});*/
+					cm.getItems().add(changeLabel);
 					if (pinFound != null){
 						final Pin pin = pinFound;
 						if (gate instanceof Bus){
@@ -591,7 +604,6 @@ public class MainApplication extends Application{
 							cm.getItems().add(removePin);
 						}
 					}
-					cm.getItems().add(changeLabel);
 					cm.show(canvas, e.getScreenX(), e.getScreenY());
 				} else if (this.selectedGates.size() > 0 || this.selectedWirePoints.size() > 0){
 					this.selectionMoveStart = new Point2D(e.getX(), e.getY());
@@ -732,7 +744,7 @@ public class MainApplication extends Application{
 
 		Timeline loop = new Timeline(new KeyFrame(Duration.millis(1000.0/FPS), e -> {
 			update(gc);
-			if (this.rmWire || this.rmGate || this.connBus){
+			/*if (this.rmWire || this.rmGate || this.connBus){
 				scene.setCursor(Cursor.CROSSHAIR);
 			} else if (this.movePoint != null){
 				scene.setCursor(Cursor.MOVE);
@@ -748,41 +760,33 @@ public class MainApplication extends Application{
 				}
 			} else {
 				scene.setCursor(Cursor.DEFAULT);
-			}
+			}*/
 			stage.setTitle("LogicSim v1.0"+(this.currentFile == null ? "" : " - "+this.currentFile.getName()));
 		}));
 		loop.setCycleCount(Animation.INDEFINITE);
 		loop.play();
 
-		Thread simulation = new Thread(() -> {
-			while (true){
-				try {
-					for (int i = 0; i < this.gates.size(); i++){
-						Gate g = this.gates.get(i);
-						g.update();
-					}
-					Thread.sleep(2);
-				} catch (InterruptedException ex){
-					ex.printStackTrace();
-				}
+		Scheduler.schedulePeriodic(2, () -> {
+			for (int i = 0; i < this.gates.size(); i++){
+				Gate g = this.gates.get(i);
+				g.update();
 			}
 		});
-		simulation.setDaemon(true);
-		simulation.start();
 		
 		stage.setResizable(false);
-		stage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
+		stage.getIcons().add(new Image(Resource.toUrl("/images/icon.png", MainApplication.class)));
 		stage.setScene(scene);
 		stage.show();
 	}
 
 	private File uploadFile(boolean project, boolean chip){
-		FileChooser fc = new FileChooser();
+		/*FileChooser fc = new FileChooser();
 		fc.setTitle("Load project");
 		if (project) fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
 		if (chip) fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
 		File file = fc.showOpenDialog(stage);
-		return file;
+		return file;*/
+		return this.pickedFile;
 	}
 
 	private void buildSideArea(GraphicsContext gc){
@@ -863,109 +867,104 @@ public class MainApplication extends Application{
 	}
 
 	public static JsonObject load(File file, GraphicsContext gc, List<Gate> tempGates, List<Wire> tempWires){
-		try {
-			StringBuilder builder = new StringBuilder();
-			FileReader.create().readAsText(file).onSuccess(builder::append);
-			JsonObject json = Json.parseObjectSilently(builder.toString());
+		StringBuilder builder = new StringBuilder();
+		FileReader.create().readAsText(file).onSuccess(builder::append);
+		JsonObject json = Json.parseObjectSilently(builder.toString());
 
-			int backupId = Pin.PIN_ID;
-			Map<Bus, ReadOnlyJsonArray> busConnections = new HashMap<>();
+		int backupId = Pin.PIN_ID;
+		Map<Bus, ReadOnlyJsonArray> busConnections = new HashMap<>();
 
-			// Load gates
-			for (int i = 0; i < json.getArray("gates").size(); i++){
-				ReadOnlyJsonObject gate = json.getArray("gates").getObject(i);
-				String name = gate.getString("name");
-				Color color = gate.getObject("color") == null ? null : Color.color(gate.getObject("color").getDouble("red"), gate.getObject("color").getDouble("green"), gate.getObject("color").getDouble("blue"));
-				Rectangle2D rect = new Rectangle2D(gate.getObject("rect").getDouble("x"), gate.getObject("rect").getDouble("y"), gate.getObject("rect").getDouble("w"), gate.getObject("rect").getDouble("h"));
-				List<Pin> pins = new ArrayList<>();
-				for (int j = 0; j < gate.getArray("pins").size(); j++){
-					ReadOnlyJsonObject pin = gate.getArray("pins").getObject(j);
-					Pin p = new Pin(pin);
-					pins.add(p);
-				}
-				Gate gt = null;
-				int lastPinId = Pin.PIN_ID; // Save pin id
-				boolean lastPinFlag = Pin.UPDATE_PIN_ID;
-				if (name.equals("AND")){
-					gt = new AndGate(gc, rect);
-				} else if (name.equals("LIGHT")){
-					gt = new Light(gc, rect);
-				} else if (name.equals("NOT")){
-					gt = new NotGate(gc, rect);
-				} else if (name.equals("SWITCH")){
-					gt = new Switch(gc, rect);
-				} else if (name.equals("CHIP")){
-					File chipFile = new File(file.getParent(), gate.getString("fileName"));
-					if (!chipFile.exists()){
-						Alert error = new Alert(Alert.AlertType.ERROR);
-						error.setTitle("Missing dependency");
-						error.setHeaderText("Missing dependency");
-						error.setContentText("The following dependency is missing: "+gate.getString("fileName"));
-						error.showAndWait();
-						Pin.PIN_ID = backupId;
-						return null;
-					}
-					gt = new Chip(gc, rect, chipFile);
-				} else if (name.equals("DISPLAY7")){
-					gt = new Display7(gc, rect);
-				} else if (name.equals("BUS")){
-					gt = new Bus(gc, rect, gate.getInteger("id"));
-					busConnections.put((Bus)gt, gate.getArray("connections"));
-				} else if (name.equals("3SBUFFER")){
-					gt = new TriStateBuffer(gc, rect);
-				}
-				Pin.PIN_ID = lastPinId; // Restore the last pin id
-				Pin.UPDATE_PIN_ID = lastPinFlag;
-				gt.setPins(pins);
-				gt.setLabel(gate.getString("label"));
-				tempGates.add(gt);
+		// Load gates
+		for (int i = 0; i < json.getArray("gates").size(); i++){
+			ReadOnlyJsonObject gate = json.getArray("gates").getObject(i);
+			String name = gate.getString("name");
+			Color color = gate.getObject("color") == null ? null : Color.color(gate.getObject("color").getDouble("red"), gate.getObject("color").getDouble("green"), gate.getObject("color").getDouble("blue"));
+			Rectangle2D rect = new Rectangle2D(gate.getObject("rect").getDouble("x"), gate.getObject("rect").getDouble("y"), gate.getObject("rect").getDouble("w"), gate.getObject("rect").getDouble("h"));
+			List<Pin> pins = new ArrayList<>();
+			for (int j = 0; j < gate.getArray("pins").size(); j++){
+				ReadOnlyJsonObject pin = gate.getArray("pins").getObject(j);
+				Pin p = new Pin(pin);
+				pins.add(p);
 			}
-
-			// Attach gates' pins
-			for (int i = 0; i < json.getArray("gates").size(); i++){
-				ReadOnlyJsonObject gate = json.getArray("gates").getObject(i);
-				for (int j = 0; j < gate.getArray("pins").size(); j++){
-					ReadOnlyJsonObject pin = gate.getArray("pins").getObject(j);
-					int pinId = pin.getInteger("id");
-					Pin currentPin = getPinById(tempGates, pinId);
-					for (int k = 0; k < pin.getArray("attached").size(); k++){
-						int apinId = pin.getArray("attached").getInteger(k);
-						Pin apin = getPinById(tempGates, apinId);
-						currentPin.attach(apin);
-					}
+			Gate gt = null;
+			int lastPinId = Pin.PIN_ID; // Save pin id
+			boolean lastPinFlag = Pin.UPDATE_PIN_ID;
+			if (name.equals("AND")){
+				gt = new AndGate(gc, rect);
+			} else if (name.equals("LIGHT")){
+				gt = new Light(gc, rect);
+			} else if (name.equals("NOT")){
+				gt = new NotGate(gc, rect);
+			} else if (name.equals("SWITCH")){
+				gt = new Switch(gc, rect);
+			} else if (name.equals("CHIP")){
+				/*File chipFile = new File(file.getParent(), gate.getString("fileName"));
+				if (!chipFile.exists()){
+					Alert error = new Alert(Alert.AlertType.ERROR);
+					error.setTitle("Missing dependency");
+					error.setHeaderText("Missing dependency");
+					error.setContentText("The following dependency is missing: "+gate.getString("fileName"));
+					error.showAndWait();
+					Pin.PIN_ID = backupId;
+					return null;
 				}
+				gt = new Chip(gc, rect, chipFile);*/
+			} else if (name.equals("DISPLAY7")){
+				gt = new Display7(gc, rect);
+			} else if (name.equals("BUS")){
+				gt = new Bus(gc, rect, gate.getInteger("id"));
+				busConnections.put((Bus)gt, gate.getArray("connections"));
+			} else if (name.equals("3SBUFFER")){
+				gt = new TriStateBuffer(gc, rect);
 			}
-
-			// Load wires
-			for (int i = 0; i < json.getArray("wires").size(); i++){
-				ReadOnlyJsonObject wire = json.getArray("wires").getObject(i);
-				Pin p1 = getPinById(tempGates, wire.getInteger("pin1"));
-				Pin p2 = getPinById(tempGates, wire.getInteger("pin2"));
-				List<Point2D> points = new ArrayList<>();
-				for (int j = 0; j < wire.getArray("points").size(); j++){
-					ReadOnlyJsonObject p = wire.getArray("points").getObject(j);
-					points.add(new Point2D(p.getDouble("x"), p.getDouble("y")));
-				}
-				tempWires.add(new Wire(gc, p1, p2, points));
-			}
-
-			// Connect buses
-			for (Gate g : tempGates){
-				if (g instanceof Bus){
-					Bus bus = (Bus)g;
-					for (int i = 0; i < busConnections.get(bus).size(); i++){
-						int busId = busConnections.get(bus).getInteger(i);
-						Bus attachedBus = (Bus)tempGates.stream().filter(gt -> gt instanceof Bus && ((Bus)gt).getId() == busId).findFirst().get();
-						bus.connectBus(attachedBus);
-					}
-				}
-			}
-
-			return json;
-		} catch (IOException ex){
-			ex.printStackTrace();
-			return null;
+			Pin.PIN_ID = lastPinId; // Restore the last pin id
+			Pin.UPDATE_PIN_ID = lastPinFlag;
+			gt.setPins(pins);
+			gt.setLabel(gate.getString("label"));
+			tempGates.add(gt);
 		}
+
+		// Attach gates' pins
+		for (int i = 0; i < json.getArray("gates").size(); i++){
+			ReadOnlyJsonObject gate = json.getArray("gates").getObject(i);
+			for (int j = 0; j < gate.getArray("pins").size(); j++){
+				ReadOnlyJsonObject pin = gate.getArray("pins").getObject(j);
+				int pinId = pin.getInteger("id");
+				Pin currentPin = getPinById(tempGates, pinId);
+				for (int k = 0; k < pin.getArray("attached").size(); k++){
+					int apinId = pin.getArray("attached").getInteger(k);
+					Pin apin = getPinById(tempGates, apinId);
+					currentPin.attach(apin);
+				}
+			}
+		}
+
+		// Load wires
+		for (int i = 0; i < json.getArray("wires").size(); i++){
+			ReadOnlyJsonObject wire = json.getArray("wires").getObject(i);
+			Pin p1 = getPinById(tempGates, wire.getInteger("pin1"));
+			Pin p2 = getPinById(tempGates, wire.getInteger("pin2"));
+			List<Point2D> points = new ArrayList<>();
+			for (int j = 0; j < wire.getArray("points").size(); j++){
+				ReadOnlyJsonObject p = wire.getArray("points").getObject(j);
+				points.add(new Point2D(p.getDouble("x"), p.getDouble("y")));
+			}
+			tempWires.add(new Wire(gc, p1, p2, points));
+		}
+
+		// Connect buses
+		for (Gate g : tempGates){
+			if (g instanceof Bus){
+				Bus bus = (Bus)g;
+				for (int i = 0; i < busConnections.get(bus).size(); i++){
+					int busId = busConnections.get(bus).getInteger(i);
+					Bus attachedBus = (Bus)tempGates.stream().filter(gt -> gt instanceof Bus && ((Bus)gt).getId() == busId).findFirst().get();
+					bus.connectBus(attachedBus);
+				}
+			}
+		}
+
+		return json;
 	}
 
 	private static Pin getPinById(List<Gate> gates, int id){
@@ -1083,7 +1082,7 @@ public class MainApplication extends Application{
 		// UI
 		gc.save();
 		gc.setFill(Color.BLACK);
-		gc.fillText(String.format("ID: %d\nPower: %s\nScale: %.2f", Pin.PIN_ID, Util.isPowerOn(), this.cameraScale), 60, 700);
+		//gc.fillText(String.format("ID: %d\nPower: %s\nScale: %.2f", Pin.PIN_ID, Util.isPowerOn(), this.cameraScale), 60, 700);
 		gc.setGlobalAlpha(0.5);
 		gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
 		gc.restore();

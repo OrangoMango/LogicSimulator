@@ -10,6 +10,8 @@ import javafx.util.Duration;
 
 import java.util.*;
 
+import dev.webfx.platform.resource.Resource;
+
 public class SideArea{
 	private GraphicsContext gc;
 	private Rectangle2D closedButton, area;
@@ -24,7 +26,7 @@ public class SideArea{
 		this.gc = gc;
 		this.closedButton = closedBtn;
 		this.area = area;
-		this.btnImage = new Image(getClass().getResourceAsStream("/sidebutton.png"));
+		this.btnImage = new Image(Resource.toUrl("/images/sidebutton.png", SideArea.class));
 	}
 
 	public void addButton(String text, Runnable r){

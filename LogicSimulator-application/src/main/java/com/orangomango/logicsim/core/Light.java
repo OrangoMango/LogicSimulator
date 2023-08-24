@@ -4,12 +4,14 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 
+import dev.webfx.platform.resource.Resource;
+
 public class Light extends Gate{
 	private Image image;
 
 	public Light(GraphicsContext gc, Rectangle2D rect){
 		super(gc, "LIGHT", rect, null);
-		this.image = new Image(getClass().getResourceAsStream("/light.png"));
+		this.image = new Image(Resource.toUrl("/images/light.png", Light.class));
 		this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-7, rect.getMinY()+7, 15, 15), true));
 		this.label = "Light";
 	}

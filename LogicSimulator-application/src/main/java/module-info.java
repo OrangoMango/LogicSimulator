@@ -7,8 +7,11 @@ module LogicSimulator.application {
     requires javafx.base;
     requires javafx.controls;
     requires javafx.graphics;
+    requires webfx.extras.filepicker;
     requires webfx.platform.file;
     requires webfx.platform.json;
+    requires webfx.platform.resource;
+    requires webfx.platform.scheduler;
 
     // Exported packages
     exports com.orangomango.logicsim;
