@@ -22,3 +22,6 @@ gradle-app.setting
 
 # LogicSim
 logicsim-projects/
+
+# WebFX
+target/
