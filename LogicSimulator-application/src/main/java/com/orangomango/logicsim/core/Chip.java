@@ -34,7 +34,10 @@ public class Chip extends Gate{
 		// Load data
 		FileReader.create().readAsText(this.file).onSuccess(jsonData -> {
 			this.json = MainApplication.load(jsonData, this.gc, this.gates, this.wires, false);
-			if (this.json == null) return;
+			if (this.json == null){
+				this.loadingCompleted = true;
+				return;
+			}
 
 			// Turn on all the subgates
 			if (isPowered()){
@@ -58,9 +61,10 @@ public class Chip extends Gate{
 			// Sort the gates
 			this.inputGates.sort((g1, g2) -> Double.compare(g1.getRect().getMinY()+g1.getRect().getHeight()/2, g2.getRect().getMinY()+g2.getRect().getHeight()/2));
 			this.outputGates.sort((g1, g2) -> Double.compare(g1.getRect().getMinY()+g1.getRect().getHeight()/2, g2.getRect().getMinY()+g2.getRect().getHeight()/2));
+			
+			this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), Math.max(this.inputGates.size(), this.outputGates.size())*20+5);
 
 			if (hasPins){			
-				this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), Math.max(this.inputGates.size(), this.outputGates.size())*20+5);
 				double inputOffset = (this.rect.getHeight()-(this.inputGates.size()*15))/(this.inputGates.size()+1);
 				for (int i = 0; i < this.inputGates.size(); i++){
 					Pin pin = new Pin(this, new Rectangle2D(this.rect.getMinX()-7, this.rect.getMinY()+inputOffset+i*(15+inputOffset), 15, 15), true);
@@ -77,6 +81,10 @@ public class Chip extends Gate{
 
 			this.loadingCompleted = true;
 		});
+	}
+
+	public boolean isHanging(){
+		return this.loadingCompleted && this.json == null;
 	}
 
 	public String getName(){
@@ -141,7 +149,7 @@ public class Chip extends Gate{
 
 	@Override
 	public void update(){
-		if (!this.loadingCompleted) return;
+		if (!this.loadingCompleted || this.json == null) return;
 		for (Gate g : this.gates){
 			g.update();
 		}
@@ -159,6 +167,7 @@ public class Chip extends Gate{
 
 	@Override
 	protected void renderGate(GraphicsContext gc){
+		if (!this.loadingCompleted || this.json == null) return;
 		gc.setFill(this.color);
 		gc.fillRoundRect(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight(), 20, 20);
 		gc.save();

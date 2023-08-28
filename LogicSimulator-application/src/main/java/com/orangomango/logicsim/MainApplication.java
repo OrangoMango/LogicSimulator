@@ -2,6 +2,7 @@ package com.orangomango.logicsim;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
+import javafx.stage.Screen;
 import javafx.stage.FileChooser;
 import javafx.scene.Scene;
 import javafx.scene.Cursor;
@@ -38,10 +39,10 @@ import dev.webfx.platform.file.FileReader;
 import dev.webfx.platform.file.File;
 import dev.webfx.platform.file.Blob;
 import dev.webfx.platform.file.spi.BlobProvider;
-import dev.webfx.extras.filepicker.FilePicker;
 import dev.webfx.platform.scheduler.Scheduler;
 import dev.webfx.platform.resource.Resource;
 import dev.webfx.platform.console.Console;
+import dev.webfx.extras.filepicker.FilePicker;
 
 import com.orangomango.logicsim.ui.*;
 import com.orangomango.logicsim.core.*;
@@ -51,14 +52,14 @@ import com.orangomango.logicsim.core.*;
  * Using AND and NOT gates you can build every other chip.
  * 
  * @author OrangoMango [https://orangomango.github.io]
- * @version 1.0
+ * @version 1.0-web
  */
 public class MainApplication extends Application{
-	private static final double WIDTH = 1000;
-	private static final double HEIGHT = 800;
-	public static final int FPS = 40;
-	private static final double TOOLBAR_X = 650;
+	private static final double WIDTH = (int)Screen.getPrimary().getVisualBounds().getWidth()-220;
+	private static final double HEIGHT = 700;
+	private static final double TOOLBAR_X = WIDTH-350;
 	private static final double TOOLBAR_Y = 100;
+	public static final int FPS = 40;
 
 	private SideArea sideArea;
 	private File currentFile = null;
@@ -89,6 +90,8 @@ public class MainApplication extends Application{
 	private Bus resizingBus = null;
 	private Pin movingBusPin = null;
 	private Bus connB;
+
+	// WebFX stuff
 	private File pickedFile;
 	private static List<File> uploadedFiles = new ArrayList<>();
 	private boolean rightMouseDrag = false;
@@ -753,7 +756,7 @@ public class MainApplication extends Application{
 
 		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo), new HBox(5, uploader.getView(), uploadedFilesInfo), pane);
 		vbox.setPadding(new Insets(10, 10, 10, 10));
-		Scene scene = new Scene(vbox, WIDTH+50, HEIGHT+100);
+		Scene scene = new Scene(vbox, WIDTH, HEIGHT+100);
 
 		Timeline loop = new Timeline(new KeyFrame(Duration.millis(1000.0/FPS), e -> {
 			update(gc);
@@ -793,7 +796,7 @@ public class MainApplication extends Application{
 	}
 
 	private void buildSideArea(GraphicsContext gc){
-		this.sideArea = new SideArea(gc, new Rectangle2D(950, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, 350, 800));
+		this.sideArea = new SideArea(gc, new Rectangle2D(WIDTH-50, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, 350, HEIGHT));
 		this.sideArea.addButton("Switch", () -> this.selectedId = 0);
 		this.sideArea.addButton("Wire", () -> this.selectedId = 1);
 		this.sideArea.addButton("Light", () -> this.selectedId = 2);
@@ -1085,6 +1088,14 @@ public class MainApplication extends Application{
 		if (this.selectedId == -1) this.sideArea.render();
 
 		if (this.tooltip != null) this.tooltip.render();
+
+		// Remove hanging chips
+		for (int i = 0; i < this.gates.size(); i++){
+			Gate g = this.gates.get(i);
+			if (g instanceof Chip && ((Chip)g).isHanging()){
+				this.gatesToRemove.add(g);
+			}
+		}
 
 		// Remove selected gates
 		for (int i = 0; i < this.gatesToRemove.size(); i++){
