@@ -10,12 +10,14 @@ import com.orangomango.logicsim.Util;
 public class AndGate extends Gate implements DelayedGate{
 	private boolean lastValue;
 
-	public AndGate(GraphicsContext gc, Rectangle2D rect){
+	public AndGate(GraphicsContext gc, Rectangle2D rect, boolean hasPins){
 		super(gc, "AND", rect, Color.BLUE);
 		this.label = "And gate";
-		this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-7, rect.getMinY()+7, 15, 15), true)); // Input
-		this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-7, rect.getMinY()+28, 15, 15), true)); // Input
-		this.pins.add(new Pin(this, new Rectangle2D(rect.getMaxX()-7, rect.getMinY()+15, 15, 15), false)); // Output
+		if (hasPins){
+			this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-7, rect.getMinY()+7, 15, 15), true)); // Input
+			this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-7, rect.getMinY()+28, 15, 15), true)); // Input
+			this.pins.add(new Pin(this, new Rectangle2D(rect.getMaxX()-7, rect.getMinY()+15, 15, 15), false)); // Output
+		}
 	}
 
 	@Override

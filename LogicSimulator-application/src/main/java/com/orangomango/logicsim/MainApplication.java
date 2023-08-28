@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.Cursor;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.KeyCode;
@@ -26,7 +27,7 @@ import javafx.scene.control.TextField;
 //import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
-//import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.TextInputDialog;
 //import javafx.scene.control.ButtonType;
 
 import java.util.*;
@@ -89,23 +90,39 @@ public class MainApplication extends Application{
 	private Pin movingBusPin = null;
 	private Bus connB;
 	private File pickedFile;
+	private static List<File> uploadedFiles = new ArrayList<>();
+	private boolean rightMouseDrag = false;
 	
 	@Override
 	public void start(Stage stage){
 		StackPane pane = new StackPane();
 
-		FilePicker picker = FilePicker.create();
-		picker.setGraphic(new ImageView(new Image(Resource.toUrl("/images/icon.png", MainApplication.class))));
-		picker.selectedFileProperty().addListener((ob, oldV, newV) -> {
-			this.pickedFile = newV;
-		});
+		final Label uploadInfo = new Label("No file uploaded");
+		final Label uploadedFilesInfo = new Label("No dependecies uploaded");
 
 		Canvas canvas = new Canvas(WIDTH, HEIGHT);
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		pane.getChildren().add(canvas);
 
+		FilePicker picker = FilePicker.create();
+		picker.setGraphic(new ImageView(new Image(Resource.toUrl("/images/icon.png", MainApplication.class))));
+		picker.selectedFileProperty().addListener((ob, oldV, newV) -> {
+			this.pickedFile = newV;
+			uploadInfo.setText(this.pickedFile.getName());
+		});
+
+		FilePicker uploader = FilePicker.create();
+		uploader.setMultiple(true);
+		uploader.setGraphic(new ImageView(new Image(Resource.toUrl("/images/icon.png", MainApplication.class))));
+		uploader.getSelectedFiles().addListener((javafx.beans.InvalidationListener)obs -> {
+			List<File> files = uploader.getSelectedFiles();
+			uploadedFiles = files;
+			uploadedFilesInfo.setText(uploadedFiles.stream().map(file -> file.getName()).collect(Collectors.toList()).toString());
+			buildSideArea(gc);
+		});
+
 		UiButton saveButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_save.png", MainApplication.class)), "SAVE", new Rectangle2D(50, 20, 50, 50), () -> {
-			File file = uploadFile(true, false);
+			File file = this.pickedFile;
 			if (file != null){
 				this.currentFile = file;
 				save(file);
@@ -118,14 +135,14 @@ public class MainApplication extends Application{
 			}
 		});
 		UiButton loadButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_load.png", MainApplication.class)), "LOAD", new Rectangle2D(150, 20, 50, 50), () -> {
-			File file = uploadFile(true, true);
+			File file = this.pickedFile;
 			List<Gate> gates = new ArrayList<>();
 			List<Wire> wires = new ArrayList<>();
 			if (file != null){
 				int backup = Pin.PIN_ID;
 				Pin.PIN_ID = 0;
 				FileReader.create().readAsText(file).onSuccess(jsonData -> {
-					JsonObject json = load(jsonData, gc, gates, wires);
+					JsonObject json = load(jsonData, gc, gates, wires, true);
 					if (json == null){
 						Pin.PIN_ID = backup;
 						return;
@@ -203,7 +220,7 @@ public class MainApplication extends Application{
 			this.connBus = false;
 		});
 		UiButton exportButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_export.png", MainApplication.class)), "EXPORT", new Rectangle2D(650, 20, 50, 50), () -> {
-			/*double minPosX = Double.POSITIVE_INFINITY;
+			double minPosX = Double.POSITIVE_INFINITY;
 			double maxPosX = Double.NEGATIVE_INFINITY;
 			double minPosY = Double.POSITIVE_INFINITY;
 			double maxPosY = Double.NEGATIVE_INFINITY;
@@ -247,26 +264,14 @@ public class MainApplication extends Application{
 				wire.render(tempCanvas.getGraphicsContext2D());
 			}
 			WritableImage image = tempCanvas.snapshot(null, new WritableImage(w, h));
-			FileChooser fc = new FileChooser();
-			fc.setTitle("Export to png image");
-			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG Image", "*.png"));
-			File file = fc.showSaveDialog(stage);
-			if (file != null){
-				if (!file.getName().endsWith(".png")){
-					file = new File(file.getParent(), file.getName()+".png");
-				}
-				RenderedImage ri = SwingFXUtils.fromFXImage(image, null);
-				try {
-					ImageIO.write(ri, "png", file);
-				} catch (IOException ex){
-					ex.printStackTrace();
-				}
-				Alert info = new Alert(Alert.AlertType.INFORMATION);
-				info.setTitle("Saved");
-				info.setHeaderText("File saved");
-				info.setContentText("File saved successfully");
-				info.showAndWait();
-			}*/
+
+			// Download the image
+
+			Alert info = new Alert(Alert.AlertType.INFORMATION);
+			info.setTitle("Saved");
+			info.setHeaderText("File saved");
+			info.setContentText("File saved successfully");
+			info.showAndWait();
 		});
 		UiButton busConnectButton  = new UiButton(gc, new Image(Resource.toUrl("/images/button_connbus.png", MainApplication.class)), "CONNECT BUS", new Rectangle2D(750, 20, 50, 50), () -> {
 			this.connBus = true;
@@ -341,10 +346,9 @@ public class MainApplication extends Application{
 				} else {
 					if (this.selectedId >= 0){
 						Gate g = null;
-						boolean loaded = true;
 						switch (this.selectedId){
 							case 0:
-								g = new Switch(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50));
+								g = new Switch(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50), true);
 								break;
 							case 1:
 								Pin found = null;
@@ -414,39 +418,37 @@ public class MainApplication extends Application{
 								}
 								break;
 							case 2:
-								g = new Light(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50));
+								g = new Light(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50), true);
 								break;
 							case 3:
-								g = new NotGate(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 100, 50));
+								g = new NotGate(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 100, 50), true);
 								break;
 							case 4:
-								g = new AndGate(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 100, 50));
+								g = new AndGate(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 100, 50), true);
 								break;
 							case 5:
-								File file = uploadFile(false, true);
+								File file = this.pickedFile;
 								if (file == null){
 									this.selectedId = -1;
 									return;
 								}
-								g = new Chip(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 125, 0), file);
-								loaded = ((Chip)g).getJSONData() != null;
+								g = new Chip(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 125, 0), file, true);
 								break;
 							case 6:
-								g = new Chip(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 125, 0), this.selectedChipFile);
-								loaded = ((Chip)g).getJSONData() != null;
+								g = new Chip(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 125, 0), this.selectedChipFile, true);
 								break;
 							case 7:
-								g = new Display7(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 0, 0));
+								g = new Display7(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 0, 0), true);
 								break;
 							case 8:
 								this.busStartPoint = clickPoint;
 								break;
 							case 9:
-								g = new TriStateBuffer(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 100, 50));
+								g = new TriStateBuffer(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 100, 50), true);
 								break;
 						}
 						if (g != null){
-							if (loaded) this.gates.add(g);
+							this.gates.add(g);
 							this.selectedId = -1;
 						}
 					} else {
@@ -572,16 +574,17 @@ public class MainApplication extends Application{
 					ContextMenu cm = new ContextMenu();
 					if (found instanceof Chip){
 						MenuItem showChip = new MenuItem("Look inside");
-						/*final Chip chip = (Chip)found;
+						final Chip chip = (Chip)found;
 						showChip.setOnAction(ev -> {
-							Alert alert = new Alert(Alert.AlertType.INFORMATION);
+							Console.log(chip.getName());
+							/*Alert alert = new Alert(Alert.AlertType.INFORMATION);
 							alert.setTitle(chip.getName());
 							alert.setHeaderText(chip.getName());
 							ChipCanvas cc = new ChipCanvas(chip);
 							alert.getDialogPane().setContent(cc.getPane());
 							alert.showAndWait();
-							cc.destroy();
-						});*/
+							cc.destroy();*/
+						});
 						cm.getItems().add(showChip);
 					} else if (found instanceof Bus){
 						MenuItem clearConn = new MenuItem("Clear connections");
@@ -591,14 +594,14 @@ public class MainApplication extends Application{
 					}
 					final Gate gate = found;
 					MenuItem changeLabel = new MenuItem("Change label");
-					/*changeLabel.setOnAction(ev -> {
+					changeLabel.setOnAction(ev -> {
 						TextInputDialog dialog = new TextInputDialog(gate.getLabel());
 						dialog.setTitle("Set label");
 						dialog.setHeaderText("Label name");
 						dialog.showAndWait().ifPresent(v -> {
 							gate.setLabel(v);
 						});
-					});*/
+					});
 					cm.getItems().add(changeLabel);
 					if (pinFound != null){
 						final Pin pin = pinFound;
@@ -613,6 +616,8 @@ public class MainApplication extends Application{
 					this.selectionMoveStart = new Point2D(e.getX(), e.getY());
 					this.deltaMove = new Point2D(0, 0);
 				}
+
+				this.rightMouseDrag = true;
 			}
 		});
 
@@ -653,7 +658,23 @@ public class MainApplication extends Application{
 		canvas.setOnMouseDragged(e -> {
 			this.mouseMoved = new Point2D(e.getX(), e.getY());
 			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
-			if (e.getButton() == MouseButton.PRIMARY){
+			if (this.rightMouseDrag){ // MouseButton.SECONDARY
+				if ((this.selectedGates.size() == 0 && this.selectedWirePoints.size() == 0) || this.selectionMoveStart == null){
+					if (this.movePoint != null){
+						this.deltaMove = new Point2D(e.getX()-this.movePoint.getX(), e.getY()-this.movePoint.getY());
+					}
+				} else if (this.selectionMoveStart != null){
+					this.deltaMove = new Point2D(e.getX()-this.selectionMoveStart.getX(), e.getY()-this.selectionMoveStart.getY());
+					this.selectionMoveStart = new Point2D(e.getX(), e.getY());
+					for (Gate g : this.selectedGates){
+						g.setPos(g.getRect().getMinX()+this.deltaMove.getX()/this.cameraScale, g.getRect().getMinY()+this.deltaMove.getY()/this.cameraScale);
+					}
+					for (Wire.WirePoint wp : this.selectedWirePoints){
+						wp.setX(wp.getX()+this.deltaMove.getX()/this.cameraScale);
+						wp.setY(wp.getY()+this.deltaMove.getY()/this.cameraScale);
+					}
+				}
+			} else { // MouseButton.PRIMARY
 				if (this.selectedRectanglePoint != null){
 					this.selectedAreaWidth = clickPoint.getX()-this.selectedRectanglePoint.getX();
 					this.selectedAreaHeight = clickPoint.getY()-this.selectedRectanglePoint.getY();
@@ -671,22 +692,6 @@ public class MainApplication extends Application{
 						if (clickPoint.getY()+7.5 > found.getRect().getMinY()+20 && clickPoint.getY()+7.5 < found.getRect().getMaxY()-20){
 							this.movingBusPin.setRect(new Rectangle2D(this.movingBusPin.getRect().getMinX(), clickPoint.getY(), 15, 15));
 						}
-					}
-				}
-			} else if (e.getButton() == MouseButton.SECONDARY){
-				if ((this.selectedGates.size() == 0 && this.selectedWirePoints.size() == 0) || this.selectionMoveStart == null){
-					if (this.movePoint != null){
-						this.deltaMove = new Point2D(e.getX()-this.movePoint.getX(), e.getY()-this.movePoint.getY());
-					}
-				} else if (this.selectionMoveStart != null){
-					this.deltaMove = new Point2D(e.getX()-this.selectionMoveStart.getX(), e.getY()-this.selectionMoveStart.getY());
-					this.selectionMoveStart = new Point2D(e.getX(), e.getY());
-					for (Gate g : this.selectedGates){
-						g.setPos(g.getRect().getMinX()+this.deltaMove.getX()/this.cameraScale, g.getRect().getMinY()+this.deltaMove.getY()/this.cameraScale);
-					}
-					for (Wire.WirePoint wp : this.selectedWirePoints){
-						wp.setX(wp.getX()+this.deltaMove.getX()/this.cameraScale);
-						wp.setY(wp.getY()+this.deltaMove.getY()/this.cameraScale);
 					}
 				}
 			}
@@ -734,6 +739,8 @@ public class MainApplication extends Application{
 				} else if (this.selectionMoveStart != null){
 					this.selectionMoveStart = null;
 				}
+
+				this.rightMouseDrag = false;
 			}
 		});
 
@@ -744,33 +751,35 @@ public class MainApplication extends Application{
 			}
 		});
 
-		Scene scene = new Scene(new VBox(5, picker.getView(), pane), WIDTH, HEIGHT+100);
+		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo), new HBox(5, uploader.getView(), uploadedFilesInfo), pane);
+		vbox.setPadding(new Insets(10, 10, 10, 10));
+		Scene scene = new Scene(vbox, WIDTH+50, HEIGHT+100);
 
 		Timeline loop = new Timeline(new KeyFrame(Duration.millis(1000.0/FPS), e -> {
 			update(gc);
-			/*if (this.rmWire || this.rmGate || this.connBus){
-				scene.setCursor(Cursor.CROSSHAIR);
+			if (this.rmWire || this.rmGate || this.connBus){
+				vbox.setCursor(Cursor.CROSSHAIR);
 			} else if (this.movePoint != null){
-				scene.setCursor(Cursor.MOVE);
+				vbox.setCursor(Cursor.MOVE);
 			} else if (this.selectionMoveStart != null){
-				scene.setCursor(Cursor.CLOSED_HAND);
+				vbox.setCursor(Cursor.CLOSED_HAND);
 			} else if (this.selectedId >= 0 && this.selectedId != 1){
-				scene.setCursor(Cursor.HAND);
+				vbox.setCursor(Cursor.HAND);
 			} else if (this.resizingBus != null){
 				if (this.resizingBus.getRect().getWidth() > this.resizingBus.getRect().getHeight()){
-					scene.setCursor(Cursor.H_RESIZE);
+					vbox.setCursor(Cursor.H_RESIZE);
 				} else {
-					scene.setCursor(Cursor.V_RESIZE);
+					vbox.setCursor(Cursor.V_RESIZE);
 				}
 			} else {
-				scene.setCursor(Cursor.DEFAULT);
-			}*/
+				vbox.setCursor(Cursor.DEFAULT);
+			}
 			stage.setTitle("LogicSim v1.0"+(this.currentFile == null ? "" : " - "+this.currentFile.getName()));
 		}));
 		loop.setCycleCount(Animation.INDEFINITE);
 		loop.play();
 
-		Scheduler.schedulePeriodic(2, () -> {
+		Scheduler.schedulePeriodic(5, () -> {
 			for (int i = 0; i < this.gates.size(); i++){
 				Gate g = this.gates.get(i);
 				g.update();
@@ -781,10 +790,6 @@ public class MainApplication extends Application{
 		stage.getIcons().add(new Image(Resource.toUrl("/images/icon.png", MainApplication.class)));
 		stage.setScene(scene);
 		stage.show();
-	}
-
-	private File uploadFile(boolean project, boolean chip){
-		return this.pickedFile;
 	}
 
 	private void buildSideArea(GraphicsContext gc){
@@ -799,18 +804,16 @@ public class MainApplication extends Application{
 		this.sideArea.addButton("Bus", () -> this.selectedId = 8);
 		this.sideArea.addButton("Tri-state buffer", () -> this.selectedId = 9);
 
-		/*if (this.currentFile != null){
-			this.sideArea.startSection();
-			for (File file : (new File(this.currentFile.getParent())).listFiles()){
-				String nm = file.getName();
-				if (nm.endsWith(".lsimc")){
-					this.sideArea.addButton(nm.substring(0, nm.lastIndexOf(".")), () -> {
-						this.selectedId = 6;
-						this.selectedChipFile = file;
-					});
-				}
+		this.sideArea.startSection();
+		for (File file : uploadedFiles){
+			String nm = file.getName();
+			if (nm.endsWith(".lsimc")){
+				this.sideArea.addButton(nm.substring(0, nm.lastIndexOf(".")), () -> {
+					this.selectedId = 6;
+					this.selectedChipFile = file;
+				});
 			}
-		}*/
+		}
 	}
 
 	public Point2D getClickPoint(double x, double y){
@@ -823,19 +826,20 @@ public class MainApplication extends Application{
 		return clickPoint;
 	}
 
+	private static File getUploadedFile(String name){
+		for (File file : uploadedFiles){
+			if (file.getName().equals(name)){
+				return file;
+			}
+		}
+		return null;
+	}
+
 	private void save(File file){
 		save(file, null, null);
 	}
 
 	private void save(File file, String chipName, Color color){
-		/*if (!file.getName().endsWith(".lsim") && !file.getName().endsWith(".lsimc")){
-			boolean replace = false;
-			if (file == this.currentFile){
-				replace = true;
-			}
-			file = new File(file.getParent(), file.getName()+".lsim"+(chipName == null ? "" : "c"));
-			if (replace) this.currentFile = file;
-		}*/
 		JsonObject json = Json.createObject();
 		JsonArray data = Json.createArray();
 		for (Gate gate : this.gates){
@@ -860,10 +864,9 @@ public class MainApplication extends Application{
 		BlobProvider.get().exportBlob(textBlob, file.getName());
 	}
 
-	public static JsonObject load(String jsonData, GraphicsContext gc, List<Gate> tempGates, List<Wire> tempWires){
+	public static JsonObject load(String jsonData, GraphicsContext gc, List<Gate> tempGates, List<Wire> tempWires, boolean updatePinId){
 		JsonObject json = Json.parseObjectSilently(jsonData);
 
-		int backupId = Pin.PIN_ID;
 		Map<Bus, ReadOnlyJsonArray> busConnections = new HashMap<>();
 
 		// Load gates
@@ -875,42 +878,37 @@ public class MainApplication extends Application{
 			List<Pin> pins = new ArrayList<>();
 			for (int j = 0; j < gate.getArray("pins").size(); j++){
 				ReadOnlyJsonObject pin = gate.getArray("pins").getObject(j);
-				Pin p = new Pin(pin);
+				Pin p = new Pin(pin, updatePinId);
 				pins.add(p);
 			}
 			Gate gt = null;
-			int lastPinId = Pin.PIN_ID; // Save pin id
-			boolean lastPinFlag = Pin.UPDATE_PIN_ID;
 			if (name.equals("AND")){
-				gt = new AndGate(gc, rect);
+				gt = new AndGate(gc, rect, false);
 			} else if (name.equals("LIGHT")){
-				gt = new Light(gc, rect);
+				gt = new Light(gc, rect, false);
 			} else if (name.equals("NOT")){
-				gt = new NotGate(gc, rect);
+				gt = new NotGate(gc, rect, false);
 			} else if (name.equals("SWITCH")){
-				gt = new Switch(gc, rect);
+				gt = new Switch(gc, rect, false);
 			} else if (name.equals("CHIP")){
-				//File chipFile = new File(file.getParent(), gate.getString("fileName"));
-				//if (!chipFile.exists()){
-				//	Alert error = new Alert(Alert.AlertType.ERROR);
-				//	error.setTitle("Missing dependency");
-				//	error.setHeaderText("Missing dependency");
-				//	error.setContentText("The following dependency is missing: "+gate.getString("fileName"));
-				//	error.showAndWait();
-				//	Pin.PIN_ID = backupId;
-				//	return null;
-				//}
-				//gt = new Chip(gc, rect, chipFile);
+				File chipFile = getUploadedFile(gate.getString("fileName"));
+				if (chipFile == null){
+					Alert error = new Alert(Alert.AlertType.ERROR);
+					error.setTitle("Missing dependency");
+					error.setHeaderText("Missing dependency");
+					error.setContentText("The following dependency is missing: "+gate.getString("fileName"));
+					error.showAndWait();
+					return null;
+				}
+				gt = new Chip(gc, rect, chipFile, false);
 			} else if (name.equals("DISPLAY7")){
-				gt = new Display7(gc, rect);
+				gt = new Display7(gc, rect, false);
 			} else if (name.equals("BUS")){
 				gt = new Bus(gc, rect, gate.getInteger("id"));
 				busConnections.put((Bus)gt, gate.getArray("connections"));
 			} else if (name.equals("3SBUFFER")){
-				gt = new TriStateBuffer(gc, rect);
+				gt = new TriStateBuffer(gc, rect, false);
 			}
-			Pin.PIN_ID = lastPinId; // Restore the last pin id
-			Pin.UPDATE_PIN_ID = lastPinFlag;
 			gt.setPins(pins);
 			gt.setLabel(gate.getString("label"));
 			tempGates.add(gt);

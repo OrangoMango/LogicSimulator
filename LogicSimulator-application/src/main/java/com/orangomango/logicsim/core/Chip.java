@@ -24,18 +24,16 @@ public class Chip extends Gate{
 	private File file;
 	private String name;
 	private JsonObject json;
+	private boolean loadingCompleted;
 
-	public Chip(GraphicsContext gc, Rectangle2D rect, File file){
+	public Chip(GraphicsContext gc, Rectangle2D rect, File file, final boolean hasPins){
 		super(gc, "CHIP", rect, Color.BLUE);
 		this.file = file;
 		this.label = file.getName();
 
 		// Load data
-		Pin.UPDATE_PIN_ID = false;
-
 		FileReader.create().readAsText(this.file).onSuccess(jsonData -> {
-			this.json = MainApplication.load(jsonData, this.gc, this.gates, this.wires);
-			Pin.UPDATE_PIN_ID = true;
+			this.json = MainApplication.load(jsonData, this.gc, this.gates, this.wires, false);
 			if (this.json == null) return;
 
 			// Turn on all the subgates
@@ -61,24 +59,24 @@ public class Chip extends Gate{
 			this.inputGates.sort((g1, g2) -> Double.compare(g1.getRect().getMinY()+g1.getRect().getHeight()/2, g2.getRect().getMinY()+g2.getRect().getHeight()/2));
 			this.outputGates.sort((g1, g2) -> Double.compare(g1.getRect().getMinY()+g1.getRect().getHeight()/2, g2.getRect().getMinY()+g2.getRect().getHeight()/2));
 
-			this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), Math.max(this.inputGates.size(), this.outputGates.size())*20+5);
-			double inputOffset = (this.rect.getHeight()-(this.inputGates.size()*15))/(this.inputGates.size()+1);
-			for (int i = 0; i < this.inputGates.size(); i++){
-				Pin pin = new Pin(this, new Rectangle2D(this.rect.getMinX()-7, this.rect.getMinY()+inputOffset+i*(15+inputOffset), 15, 15), true);
-				this.pins.add(pin);
-				this.inputPins.add(pin);
+			if (hasPins){			
+				this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), Math.max(this.inputGates.size(), this.outputGates.size())*20+5);
+				double inputOffset = (this.rect.getHeight()-(this.inputGates.size()*15))/(this.inputGates.size()+1);
+				for (int i = 0; i < this.inputGates.size(); i++){
+					Pin pin = new Pin(this, new Rectangle2D(this.rect.getMinX()-7, this.rect.getMinY()+inputOffset+i*(15+inputOffset), 15, 15), true);
+					this.pins.add(pin);
+					this.inputPins.add(pin);
+				}
+				double outputOffset = (this.rect.getHeight()-(this.outputGates.size()*15))/(this.outputGates.size()+1);
+				for (int i = 0; i < this.outputGates.size(); i++){
+					Pin pin = new Pin(this, new Rectangle2D(this.rect.getMaxX()-7, this.rect.getMinY()+outputOffset+i*(15+outputOffset), 15, 15), false);
+					this.pins.add(pin);
+					this.outputPins.add(pin);
+				}
 			}
-			double outputOffset = (this.rect.getHeight()-(this.outputGates.size()*15))/(this.outputGates.size()+1);
-			for (int i = 0; i < this.outputGates.size(); i++){
-				Pin pin = new Pin(this, new Rectangle2D(this.rect.getMaxX()-7, this.rect.getMinY()+outputOffset+i*(15+outputOffset), 15, 15), false);
-				this.pins.add(pin);
-				this.outputPins.add(pin);
-			}
-		});
-	}
 
-	public JsonObject getJSONData(){
-		return this.json;
+			this.loadingCompleted = true;
+		});
 	}
 
 	public String getName(){
@@ -143,6 +141,7 @@ public class Chip extends Gate{
 
 	@Override
 	public void update(){
+		if (!this.loadingCompleted) return;
 		for (Gate g : this.gates){
 			g.update();
 		}

@@ -30,13 +30,15 @@ public class Display7 extends Gate{
 		}
 	}
 
-	public Display7(GraphicsContext gc, Rectangle2D rect){
+	public Display7(GraphicsContext gc, Rectangle2D rect, boolean hasPins){
 		super(gc, "DISPLAY7", rect, null);
 		this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), 70, 150);
 		this.image = new Image(Resource.toUrl("/images/display.png", Display7.class));
 		this.label = "7 segment display";
-		for (int i = 0; i < 7; i++){
-			this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-15, rect.getMinY()+20*i, 15, 15), true));
+		if (hasPins){
+			for (int i = 0; i < 7; i++){
+				this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-15, rect.getMinY()+20*i, 15, 15), true));
+			}
 		}
 
 		this.pieces[0] = new DisplayPiece(new Image(Resource.toUrl("/images/display-h.png", Display7.class)), this.rect.getMinX()+6*2, this.rect.getMinY()+5*2);

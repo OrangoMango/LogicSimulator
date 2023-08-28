@@ -26,7 +26,6 @@ public class Pin{
 	private static final Font FONT = new Font("sans-serif", 10);
 
 	public static int PIN_ID = 0;
-	public static boolean UPDATE_PIN_ID = true;
 
 	public Pin(Gate owner, Rectangle2D r, boolean doIn){
 		this.owner = owner;
@@ -43,11 +42,11 @@ public class Pin{
 		return this.owner;
 	}
 
-	public Pin(ReadOnlyJsonObject json){
+	public Pin(ReadOnlyJsonObject json, boolean updatePinId){
 		this.rect = new Rectangle2D(json.getObject("rect").getDouble("x"), json.getObject("rect").getDouble("y"), json.getObject("rect").getDouble("w"), json.getObject("rect").getDouble("h"));
 		this.doInput = json.getBoolean("doInput");
 		this.id = json.getInteger("id");
-		if (UPDATE_PIN_ID){
+		if (updatePinId){
 			PIN_ID = Math.max(PIN_ID, this.id+1);
 		}
 	}

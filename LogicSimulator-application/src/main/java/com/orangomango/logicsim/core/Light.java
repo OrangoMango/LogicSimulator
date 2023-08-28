@@ -9,10 +9,10 @@ import dev.webfx.platform.resource.Resource;
 public class Light extends Gate{
 	private Image image;
 
-	public Light(GraphicsContext gc, Rectangle2D rect){
+	public Light(GraphicsContext gc, Rectangle2D rect, boolean hasPins){
 		super(gc, "LIGHT", rect, null);
 		this.image = new Image(Resource.toUrl("/images/light.png", Light.class));
-		this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-7, rect.getMinY()+7, 15, 15), true));
+		if (hasPins) this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-7, rect.getMinY()+7, 15, 15), true));
 		this.label = "Light";
 	}
 

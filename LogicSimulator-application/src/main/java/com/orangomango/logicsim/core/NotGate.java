@@ -10,11 +10,13 @@ import com.orangomango.logicsim.Util;
 public class NotGate extends Gate implements DelayedGate{
 	private boolean lastValue;
 
-	public NotGate(GraphicsContext gc, Rectangle2D rect){
+	public NotGate(GraphicsContext gc, Rectangle2D rect, boolean hasPins){
 		super(gc, "NOT", rect, Color.ORANGE);
 		this.label = "Not gate";
-		this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-7, rect.getMinY()+15, 15, 15), true)); // Input
-		this.pins.add(new Pin(this, new Rectangle2D(rect.getMaxX()-7, rect.getMinY()+15, 15, 15), false)); // Output
+		if (hasPins){
+			this.pins.add(new Pin(this, new Rectangle2D(rect.getMinX()-7, rect.getMinY()+15, 15, 15), true)); // Input
+			this.pins.add(new Pin(this, new Rectangle2D(rect.getMaxX()-7, rect.getMinY()+15, 15, 15), false)); // Output
+		}
 	}
 
 	@Override

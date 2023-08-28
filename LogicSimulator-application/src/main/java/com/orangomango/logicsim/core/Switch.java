@@ -10,11 +10,11 @@ public class Switch extends Gate{
 	private boolean on;
 	private Image image;
 
-	public Switch(GraphicsContext gc, Rectangle2D rect){
+	public Switch(GraphicsContext gc, Rectangle2D rect, boolean hasPins){
 		super(gc, "SWITCH", rect, null);
 		this.image = new Image(Resource.toUrl("/images/switch.png", Switch.class));
 		this.onClick = () -> setOn(!this.on);
-		this.pins.add(new Pin(this, new Rectangle2D(rect.getMaxX()-7, rect.getMinY()+7, 15, 15), false));
+		if (hasPins) this.pins.add(new Pin(this, new Rectangle2D(rect.getMaxX()-7, rect.getMinY()+7, 15, 15), false));
 		this.label = "Switch";
 	}
 
