@@ -624,41 +624,7 @@ public class MainApplication extends Application{
 		canvas.setOnMouseMoved(e -> {
 			this.mouseMoved = new Point2D(e.getX(), e.getY());
 			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
-			Gate found = null;
-			Pin pinFound = null;
-			for (Gate g : this.gates){
-				Pin pin = g.getPin(clickPoint.getX(), clickPoint.getY());
-				if (g.getRect().contains(clickPoint.getX(), clickPoint.getY())){
-					found = g;
-					if (pin != null){
-						pinFound = pin;
-					}
-					break;
-				}
-			}
-
-			if (found != null && pinFound != null){
-				String extra = pinFound.isConnected() ? "Connected" : "Disconnected";
-				if (found instanceof Chip){
-					this.tooltip = new UiTooltip(gc, ((Chip)found).getLabel(pinFound)+"\n"+extra, e.getX(), e.getY());
-				} else {
-					this.tooltip = new UiTooltip(gc, (pinFound.isInput() ? "Input pin" : "Output pin")+"\n"+extra, e.getX(), e.getY());
-				}
-			} else if (found != null){
-				if (found instanceof Bus){
-					Bus bus = (Bus)found;
-					String output = "Bus #"+bus.getId()+"\nConnected:\n"+bus.getConnections().stream().mapToInt(Bus::getId).boxed().collect(Collectors.toList());
-					this.tooltip = new UiTooltip(gc, output, e.getX(), e.getY());
-				}
-			} else {
-				this.tooltip = null;
-			}
-		});
-
-		canvas.setOnMouseDragged(e -> {
-			this.mouseMoved = new Point2D(e.getX(), e.getY());
-			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
-			if (this.rightMouseDrag){ // MouseButton.SECONDARY
+			if (this.rightMouseDrag){ // MouseButton.SECONDARY dragging
 				if ((this.selectedGates.size() == 0 && this.selectedWirePoints.size() == 0) || this.selectionMoveStart == null){
 					if (this.movePoint != null){
 						this.deltaMove = new Point2D(e.getX()-this.movePoint.getX(), e.getY()-this.movePoint.getY());
@@ -674,24 +640,58 @@ public class MainApplication extends Application{
 						wp.setY(wp.getY()+this.deltaMove.getY()/this.cameraScale);
 					}
 				}
-			} else { // MouseButton.PRIMARY
-				if (this.selectedRectanglePoint != null){
-					this.selectedAreaWidth = clickPoint.getX()-this.selectedRectanglePoint.getX();
-					this.selectedAreaHeight = clickPoint.getY()-this.selectedRectanglePoint.getY();
-				} else if (this.busStartPoint != null){
-					if (Math.abs(clickPoint.getX()-this.busStartPoint.getX()) > 100 || Math.abs(clickPoint.getY()-this.busStartPoint.getY()) > 100) this.busTempEndPoint = clickPoint;
-				} else if (this.resizingBus != null){
-					this.resizingBus.resize(clickPoint.getX(), clickPoint.getY());
-				} else if (this.movingBusPin != null){
-					Gate found = this.movingBusPin.getOwner();
-					if (found.getRect().getWidth() > found.getRect().getHeight()){
-						if (clickPoint.getX()+7.5 > found.getRect().getMinX()+20 && clickPoint.getX()+7.5 < found.getRect().getMaxX()-20){
-							this.movingBusPin.setRect(new Rectangle2D(clickPoint.getX(), this.movingBusPin.getRect().getMinY(), 15, 15));
+			} else {
+				Gate found = null;
+				Pin pinFound = null;
+				for (Gate g : this.gates){
+					Pin pin = g.getPin(clickPoint.getX(), clickPoint.getY());
+					if (g.getRect().contains(clickPoint.getX(), clickPoint.getY())){
+						found = g;
+						if (pin != null){
+							pinFound = pin;
 						}
+						break;
+					}
+				}
+
+				if (found != null && pinFound != null){
+					String extra = pinFound.isConnected() ? "Connected" : "Disconnected";
+					if (found instanceof Chip){
+						this.tooltip = new UiTooltip(gc, ((Chip)found).getLabel(pinFound)+"\n"+extra, e.getX(), e.getY());
 					} else {
-						if (clickPoint.getY()+7.5 > found.getRect().getMinY()+20 && clickPoint.getY()+7.5 < found.getRect().getMaxY()-20){
-							this.movingBusPin.setRect(new Rectangle2D(this.movingBusPin.getRect().getMinX(), clickPoint.getY(), 15, 15));
-						}
+						this.tooltip = new UiTooltip(gc, (pinFound.isInput() ? "Input pin" : "Output pin")+"\n"+extra, e.getX(), e.getY());
+					}
+				} else if (found != null){
+					if (found instanceof Bus){
+						Bus bus = (Bus)found;
+						String output = "Bus #"+bus.getId()+"\nConnected:\n"+bus.getConnections().stream().mapToInt(Bus::getId).boxed().collect(Collectors.toList());
+						this.tooltip = new UiTooltip(gc, output, e.getX(), e.getY());
+					}
+				} else {
+					this.tooltip = null;
+				}
+			}
+		});
+
+		canvas.setOnMouseDragged(e -> { // Always primary
+			this.mouseMoved = new Point2D(e.getX(), e.getY());
+			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
+			if (this.selectedRectanglePoint != null){
+				this.selectedAreaWidth = clickPoint.getX()-this.selectedRectanglePoint.getX();
+				this.selectedAreaHeight = clickPoint.getY()-this.selectedRectanglePoint.getY();
+			} else if (this.busStartPoint != null){
+				if (Math.abs(clickPoint.getX()-this.busStartPoint.getX()) > 100 || Math.abs(clickPoint.getY()-this.busStartPoint.getY()) > 100) this.busTempEndPoint = clickPoint;
+			} else if (this.resizingBus != null){
+				this.resizingBus.resize(clickPoint.getX(), clickPoint.getY());
+			} else if (this.movingBusPin != null){
+				Gate found = this.movingBusPin.getOwner();
+				if (found.getRect().getWidth() > found.getRect().getHeight()){
+					if (clickPoint.getX()+7.5 > found.getRect().getMinX()+20 && clickPoint.getX()+7.5 < found.getRect().getMaxX()-20){
+						this.movingBusPin.setRect(new Rectangle2D(clickPoint.getX(), this.movingBusPin.getRect().getMinY(), 15, 15));
+					}
+				} else {
+					if (clickPoint.getY()+7.5 > found.getRect().getMinY()+20 && clickPoint.getY()+7.5 < found.getRect().getMaxY()-20){
+						this.movingBusPin.setRect(new Rectangle2D(this.movingBusPin.getRect().getMinX(), clickPoint.getY(), 15, 15));
 					}
 				}
 			}
