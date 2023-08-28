@@ -67,6 +67,8 @@
     <source path="com/orangomango/logicsim"/>
     <source path="com/orangomango/logicsim/core"/>
     <source path="com/orangomango/logicsim/ui"/>
+    <resource path="images"/>
+    <public includes="images/" path=""/>
     <!--================================< elemental2-core >=================================-->
     <inherits name="elemental2.core.Core"/>
     <!--=================================< elemental2-dom >=================================-->

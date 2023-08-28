@@ -9,6 +9,7 @@ import java.util.*;
 import dev.webfx.platform.json.Json;
 import dev.webfx.platform.json.JsonObject;
 import dev.webfx.platform.file.File;
+import dev.webfx.platform.file.FileReader;
 
 import com.orangomango.logicsim.MainApplication;
 import com.orangomango.logicsim.Util;
@@ -31,46 +32,49 @@ public class Chip extends Gate{
 
 		// Load data
 		Pin.UPDATE_PIN_ID = false;
-		this.json = MainApplication.load(this.file, this.gc, this.gates, this.wires);
-		Pin.UPDATE_PIN_ID = true;
-		if (this.json == null) return;
 
-		// Turn on all the subgates
-		if (isPowered()){
-			Util.schedule(() -> {
-				Util.updateGatesPower(this.gates, false);
-				Util.updateGatesPower(this.gates, true);
-			}, Util.GATE_DELAY);
-		}
+		FileReader.create().readAsText(this.file).onSuccess(jsonData -> {
+			this.json = MainApplication.load(jsonData, this.gc, this.gates, this.wires);
+			Pin.UPDATE_PIN_ID = true;
+			if (this.json == null) return;
 
-		this.color = Color.color(this.json.getObject("color").getDouble("red"), this.json.getObject("color").getDouble("green"), this.json.getObject("color").getDouble("blue"));
-		this.name = this.json.getString("chipName");
-
-		for (Gate g : this.gates){
-			if (g.getName().equals("SWITCH")){
-				this.inputGates.add(g);
-			} else if (g.getName().equals("LIGHT")){
-				this.outputGates.add(g);
+			// Turn on all the subgates
+			if (isPowered()){
+				Util.schedule(() -> {
+					Util.updateGatesPower(this.gates, false);
+					Util.updateGatesPower(this.gates, true);
+				}, Util.GATE_DELAY);
 			}
-		}
 
-		// Sort the gates
-		this.inputGates.sort((g1, g2) -> Double.compare(g1.getRect().getMinY()+g1.getRect().getHeight()/2, g2.getRect().getMinY()+g2.getRect().getHeight()/2));
-		this.outputGates.sort((g1, g2) -> Double.compare(g1.getRect().getMinY()+g1.getRect().getHeight()/2, g2.getRect().getMinY()+g2.getRect().getHeight()/2));
+			this.color = Color.color(this.json.getObject("color").getDouble("red"), this.json.getObject("color").getDouble("green"), this.json.getObject("color").getDouble("blue"));
+			this.name = this.json.getString("chipName");
 
-		this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), Math.max(this.inputGates.size(), this.outputGates.size())*20+5);
-		double inputOffset = (this.rect.getHeight()-(this.inputGates.size()*15))/(this.inputGates.size()+1);
-		for (int i = 0; i < this.inputGates.size(); i++){
-			Pin pin = new Pin(this, new Rectangle2D(this.rect.getMinX()-7, this.rect.getMinY()+inputOffset+i*(15+inputOffset), 15, 15), true);
-			this.pins.add(pin);
-			this.inputPins.add(pin);
-		}
-		double outputOffset = (this.rect.getHeight()-(this.outputGates.size()*15))/(this.outputGates.size()+1);
-		for (int i = 0; i < this.outputGates.size(); i++){
-			Pin pin = new Pin(this, new Rectangle2D(this.rect.getMaxX()-7, this.rect.getMinY()+outputOffset+i*(15+outputOffset), 15, 15), false);
-			this.pins.add(pin);
-			this.outputPins.add(pin);
-		}
+			for (Gate g : this.gates){
+				if (g.getName().equals("SWITCH")){
+					this.inputGates.add(g);
+				} else if (g.getName().equals("LIGHT")){
+					this.outputGates.add(g);
+				}
+			}
+
+			// Sort the gates
+			this.inputGates.sort((g1, g2) -> Double.compare(g1.getRect().getMinY()+g1.getRect().getHeight()/2, g2.getRect().getMinY()+g2.getRect().getHeight()/2));
+			this.outputGates.sort((g1, g2) -> Double.compare(g1.getRect().getMinY()+g1.getRect().getHeight()/2, g2.getRect().getMinY()+g2.getRect().getHeight()/2));
+
+			this.rect = new Rectangle2D(this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), Math.max(this.inputGates.size(), this.outputGates.size())*20+5);
+			double inputOffset = (this.rect.getHeight()-(this.inputGates.size()*15))/(this.inputGates.size()+1);
+			for (int i = 0; i < this.inputGates.size(); i++){
+				Pin pin = new Pin(this, new Rectangle2D(this.rect.getMinX()-7, this.rect.getMinY()+inputOffset+i*(15+inputOffset), 15, 15), true);
+				this.pins.add(pin);
+				this.inputPins.add(pin);
+			}
+			double outputOffset = (this.rect.getHeight()-(this.outputGates.size()*15))/(this.outputGates.size()+1);
+			for (int i = 0; i < this.outputGates.size(); i++){
+				Pin pin = new Pin(this, new Rectangle2D(this.rect.getMaxX()-7, this.rect.getMinY()+outputOffset+i*(15+outputOffset), 15, 15), false);
+				this.pins.add(pin);
+				this.outputPins.add(pin);
+			}
+		});
 	}
 
 	public JsonObject getJSONData(){

@@ -5,13 +5,15 @@ import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 import javafx.scene.Scene;
 import javafx.scene.Cursor;
-import javafx.scene.layout.TilePane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.canvas.*;
 import javafx.scene.paint.Color;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.animation.*;
 import javafx.util.Duration;
@@ -29,12 +31,16 @@ import javafx.scene.control.MenuItem;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
 import dev.webfx.platform.json.*;
 import dev.webfx.platform.file.FileReader;
 import dev.webfx.platform.file.File;
+import dev.webfx.platform.file.Blob;
+import dev.webfx.platform.file.spi.BlobProvider;
 import dev.webfx.extras.filepicker.FilePicker;
 import dev.webfx.platform.scheduler.Scheduler;
 import dev.webfx.platform.resource.Resource;
+import dev.webfx.platform.console.Console;
 
 import com.orangomango.logicsim.ui.*;
 import com.orangomango.logicsim.core.*;
@@ -86,34 +92,30 @@ public class MainApplication extends Application{
 	
 	@Override
 	public void start(Stage stage){
-		TilePane pane = new TilePane();
+		StackPane pane = new StackPane();
 
 		FilePicker picker = FilePicker.create();
-		picker.getSelectedFiles().addListener((javafx.beans.InvalidationListener)obs -> {
-			List<File> files = picker.getSelectedFiles();
-			if (files.size() > 0) this.pickedFile = files.get(0);
+		picker.setGraphic(new ImageView(new Image(Resource.toUrl("/images/icon.png", MainApplication.class))));
+		picker.selectedFileProperty().addListener((ob, oldV, newV) -> {
+			this.pickedFile = newV;
 		});
-		pane.getChildren().add(picker.getView());
 
 		Canvas canvas = new Canvas(WIDTH, HEIGHT);
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		pane.getChildren().add(canvas);
 
 		UiButton saveButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_save.png", MainApplication.class)), "SAVE", new Rectangle2D(50, 20, 50, 50), () -> {
-			/*FileChooser fc = new FileChooser();
-			fc.setTitle("Save project");
-			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
-			File file = this.currentFile == null || this.currentFile.getName().endsWith(".lsimc") ? fc.showSaveDialog(stage) : this.currentFile;
+			File file = uploadFile(true, false);
 			if (file != null){
 				this.currentFile = file;
-				//save(file);
+				save(file);
 				Alert info = new Alert(Alert.AlertType.INFORMATION);
 				info.setTitle("Saved");
 				info.setHeaderText("File saved");
 				info.setContentText("File saved successfully");
 				info.showAndWait();
 				buildSideArea(gc);
-			}*/
+			}
 		});
 		UiButton loadButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_load.png", MainApplication.class)), "LOAD", new Rectangle2D(150, 20, 50, 50), () -> {
 			File file = uploadFile(true, true);
@@ -122,15 +124,17 @@ public class MainApplication extends Application{
 			if (file != null){
 				int backup = Pin.PIN_ID;
 				Pin.PIN_ID = 0;
-				JsonObject json = load(file, gc, gates, wires);
-				if (json == null){
-					Pin.PIN_ID = backup;
-					return;
-				}
-				this.currentFile = file;
-				this.gates = gates;
-				this.wires = wires;
-				buildSideArea(gc);
+				FileReader.create().readAsText(file).onSuccess(jsonData -> {
+					JsonObject json = load(jsonData, gc, gates, wires);
+					if (json == null){
+						Pin.PIN_ID = backup;
+						return;
+					}
+					this.currentFile = file;
+					this.gates = gates;
+					this.wires = wires;
+					buildSideArea(gc);
+				});
 			}
 		});
 		UiButton saveChipButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_savechip.png", MainApplication.class)), "SAVE CHIP", new Rectangle2D(250, 20, 50, 50), () -> {
@@ -735,12 +739,12 @@ public class MainApplication extends Application{
 
 		canvas.setOnScroll(e -> {
 			if (e.getDeltaY() != 0){
-				this.cameraScale += (e.getDeltaY() > 0 ? 0.05 : -0.05);
+				this.cameraScale += (e.getDeltaY() > 0 ? -0.05 : 0.05);
 				this.cameraScale = Math.max(0.3, Math.min(this.cameraScale, 2));
 			}
 		});
 
-		Scene scene = new Scene(pane, WIDTH, HEIGHT);
+		Scene scene = new Scene(new VBox(5, picker.getView(), pane), WIDTH, HEIGHT+100);
 
 		Timeline loop = new Timeline(new KeyFrame(Duration.millis(1000.0/FPS), e -> {
 			update(gc);
@@ -780,12 +784,6 @@ public class MainApplication extends Application{
 	}
 
 	private File uploadFile(boolean project, boolean chip){
-		/*FileChooser fc = new FileChooser();
-		fc.setTitle("Load project");
-		if (project) fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
-		if (chip) fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
-		File file = fc.showOpenDialog(stage);
-		return file;*/
 		return this.pickedFile;
 	}
 
@@ -837,39 +835,33 @@ public class MainApplication extends Application{
 			}
 			file = new File(file.getParent(), file.getName()+".lsim"+(chipName == null ? "" : "c"));
 			if (replace) this.currentFile = file;
-		}
-		try {
-			BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-			JSONObject json = new JSONObject();
-			JSONArray data = new JSONArray();
-			for (Gate gate : this.gates){
-				data.put(gate.getJSON());
-			}
-			json.put("gates", data);
-			data = new JSONArray();
-			for (Wire wire : this.wires){
-				data.put(wire.getJSON());
-			}
-			json.put("wires", data);
-			if (chipName != null && color != null){
-				json.put("chipName", chipName);
-				JSONObject cl = new JSONObject();
-				cl.put("red", color.getRed());
-				cl.put("green", color.getGreen());
-				cl.put("blue", color.getBlue());
-				json.put("color", cl);
-			}
-			writer.write(json.toString(4));
-			writer.close();
-		} catch (IOException ex){
-			ex.printStackTrace();
 		}*/
+		JsonObject json = Json.createObject();
+		JsonArray data = Json.createArray();
+		for (Gate gate : this.gates){
+			data.push(gate.getJSON());
+		}
+		json.set("gates", data);
+		data = Json.createArray();
+		for (Wire wire : this.wires){
+			data.push(wire.getJSON());
+		}
+		json.set("wires", data);
+		if (chipName != null && color != null){
+			json.set("chipName", chipName);
+			JsonObject cl = Json.createObject();
+			cl.set("red", color.getRed());
+			cl.set("green", color.getGreen());
+			cl.set("blue", color.getBlue());
+			json.set("color", cl);
+		}
+
+		Blob textBlob = BlobProvider.get().createTextBlob(JsonFormatter.toJsonString(json));
+		BlobProvider.get().exportBlob(textBlob, file.getName());
 	}
 
-	public static JsonObject load(File file, GraphicsContext gc, List<Gate> tempGates, List<Wire> tempWires){
-		StringBuilder builder = new StringBuilder();
-		FileReader.create().readAsText(file).onSuccess(builder::append);
-		JsonObject json = Json.parseObjectSilently(builder.toString());
+	public static JsonObject load(String jsonData, GraphicsContext gc, List<Gate> tempGates, List<Wire> tempWires){
+		JsonObject json = Json.parseObjectSilently(jsonData);
 
 		int backupId = Pin.PIN_ID;
 		Map<Bus, ReadOnlyJsonArray> busConnections = new HashMap<>();
@@ -898,17 +890,17 @@ public class MainApplication extends Application{
 			} else if (name.equals("SWITCH")){
 				gt = new Switch(gc, rect);
 			} else if (name.equals("CHIP")){
-				/*File chipFile = new File(file.getParent(), gate.getString("fileName"));
-				if (!chipFile.exists()){
-					Alert error = new Alert(Alert.AlertType.ERROR);
-					error.setTitle("Missing dependency");
-					error.setHeaderText("Missing dependency");
-					error.setContentText("The following dependency is missing: "+gate.getString("fileName"));
-					error.showAndWait();
-					Pin.PIN_ID = backupId;
-					return null;
-				}
-				gt = new Chip(gc, rect, chipFile);*/
+				//File chipFile = new File(file.getParent(), gate.getString("fileName"));
+				//if (!chipFile.exists()){
+				//	Alert error = new Alert(Alert.AlertType.ERROR);
+				//	error.setTitle("Missing dependency");
+				//	error.setHeaderText("Missing dependency");
+				//	error.setContentText("The following dependency is missing: "+gate.getString("fileName"));
+				//	error.showAndWait();
+				//	Pin.PIN_ID = backupId;
+				//	return null;
+				//}
+				//gt = new Chip(gc, rect, chipFile);
 			} else if (name.equals("DISPLAY7")){
 				gt = new Display7(gc, rect);
 			} else if (name.equals("BUS")){
