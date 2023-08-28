@@ -22,10 +22,8 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-//import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
-//import javafx.scene.control.ButtonType;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -101,7 +99,7 @@ public class MainApplication extends Application{
 		StackPane pane = new StackPane();
 
 		final Label uploadInfo = new Label("No file uploaded");
-		final Label uploadedFilesInfo = new Label("No dependecies uploaded");
+		final Label uploadedFilesInfo = new Label("No dependency files uploaded");
 
 		Canvas canvas = new Canvas(WIDTH, HEIGHT);
 		GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -164,6 +162,8 @@ public class MainApplication extends Application{
 			this.gates = new ArrayList<Gate>();
 			Pin.PIN_ID = 0;
 			this.currentFile = null;
+			this.pickedFile = null;
+			uploadInfo.setText("No file uploaded");
 		});
 		UiButton rmWireButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_rmwire.png", MainApplication.class)), "RM WIRE", new Rectangle2D(450, 20, 50, 50), () -> {
 			this.rmWire = true;
