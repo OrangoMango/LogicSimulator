@@ -6,10 +6,7 @@ import javafx.stage.Screen;
 import javafx.stage.FileChooser;
 import javafx.scene.Scene;
 import javafx.scene.Cursor;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.canvas.*;
@@ -22,16 +19,16 @@ import javafx.util.Duration;
 import javafx.geometry.Rectangle2D;
 import javafx.geometry.Point2D;
 import javafx.geometry.Insets;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 //import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextInputDialog;
 //import javafx.scene.control.ButtonType;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import dev.webfx.platform.json.*;
@@ -41,8 +38,10 @@ import dev.webfx.platform.file.Blob;
 import dev.webfx.platform.file.spi.BlobProvider;
 import dev.webfx.platform.scheduler.Scheduler;
 import dev.webfx.platform.resource.Resource;
-import dev.webfx.platform.console.Console;
 import dev.webfx.extras.filepicker.FilePicker;
+import dev.webfx.extras.canvas.blob.CanvasBlob;
+import dev.webfx.stack.ui.controls.dialog.DialogUtil;
+import dev.webfx.stack.ui.controls.dialog.DialogCallback;
 
 import com.orangomango.logicsim.ui.*;
 import com.orangomango.logicsim.core.*;
@@ -62,7 +61,7 @@ public class MainApplication extends Application{
 	public static final int FPS = 40;
 
 	private SideArea sideArea;
-	private File currentFile = null;
+	private String currentFile = null;
 	private int selectedId = -1;
 	private Point2D mouseMoved = new Point2D(0, 0);
 	private List<Gate> gates = new ArrayList<>();
@@ -95,6 +94,7 @@ public class MainApplication extends Application{
 	private File pickedFile;
 	private static List<File> uploadedFiles = new ArrayList<>();
 	private boolean rightMouseDrag = false;
+	private static VBox SCENE_PANE;
 	
 	@Override
 	public void start(Stage stage){
@@ -126,15 +126,14 @@ public class MainApplication extends Application{
 
 		UiButton saveButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_save.png", MainApplication.class)), "SAVE", new Rectangle2D(50, 20, 50, 50), () -> {
 			File file = this.pickedFile;
-			if (file != null){
-				this.currentFile = file;
-				save(file);
-				Alert info = new Alert(Alert.AlertType.INFORMATION);
-				info.setTitle("Saved");
-				info.setHeaderText("File saved");
-				info.setContentText("File saved successfully");
-				info.showAndWait();
-				buildSideArea(gc);
+			if (file == null){
+				createTextAlert("Choose a file name", fileName -> {
+					this.currentFile = fileName;
+					save(fileName);
+				});
+			} else {
+				this.currentFile = file.getName();
+				save(file.getName());
 			}
 		});
 		UiButton loadButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_load.png", MainApplication.class)), "LOAD", new Rectangle2D(150, 20, 50, 50), () -> {
@@ -150,7 +149,7 @@ public class MainApplication extends Application{
 						Pin.PIN_ID = backup;
 						return;
 					}
-					this.currentFile = file;
+					this.currentFile = file.getName();
 					this.gates = gates;
 					this.wires = wires;
 					buildSideArea(gc);
@@ -158,53 +157,7 @@ public class MainApplication extends Application{
 			}
 		});
 		UiButton saveChipButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_savechip.png", MainApplication.class)), "SAVE CHIP", new Rectangle2D(250, 20, 50, 50), () -> {
-			/*String defaultName = "";
-			Color defaultColor = Color.BLUE;
-			try {
-				if (this.currentFile != null && this.currentFile.getName().endsWith(".lsimc")){
-					BufferedReader reader = new BufferedReader(new FileReader(this.currentFile));
-					StringBuilder builder = new StringBuilder();
-					reader.lines().forEach(builder::append);
-					reader.close();
-					JSONObject json = new JSONObject(builder.toString());
-					defaultColor = Color.color(json.getJSONObject("color").getDouble("red"), json.getJSONObject("color").getDouble("green"), json.getJSONObject("color").getDouble("blue"));
-					defaultName = json.getString("chipName");
-				}
-			} catch (IOException ex){
-				ex.printStackTrace();
-			}
-				
-			Alert alert = new Alert(Alert.AlertType.INFORMATION);
-			alert.setHeaderText("Create chip");
-			alert.setTitle("Create chip");
-			GridPane gpane = new GridPane();
-			gpane.setPadding(new Insets(5, 5, 5, 5));
-			gpane.setHgap(5);
-			gpane.setVgap(5);
-			Label nameL = new Label("Name: ");
-			TextField name = new TextField(defaultName);
-			ColorPicker colorPicker = new ColorPicker(defaultColor);
-			gpane.add(nameL, 0, 0);
-			gpane.add(name, 1, 0);
-			gpane.add(colorPicker, 0, 1, 2, 1);
-			alert.getDialogPane().setContent(gpane);
-			ButtonType btn = alert.showAndWait().orElse(null);
-			if (btn == ButtonType.OK){
-				FileChooser fc = new FileChooser();
-				fc.setTitle("Save chip");
-				fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim chips", "*.lsimc"));
-				File file = this.currentFile == null ? fc.showSaveDialog(stage) : this.currentFile;
-				if (file != null){
-					this.currentFile = file;
-					save(file, name.getText(), colorPicker.getValue());
-					Alert info = new Alert(Alert.AlertType.INFORMATION);
-					info.setTitle("Saved");
-					info.setHeaderText("File saved");
-					info.setContentText("File saved successfully");
-					info.showAndWait();
-					buildSideArea(gc);
-				}
-			}*/
+			createChipAlert();
 		});
 		UiButton clearButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_clear.png", MainApplication.class)), "CLEAR", new Rectangle2D(350, 20, 50, 50), () -> {
 			this.wires = new ArrayList<Wire>();
@@ -266,15 +219,9 @@ public class MainApplication extends Application{
 			for (Wire wire : this.wires){
 				wire.render(tempCanvas.getGraphicsContext2D());
 			}
-			WritableImage image = tempCanvas.snapshot(null, new WritableImage(w, h));
 
 			// Download the image
-
-			Alert info = new Alert(Alert.AlertType.INFORMATION);
-			info.setTitle("Saved");
-			info.setHeaderText("File saved");
-			info.setContentText("File saved successfully");
-			info.showAndWait();
+			CanvasBlob.createCanvasBlob(tempCanvas).onSuccess(blob -> BlobProvider.get().exportBlob(blob, "export.png"));
 		});
 		UiButton busConnectButton  = new UiButton(gc, new Image(Resource.toUrl("/images/button_connbus.png", MainApplication.class)), "CONNECT BUS", new Rectangle2D(750, 20, 50, 50), () -> {
 			this.connBus = true;
@@ -291,6 +238,10 @@ public class MainApplication extends Application{
 		this.buttons.add(busConnectButton);
 		
 		buildSideArea(gc);
+
+		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo), new HBox(5, uploader.getView(), uploadedFilesInfo), pane);
+		vbox.setPadding(new Insets(10, 10, 10, 10));
+		SCENE_PANE = vbox;
 
 		canvas.setFocusTraversable(true);
 		canvas.setOnKeyPressed(e -> {
@@ -579,14 +530,8 @@ public class MainApplication extends Application{
 						MenuItem showChip = new MenuItem("Look inside");
 						final Chip chip = (Chip)found;
 						showChip.setOnAction(ev -> {
-							Console.log(chip.getName());
-							/*Alert alert = new Alert(Alert.AlertType.INFORMATION);
-							alert.setTitle(chip.getName());
-							alert.setHeaderText(chip.getName());
 							ChipCanvas cc = new ChipCanvas(chip);
-							alert.getDialogPane().setContent(cc.getPane());
-							alert.showAndWait();
-							cc.destroy();*/
+							createCustomAlert(cc.getPane(), chip.getName(), cc::destroy);
 						});
 						cm.getItems().add(showChip);
 					} else if (found instanceof Bus){
@@ -598,10 +543,7 @@ public class MainApplication extends Application{
 					final Gate gate = found;
 					MenuItem changeLabel = new MenuItem("Change label");
 					changeLabel.setOnAction(ev -> {
-						TextInputDialog dialog = new TextInputDialog(gate.getLabel());
-						dialog.setTitle("Set label");
-						dialog.setHeaderText("Label name");
-						dialog.showAndWait().ifPresent(v -> {
+						createTextAlert("Set label", v -> {
 							gate.setLabel(v);
 						});
 					});
@@ -754,8 +696,6 @@ public class MainApplication extends Application{
 			}
 		});
 
-		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo), new HBox(5, uploader.getView(), uploadedFilesInfo), pane);
-		vbox.setPadding(new Insets(10, 10, 10, 10));
 		Scene scene = new Scene(vbox, WIDTH, HEIGHT+100);
 
 		Timeline loop = new Timeline(new KeyFrame(Duration.millis(1000.0/FPS), e -> {
@@ -777,7 +717,7 @@ public class MainApplication extends Application{
 			} else {
 				vbox.setCursor(Cursor.DEFAULT);
 			}
-			stage.setTitle("LogicSim v1.0"+(this.currentFile == null ? "" : " - "+this.currentFile.getName()));
+			stage.setTitle("LogicSim v1.0"+(this.currentFile == null ? "" : " - "+this.currentFile));
 		}));
 		loop.setCycleCount(Animation.INDEFINITE);
 		loop.play();
@@ -793,6 +733,94 @@ public class MainApplication extends Application{
 		stage.getIcons().add(new Image(Resource.toUrl("/images/icon.png", MainApplication.class)));
 		stage.setScene(scene);
 		stage.show();
+	}
+
+	private void createChipAlert(){
+		GridPane gpane = new GridPane();
+		gpane.setPadding(new Insets(5, 5, 5, 5));
+		gpane.setHgap(5);
+		gpane.setVgap(5);
+		gpane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
+		Label header = new Label("Create chip");
+		Label nameL = new Label("Name: ");
+		TextField name = new TextField();
+		TextField colorPicker = new TextField("#0000FF");
+		gpane.add(header, 0, 0, 2, 1);
+		gpane.add(nameL, 0, 1);
+		gpane.add(name, 1, 1);
+		gpane.add(colorPicker, 0, 2, 2, 1);
+		Button ok = new Button("OK");
+		gpane.add(ok, 1, 3);
+		Button cancel = new Button("CANCEL");
+		gpane.add(cancel, 0, 3);
+		DialogCallback callback = DialogUtil.showModalNodeInGoldLayout(gpane, SCENE_PANE);
+		ok.setOnAction(e -> {
+			callback.closeDialog();
+			if (this.currentFile == null){
+				createTextAlert("Choose a file name", fileName -> {
+					this.currentFile = fileName;
+					save(fileName, name.getText(), Color.web(colorPicker.getText()));
+				});
+			} else {
+				save(this.currentFile, name.getText(), Color.web(colorPicker.getText()));
+			}
+		});
+		cancel.setOnAction(e -> callback.closeDialog());
+	}
+
+	public static void createCustomAlert(Pane pane, String header, Runnable onSuccess){
+		GridPane gridPane = new GridPane();
+		gridPane.setPadding(new Insets(5, 5, 5, 5));
+		gridPane.setHgap(5);
+		gridPane.setVgap(5);
+		gridPane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
+		Button ok = new Button("OK");
+		gridPane.add(new Label(header), 0, 0);
+		gridPane.add(pane, 0, 1, 2, 1);
+		gridPane.add(ok, 0, 2);
+		DialogCallback callback = DialogUtil.showModalNodeInGoldLayout(gridPane, SCENE_PANE);
+		ok.setOnAction(e -> {
+			callback.closeDialog();
+			onSuccess.run();
+		});
+	}
+
+	private static void createAlert(String headerText, String infoText){
+		GridPane gridPane = new GridPane();
+		gridPane.setPadding(new Insets(5, 5, 5, 5));
+		gridPane.setHgap(5);
+		gridPane.setVgap(5);
+		gridPane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
+		Label header = new Label(headerText);
+		Label info = new Label(infoText);
+		Button ok = new Button("OK");
+		gridPane.add(header, 0, 0);
+		gridPane.add(info, 0, 1);
+		gridPane.add(ok, 1, 2);
+		DialogCallback callback = DialogUtil.showModalNodeInGoldLayout(gridPane, SCENE_PANE);
+		ok.setOnAction(e -> callback.closeDialog());
+	}
+
+	private static void createTextAlert(String headerText, Consumer<String> onSuccess){
+		GridPane gridPane = new GridPane();
+		gridPane.setPadding(new Insets(5, 5, 5, 5));
+		gridPane.setHgap(5);
+		gridPane.setVgap(5);
+		gridPane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
+		Label header = new Label(headerText);
+		TextField field = new TextField();
+		Button ok = new Button("OK");
+		Button cancel = new Button("CANCEL");
+		gridPane.add(header, 0, 0);
+		gridPane.add(field, 0, 1, 2, 1);
+		gridPane.add(cancel, 0, 2);
+		gridPane.add(ok, 1, 2);
+		DialogCallback callback = DialogUtil.showModalNodeInGoldLayout(gridPane, SCENE_PANE);
+		ok.setOnAction(e -> {
+			callback.closeDialog();
+			onSuccess.accept(field.getText());
+		});
+		cancel.setOnAction(e -> callback.closeDialog());
 	}
 
 	private void buildSideArea(GraphicsContext gc){
@@ -838,11 +866,11 @@ public class MainApplication extends Application{
 		return null;
 	}
 
-	private void save(File file){
+	private void save(String file){
 		save(file, null, null);
 	}
 
-	private void save(File file, String chipName, Color color){
+	private void save(String fileName, String chipName, Color color){
 		JsonObject json = Json.createObject();
 		JsonArray data = Json.createArray();
 		for (Gate gate : this.gates){
@@ -864,7 +892,7 @@ public class MainApplication extends Application{
 		}
 
 		Blob textBlob = BlobProvider.get().createTextBlob(JsonFormatter.toJsonString(json));
-		BlobProvider.get().exportBlob(textBlob, file.getName());
+		BlobProvider.get().exportBlob(textBlob, fileName);
 	}
 
 	public static JsonObject load(String jsonData, GraphicsContext gc, List<Gate> tempGates, List<Wire> tempWires, boolean updatePinId){
@@ -896,11 +924,7 @@ public class MainApplication extends Application{
 			} else if (name.equals("CHIP")){
 				File chipFile = getUploadedFile(gate.getString("fileName"));
 				if (chipFile == null){
-					Alert error = new Alert(Alert.AlertType.ERROR);
-					error.setTitle("Missing dependency");
-					error.setHeaderText("Missing dependency");
-					error.setContentText("The following dependency is missing: "+gate.getString("fileName"));
-					error.showAndWait();
+					createAlert("Missing dependency", "The following dependency is missing: "+gate.getString("fileName"));
 					return null;
 				}
 				gt = new Chip(gc, rect, chipFile, false);

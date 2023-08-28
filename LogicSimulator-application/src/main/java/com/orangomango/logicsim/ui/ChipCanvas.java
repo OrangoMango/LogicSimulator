@@ -9,16 +9,12 @@ import javafx.geometry.Point2D;
 import javafx.scene.input.MouseButton;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.Alert;
 import javafx.scene.Cursor;
 
 import com.orangomango.logicsim.core.Chip;
 import com.orangomango.logicsim.core.Gate;
 import com.orangomango.logicsim.MainApplication;
 
-@interface GwtIncompatible{}
-
-@GwtIncompatible
 public class ChipCanvas{
 	private static final int WIDTH = 500;
 	private static final int HEIGHT = 400;
@@ -61,13 +57,8 @@ public class ChipCanvas{
 					MenuItem showChip = new MenuItem("Look inside");
 					final Chip chip = (Chip)found;
 					showChip.setOnAction(ev -> {
-						Alert alert = new Alert(Alert.AlertType.INFORMATION);
-						alert.setTitle(chip.getName());
-						alert.setHeaderText(chip.getName());
 						ChipCanvas cc = new ChipCanvas(chip);
-						alert.getDialogPane().setContent(cc.getPane());
-						alert.showAndWait();
-						cc.destroy();
+						MainApplication.createCustomAlert(cc.getPane(), chip.getName(), cc::destroy);
 					});
 					cm.getItems().add(showChip);
 					cm.show(canvas, e.getScreenX(), e.getScreenY());
@@ -93,7 +84,7 @@ public class ChipCanvas{
 
 		canvas.setOnScroll(e -> {
 			if (e.getDeltaY() != 0){
-				this.scale += (e.getDeltaY() > 0 ? 0.05 : -0.05);
+				this.scale += (e.getDeltaY() > 0 ? -0.05 : 0.05);
 			}
 		});
 
