@@ -47,7 +47,7 @@
 
         <dependency>
             <groupId>dev.webfx</groupId>
-            <artifactId>webfx-platform-console</artifactId>
+            <artifactId>webfx-extras-webtext</artifactId>
             <version>0.1.0-SNAPSHOT</version>
         </dependency>
 

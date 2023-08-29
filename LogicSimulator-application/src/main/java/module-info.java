@@ -9,7 +9,7 @@ module LogicSimulator.application {
     requires javafx.graphics;
     requires webfx.extras.canvas.blob;
     requires webfx.extras.filepicker;
-    requires webfx.platform.console;
+    requires webfx.extras.webtext;
     requires webfx.platform.file;
     requires webfx.platform.json;
     requires webfx.platform.resource;

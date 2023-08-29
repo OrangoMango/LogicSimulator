@@ -38,6 +38,7 @@ import dev.webfx.platform.scheduler.Scheduler;
 import dev.webfx.platform.resource.Resource;
 import dev.webfx.extras.filepicker.FilePicker;
 import dev.webfx.extras.canvas.blob.CanvasBlob;
+import dev.webfx.extras.webtext.HtmlText;
 import dev.webfx.stack.ui.controls.dialog.DialogUtil;
 import dev.webfx.stack.ui.controls.dialog.DialogCallback;
 
@@ -52,7 +53,7 @@ import com.orangomango.logicsim.core.*;
  * @version 1.0-web
  */
 public class MainApplication extends Application{
-	private static final double WIDTH = (int)Screen.getPrimary().getVisualBounds().getWidth()-220;
+	private static final double WIDTH = (int)(Screen.getPrimary().getVisualBounds().getWidth()*0.85);
 	private static final double HEIGHT = 700;
 	private static final double TOOLBAR_X = WIDTH-350;
 	private static final double TOOLBAR_Y = 100;
@@ -239,7 +240,9 @@ public class MainApplication extends Application{
 		
 		buildSideArea(gc);
 
-		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo), new HBox(5, uploader.getView(), uploadedFilesInfo), pane);
+		HtmlText html = new HtmlText("LogicSim by OrangoMango (v1.0-webfx), <a target=\"_blank\" href=\"https://orangomango.itch.io/logicsimulator\">Help/Download</a> | <a target=\"_blank\" href=\"https://github.com/OrangoMango/LogicSimulator\">Source code</a> | <a target=\"_blank\" href=\"https://orangomango.github.io\">Website</a>");
+
+		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo), new HBox(5, uploader.getView(), uploadedFilesInfo), html, pane);
 		vbox.setPadding(new Insets(10, 10, 10, 10));
 		SCENE_PANE = vbox;
 
@@ -742,6 +745,7 @@ public class MainApplication extends Application{
 		gpane.setVgap(5);
 		gpane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
 		Label header = new Label("Create chip");
+		header.setStyle("-fx-font-weight: bold");
 		Label nameL = new Label("Name: ");
 		TextField name = new TextField();
 		TextField colorPicker = new TextField("#0000FF");
@@ -768,14 +772,16 @@ public class MainApplication extends Application{
 		cancel.setOnAction(e -> callback.closeDialog());
 	}
 
-	public static void createCustomAlert(Pane pane, String header, Runnable onSuccess){
+	public static void createCustomAlert(Pane pane, String headerText, Runnable onSuccess){
 		GridPane gridPane = new GridPane();
 		gridPane.setPadding(new Insets(5, 5, 5, 5));
 		gridPane.setHgap(5);
 		gridPane.setVgap(5);
 		gridPane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
 		Button ok = new Button("OK");
-		gridPane.add(new Label(header), 0, 0);
+		Label header = new Label(headerText);
+		header.setStyle("-fx-font-weight: bold");
+		gridPane.add(header, 0, 0);
 		gridPane.add(pane, 0, 1, 2, 1);
 		gridPane.add(ok, 0, 2);
 		DialogCallback callback = DialogUtil.showModalNodeInGoldLayout(gridPane, SCENE_PANE);
@@ -792,6 +798,7 @@ public class MainApplication extends Application{
 		gridPane.setVgap(5);
 		gridPane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
 		Label header = new Label(headerText);
+		header.setStyle("-fx-font-weight: bold");
 		Label info = new Label(infoText);
 		Button ok = new Button("OK");
 		gridPane.add(header, 0, 0);
@@ -808,6 +815,7 @@ public class MainApplication extends Application{
 		gridPane.setVgap(5);
 		gridPane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
 		Label header = new Label(headerText);
+		header.setStyle("-fx-font-weight: bold");
 		TextField field = new TextField();
 		Button ok = new Button("OK");
 		Button cancel = new Button("CANCEL");

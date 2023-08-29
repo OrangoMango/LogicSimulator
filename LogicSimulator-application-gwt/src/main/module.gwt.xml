@@ -22,6 +22,8 @@
     <source path="javafx/collections/transformation"/>
     <source path="javafx/event"/>
     <source path="javafx/util"/>
+    <!--================================< javafx-controls >=================================-->
+    <source path="javafx/scene/chart"/>
     <!--=========================< webfx-kit-javafxcontrols-emul >==========================-->
     <source path="com/sun/javafx/scene/control"/>
     <source path="com/sun/javafx/scene/control/behavior"/>
@@ -110,6 +112,15 @@
     <source path="dev/webfx/extras/util/paint"/>
     <!--============================< webfx-extras-util-scene >=============================-->
     <source path="dev/webfx/extras/util/scene"/>
+    <!--==============================< webfx-extras-webtext >==============================-->
+    <source path="dev/webfx/extras/webtext"/>
+    <!--========================< webfx-extras-webtext-peers-base >=========================-->
+    <source path="dev/webfx/extras/webtext/peers/base"/>
+    <!--=========================< webfx-extras-webtext-peers-gwt >=========================-->
+    <source path="dev/webfx/extras/webtext/peers/gwt/html"/>
+    <source path="dev/webfx/extras/webtext/registry"/>
+    <!--===========================< webfx-extras-webtext-util >============================-->
+    <source path="dev/webfx/extras/webtext/util"/>
     <!--=================================< webfx-kit-gwt >==================================-->
     <source path="dev/webfx/kit/launcher/spi/impl/gwt"/>
     <source path="dev/webfx/kit/mapper/spi/impl/gwt"/>

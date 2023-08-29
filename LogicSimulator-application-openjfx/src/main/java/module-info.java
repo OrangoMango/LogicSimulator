@@ -6,6 +6,7 @@ module LogicSimulator.application.openjfx {
     requires LogicSimulator.application;
     requires webfx.extras.canvas.blob.openjfx;
     requires webfx.extras.filepicker.openjfx;
+    requires webfx.extras.webtext.peers.openjfx;
     requires webfx.kit.openjfx;
     requires webfx.platform.boot.java;
     requires webfx.platform.console.java;
