@@ -24,6 +24,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Slider;
+import javafx.scene.shape.Rectangle;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -36,6 +38,7 @@ import dev.webfx.platform.file.Blob;
 import dev.webfx.platform.file.spi.BlobProvider;
 import dev.webfx.platform.scheduler.Scheduler;
 import dev.webfx.platform.resource.Resource;
+import dev.webfx.platform.os.OperatingSystem;
 import dev.webfx.extras.filepicker.FilePicker;
 import dev.webfx.extras.canvas.blob.CanvasBlob;
 import dev.webfx.extras.webtext.HtmlText;
@@ -54,7 +57,7 @@ import com.orangomango.logicsim.core.*;
  */
 public class MainApplication extends Application{
 	private static final double WIDTH = (int)(Screen.getPrimary().getVisualBounds().getWidth()*0.85);
-	private static final double HEIGHT = 700;
+	private static final double HEIGHT = (int)(Screen.getPrimary().getVisualBounds().getHeight()*0.75);
 	private static final double TOOLBAR_X = WIDTH-350;
 	private static final double TOOLBAR_Y = 100;
 	public static final int FPS = 40;
@@ -105,7 +108,17 @@ public class MainApplication extends Application{
 
 		Canvas canvas = new Canvas(WIDTH, HEIGHT);
 		GraphicsContext gc = canvas.getGraphicsContext2D();
-		pane.getChildren().add(canvas);
+
+		// Mobile not supported
+		if (OperatingSystem.isMobile()){
+			HtmlText error = new HtmlText("<h1>Mobile not supported</h1>"+
+    			"<p>Please download the desktop version or try it in a browser from a computer</p>"+
+    			"<p><b>Operating systems supported: </b>Linux (amd64 and arm64), Windows (installer and executable), MacOS and browser</p>"+
+    			"<p>For more information: <a target=\"_blank\" href=\"https://orangomango.itch.io/logicsimulator\">Download and Help site</a></p>");
+			pane.getChildren().add(error);
+		} else {
+			pane.getChildren().add(canvas);
+		}
 
 		FilePicker picker = FilePicker.create();
 		picker.setGraphic(new ImageView(new Image(Resource.toUrl("/images/icon.png", MainApplication.class))));
@@ -125,7 +138,7 @@ public class MainApplication extends Application{
 		});
 
 		UiButton saveButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_save.png", MainApplication.class)), "SAVE", new Rectangle2D(50, 20, 50, 50), () -> {
-			File file = this.pickedFile;
+			String file = this.currentFile;
 			if (file == null){
 				createTextAlert("Choose a file name", fileName -> {
 					this.currentFile = fileName;
@@ -135,8 +148,8 @@ public class MainApplication extends Application{
 					save(this.currentFile);
 				});
 			} else {
-				this.currentFile = file.getName();
-				save(file.getName());
+				this.currentFile = file;
+				save(this.currentFile);
 			}
 		});
 		UiButton loadButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_load.png", MainApplication.class)), "LOAD", new Rectangle2D(150, 20, 50, 50), () -> {
@@ -246,7 +259,7 @@ public class MainApplication extends Application{
 
 		HtmlText html = new HtmlText("LogicSim by OrangoMango (v1.0-webfx), <a target=\"_blank\" href=\"https://orangomango.itch.io/logicsimulator\">Help & Download</a> | <a target=\"_blank\" href=\"https://github.com/OrangoMango/LogicSimulator\">Source code & Examples</a> | <a target=\"_blank\" href=\"https://orangomango.github.io\">Website</a>");
 
-		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo), new HBox(5, uploader.getView(), uploadedFilesInfo), html, pane);
+		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo, uploader.getView(), uploadedFilesInfo), html, pane);
 		vbox.setPadding(new Insets(10, 10, 10, 10));
 		SCENE_PANE = vbox;
 
@@ -762,7 +775,24 @@ public class MainApplication extends Application{
 		HtmlText header = new HtmlText("<b>Create chip</b>");
 		Label nameL = new Label("Name: ");
 		TextField name = new TextField();
-		TextField colorPicker = new TextField("#0000FF");
+
+		// Color picker
+		GridPane colorPicker = new GridPane();
+		colorPicker.setHgap(5);
+		colorPicker.setVgap(5);
+		Slider redValue = new Slider(0, 1, 0);
+		Slider greenValue = new Slider(0, 1, 0);
+		Slider blueValue = new Slider(0, 1, 1);
+		Rectangle color = new Rectangle(100, 50);
+		color.setFill(Color.BLUE);
+		colorPicker.add(redValue, 0, 0);
+		colorPicker.add(greenValue, 0, 1);
+		colorPicker.add(blueValue, 0, 2);
+		colorPicker.add(color, 1, 0, 1, 3);
+		redValue.valueProperty().addListener((ob, oldV, newV) -> color.setFill(Color.color((double)newV, greenValue.getValue(), blueValue.getValue())));
+		greenValue.valueProperty().addListener((ob, oldV, newV) -> color.setFill(Color.color(redValue.getValue(), (double)newV, blueValue.getValue())));
+		blueValue.valueProperty().addListener((ob, oldV, newV) -> color.setFill(Color.color(redValue.getValue(), greenValue.getValue(), (double)newV)));
+
 		gpane.add(header, 0, 0, 2, 1);
 		gpane.add(nameL, 0, 1);
 		gpane.add(name, 1, 1);
@@ -780,10 +810,10 @@ public class MainApplication extends Application{
 					if (!this.currentFile.endsWith(".lsimc")){
 						this.currentFile = this.currentFile + ".lsimc";
 					}
-					save(this.currentFile, name.getText(), Color.web(colorPicker.getText()));
+					save(this.currentFile, name.getText(), Color.color(redValue.getValue(), greenValue.getValue(), blueValue.getValue()));
 				});
 			} else {
-				save(this.currentFile, name.getText(), Color.web(colorPicker.getText()));
+				save(this.currentFile, name.getText(),  Color.color(redValue.getValue(), greenValue.getValue(), blueValue.getValue()));
 			}
 		});
 		cancel.setOnAction(e -> callback.closeDialog());
@@ -1121,7 +1151,7 @@ public class MainApplication extends Application{
 		// UI
 		gc.save();
 		gc.setFill(Color.BLACK);
-		gc.fillText("ID: "+Pin.PIN_ID+"\nPower: "+Util.isPowerOn()+"\nScale: "+this.cameraScale, 60, HEIGHT-100);
+		gc.fillText("ID: "+Pin.PIN_ID+"\nPower: "+Util.isPowerOn(), 60, HEIGHT-100);
 		gc.setGlobalAlpha(0.5);
 		gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
 		gc.restore();
