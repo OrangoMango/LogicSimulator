@@ -93,6 +93,7 @@ public class MainApplication extends Application{
 	private File pickedFile;
 	private static List<File> uploadedFiles = new ArrayList<>();
 	private boolean rightMouseDrag = false;
+	private ContextMenu activeContextMenu;
 	private static VBox SCENE_PANE;
 	
 	@Override
@@ -128,7 +129,10 @@ public class MainApplication extends Application{
 			if (file == null){
 				createTextAlert("Choose a file name", fileName -> {
 					this.currentFile = fileName;
-					save(fileName);
+					if (!this.currentFile.endsWith(".lsim")){
+						this.currentFile = this.currentFile + ".lsim";
+					}
+					save(this.currentFile);
 				});
 			} else {
 				this.currentFile = file.getName();
@@ -240,7 +244,7 @@ public class MainApplication extends Application{
 		
 		buildSideArea(gc);
 
-		HtmlText html = new HtmlText("LogicSim by OrangoMango (v1.0-webfx), <a target=\"_blank\" href=\"https://orangomango.itch.io/logicsimulator\">Help/Download</a> | <a target=\"_blank\" href=\"https://github.com/OrangoMango/LogicSimulator\">Source code</a> | <a target=\"_blank\" href=\"https://orangomango.github.io\">Website</a>");
+		HtmlText html = new HtmlText("LogicSim by OrangoMango (v1.0-webfx), <a target=\"_blank\" href=\"https://orangomango.itch.io/logicsimulator\">Help & Download</a> | <a target=\"_blank\" href=\"https://github.com/OrangoMango/LogicSimulator\">Source code & Examples</a> | <a target=\"_blank\" href=\"https://orangomango.github.io\">Website</a>");
 
 		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo), new HBox(5, uploader.getView(), uploadedFilesInfo), html, pane);
 		vbox.setPadding(new Insets(10, 10, 10, 10));
@@ -486,6 +490,10 @@ public class MainApplication extends Application{
 								}
 								this.selectedAreaWidth = 0;
 								this.selectedAreaHeight = 0;
+								if (this.activeContextMenu != null){
+									this.activeContextMenu.hide();
+									this.activeContextMenu = null;
+								}
 							}
 						}
 					}
@@ -527,6 +535,10 @@ public class MainApplication extends Application{
 						this.busStartPoint = null;
 						this.busTempEndPoint = null;
 					}
+					if (this.activeContextMenu != null){
+						this.activeContextMenu.hide();
+						this.activeContextMenu = null;
+					}
 				} else if (found != null && (!this.selectedGates.contains(found) || e.getClickCount() == 2)){
 					ContextMenu cm = new ContextMenu();
 					if (found instanceof Chip){
@@ -559,7 +571,9 @@ public class MainApplication extends Application{
 							cm.getItems().add(removePin);
 						}
 					}
-					cm.show(canvas, e.getScreenX(), e.getScreenY());
+					if (this.activeContextMenu != null) this.activeContextMenu.hide();
+					this.activeContextMenu = cm;
+					cm.show(canvas, e.getSceneX(), e.getSceneY());
 				} else if (this.selectedGates.size() > 0 || this.selectedWirePoints.size() > 0){
 					this.selectionMoveStart = new Point2D(e.getX(), e.getY());
 					this.deltaMove = new Point2D(0, 0);
@@ -700,6 +714,7 @@ public class MainApplication extends Application{
 		});
 
 		Scene scene = new Scene(vbox, WIDTH, HEIGHT+100);
+		scene.setFill(Color.CYAN);
 
 		Timeline loop = new Timeline(new KeyFrame(Duration.millis(1000.0/FPS), e -> {
 			update(gc);
@@ -744,8 +759,7 @@ public class MainApplication extends Application{
 		gpane.setHgap(5);
 		gpane.setVgap(5);
 		gpane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
-		Label header = new Label("Create chip");
-		header.setStyle("-fx-font-weight: bold");
+		HtmlText header = new HtmlText("<b>Create chip</b>");
 		Label nameL = new Label("Name: ");
 		TextField name = new TextField();
 		TextField colorPicker = new TextField("#0000FF");
@@ -763,7 +777,10 @@ public class MainApplication extends Application{
 			if (this.currentFile == null){
 				createTextAlert("Choose a file name", fileName -> {
 					this.currentFile = fileName;
-					save(fileName, name.getText(), Color.web(colorPicker.getText()));
+					if (!this.currentFile.endsWith(".lsimc")){
+						this.currentFile = this.currentFile + ".lsimc";
+					}
+					save(this.currentFile, name.getText(), Color.web(colorPicker.getText()));
 				});
 			} else {
 				save(this.currentFile, name.getText(), Color.web(colorPicker.getText()));
@@ -779,8 +796,7 @@ public class MainApplication extends Application{
 		gridPane.setVgap(5);
 		gridPane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
 		Button ok = new Button("OK");
-		Label header = new Label(headerText);
-		header.setStyle("-fx-font-weight: bold");
+		HtmlText header = new HtmlText("<b>"+headerText+"</b>");
 		gridPane.add(header, 0, 0);
 		gridPane.add(pane, 0, 1, 2, 1);
 		gridPane.add(ok, 0, 2);
@@ -797,8 +813,7 @@ public class MainApplication extends Application{
 		gridPane.setHgap(5);
 		gridPane.setVgap(5);
 		gridPane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
-		Label header = new Label(headerText);
-		header.setStyle("-fx-font-weight: bold");
+		HtmlText header = new HtmlText("<b>"+headerText+"</b>");
 		Label info = new Label(infoText);
 		Button ok = new Button("OK");
 		gridPane.add(header, 0, 0);
@@ -814,8 +829,7 @@ public class MainApplication extends Application{
 		gridPane.setHgap(5);
 		gridPane.setVgap(5);
 		gridPane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
-		Label header = new Label(headerText);
-		header.setStyle("-fx-font-weight: bold");
+		HtmlText header = new HtmlText("<b>"+headerText+"</b>");
 		TextField field = new TextField();
 		Button ok = new Button("OK");
 		Button cancel = new Button("CANCEL");
@@ -1107,7 +1121,7 @@ public class MainApplication extends Application{
 		// UI
 		gc.save();
 		gc.setFill(Color.BLACK);
-		//gc.fillText(String.format("ID: %d\nPower: %s\nScale: %.2f", Pin.PIN_ID, Util.isPowerOn(), this.cameraScale), 60, 700);
+		gc.fillText("ID: "+Pin.PIN_ID+"\nPower: "+Util.isPowerOn()+"\nScale: "+this.cameraScale, 60, HEIGHT-100);
 		gc.setGlobalAlpha(0.5);
 		gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
 		gc.restore();
