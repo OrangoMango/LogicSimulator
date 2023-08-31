@@ -92,7 +92,7 @@ public class MainApplication extends Application{
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		CanvasPane pane = new CanvasPane(canvas, (w, h) -> resize((int)w, (int)h, canvas));
 
-		Rectangle2D[] buttonsRect = new Rectangle2D[12];
+		Rectangle2D[] buttonsRect = new Rectangle2D[15];
 		makeButtonsRect(buttonsRect);
 
 		UiButton saveButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_save.png")), "SAVE", buttonsRect[0], () -> {
@@ -288,7 +288,7 @@ public class MainApplication extends Application{
 				}
 			}
 		});
-		UiButton alignBusButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_alignBus.png")), "ALIGN BUS", buttonsRect[11], () -> {
+		UiButton alignBusButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_alignBus.png")), "ALIGN BUSES", buttonsRect[11], () -> {
 			boolean allBus = !this.selectedGates.stream().filter(g -> !(g instanceof Bus)).findAny().isPresent();
 			if (this.selectedGates.size() > 0 && allBus){
 				Gate ref = this.selectedGates.get(0);
@@ -302,6 +302,12 @@ public class MainApplication extends Application{
 				}
 			}
 		});
+		UiButton shiftButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_shift.png")), "SHIFT", buttonsRect[12], () -> {});
+		UiButton controlButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_control.png")), "CONTROL", buttonsRect[13], () -> {});
+		UiButton altButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_alt.png")), "ALT", buttonsRect[14], () -> {});
+		shiftButton.setToggle(true);
+		controlButton.setToggle(true);
+		altButton.setToggle(true);
 		this.buttons.add(saveButton);
 		this.buttons.add(loadButton);
 		this.buttons.add(saveChipButton);
@@ -314,6 +320,9 @@ public class MainApplication extends Application{
 		this.buttons.add(deleteButton);
 		this.buttons.add(wireDeleteButton);
 		this.buttons.add(alignBusButton);
+		this.buttons.add(shiftButton);
+		this.buttons.add(controlButton);
+		this.buttons.add(altButton);
 		
 		buildSideArea(gc);
 
@@ -322,7 +331,7 @@ public class MainApplication extends Application{
 			if (e.getCode() == KeyCode.P){
 				Util.toggleCircuitPower(this.gates);
 			} else if (e.getCode() == KeyCode.DELETE){
-				if (e.isShiftDown()){
+				if (e.isShiftDown() || shiftButton.isOn()){
 					List<Pin> pins = new ArrayList<>();
 					for (Gate g : this.selectedGates){
 						for (Pin p : g.getPins()){
@@ -399,7 +408,7 @@ public class MainApplication extends Application{
 									if (this.connG == null){
 										this.connG = found;
 									} else {
-										if (e.isShiftDown() && this.pinPoints.size() > 0){
+										if ((e.isShiftDown() || shiftButton.isOn()) && this.pinPoints.size() > 0){
 											Point2D thisPoint = new Point2D(found.getX(), found.getY());
 											Point2D ref = this.pinPoints.get(this.pinPoints.size()-1);
 											if (Math.abs(thisPoint.getX()-ref.getX()) > Math.abs(thisPoint.getY()-ref.getY())){
@@ -416,12 +425,12 @@ public class MainApplication extends Application{
 									}
 								} else if (this.connG != null){
 									Point2D finalPoint = clickPoint;
-									if (e.isControlDown()){
+									if (e.isControlDown() || controlButton.isOn()){
 										if (this.pinPoints.size() >= 1){
 											this.pinPoints.remove(this.pinPoints.size()-1);
 										}
 									} else {
-										if (e.isShiftDown()){
+										if (e.isShiftDown() || shiftButton.isOn()){
 											Point2D ref = null;
 											if (this.pinPoints.size() == 0){
 												ref = new Point2D(this.connG.getX(), this.connG.getY());
@@ -433,7 +442,7 @@ public class MainApplication extends Application{
 											} else {
 												finalPoint = new Point2D(ref.getX(), finalPoint.getY());
 											}
-										} else if (e.isAltDown()){
+										} else if (e.isAltDown() || altButton.isOn()){
 											double minDistance = Double.POSITIVE_INFINITY;
 											Point2D ref = null;
 											for (Wire w : this.wires){
@@ -521,14 +530,14 @@ public class MainApplication extends Application{
 													if (isOnBorder){
 														this.resizingBus = bus;
 													} else if (clickPoint.getX()-g.getRect().getMinX() > 30 && g.getRect().getMaxX()-clickPoint.getX() > 30){
-														g.getPins().add(new Pin(g, new Rectangle2D(clickPoint.getX()-7.5, g.getRect().getMinY()+g.getRect().getHeight()/2-7.5, 15, 15), e.isShiftDown()));
+														g.getPins().add(new Pin(g, new Rectangle2D(clickPoint.getX()-7.5, g.getRect().getMinY()+g.getRect().getHeight()/2-7.5, 15, 15), e.isShiftDown() || shiftButton.isOn()));
 													}
 												} else {
 													boolean isOnBorder = bus.isOnBorder(clickPoint.getX(), clickPoint.getY());
 													if (isOnBorder){
 														this.resizingBus = bus;
 													} else if (clickPoint.getY()-g.getRect().getMinY() > 30 && g.getRect().getMaxY()-clickPoint.getY() > 30){
-														g.getPins().add(new Pin(g, new Rectangle2D(g.getRect().getMinX()+g.getRect().getWidth()/2-7.5, clickPoint.getY()-7.5, 15, 15), e.isShiftDown()));
+														g.getPins().add(new Pin(g, new Rectangle2D(g.getRect().getMinX()+g.getRect().getWidth()/2-7.5, clickPoint.getY()-7.5, 15, 15), e.isShiftDown() || shiftButton.isOn()));
 													}
 												}
 											} else {
@@ -557,7 +566,7 @@ public class MainApplication extends Application{
 											this.rmWire = false;
 										}
 									} else {
-										if (e.isShiftDown() && g instanceof Bus){
+										if ((e.isShiftDown() || shiftButton.isOn()) && g instanceof Bus){
 											this.movingBusPin = pin;
 										} else if (e.getClickCount() == 2){
 											ContextMenu cm = buildContextMenu(g, pin);
@@ -571,13 +580,13 @@ public class MainApplication extends Application{
 							}
 							if (voidClick && moveButton.isOn()){
 								startMoving(true, e.getX(), e.getY());
-							} else if (voidClick || e.isControlDown()){ // No gates found
+							} else if (voidClick || (e.isControlDown() || controlButton.isOn())){ // No gates found
 								this.rmGate = false;
 								this.rmWire = false;
 								this.connBus = false;
 								this.rmW = null;
 								this.selectedRectanglePoint = clickPoint;
-								if (!e.isControlDown()){
+								if (!(e.isControlDown() || controlButton.isOn())){
 									this.selectedGates.clear();
 									this.selectedWirePoints.clear();
 								}
@@ -873,7 +882,7 @@ public class MainApplication extends Application{
 		canvas.setHeight(HEIGHT);
 		TOOLBAR_X = WIDTH*0.7;
 
-		Rectangle2D[] rects = new Rectangle2D[12];
+		Rectangle2D[] rects = new Rectangle2D[15];
 		makeButtonsRect(rects);
 		for (int i = 0; i < rects.length; i++){
 			this.buttons.get(i).setRect(rects[i]);
