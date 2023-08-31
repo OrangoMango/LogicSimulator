@@ -47,11 +47,12 @@ import com.orangomango.logicsim.core.*;
  * @version 1.0
  */
 public class MainApplication extends Application{
-	private static int WIDTH = 1000;
+	private static int WIDTH = 950;
 	private static int HEIGHT = 800;
 	public static final int FPS = 40;
 	private static double TOOLBAR_X = WIDTH*0.7;
 	private static double TOOLBAR_Y;
+	private static Rectangle2D POWER_RECTANGLE = new Rectangle2D(25, HEIGHT-190, 45, 45);
 
 	private SideArea sideArea;
 	private File currentFile = null;
@@ -91,7 +92,7 @@ public class MainApplication extends Application{
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		CanvasPane pane = new CanvasPane(canvas, (w, h) -> resize((int)w, (int)h, canvas));
 
-		Rectangle2D[] buttonsRect = new Rectangle2D[9];
+		Rectangle2D[] buttonsRect = new Rectangle2D[12];
 		makeButtonsRect(buttonsRect);
 
 		UiButton saveButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_save.png")), "SAVE", buttonsRect[0], () -> {
@@ -268,10 +269,39 @@ public class MainApplication extends Application{
 			this.rmGate = false;
 			this.rmWire = false;
 		});
-		UiButton moveButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_move.png")), "MOVE", buttonsRect[8], () -> {
-
-		});
+		UiButton moveButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_move.png")), "MOVE", buttonsRect[8], () -> {});
 		moveButton.setToggle(true);
+		UiButton deleteButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_delete.png")), "DELETE", buttonsRect[9], () -> {
+			this.gatesToRemove.addAll(this.selectedGates);
+			this.selectedGates.clear();
+		});
+		UiButton wireDeleteButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_deleteWires.png")), "WIRE DELETE", buttonsRect[10], () -> {
+			List<Pin> pins = new ArrayList<>();
+			for (Gate g : this.selectedGates){
+				for (Pin p : g.getPins()){
+					pins.add(p);
+				}
+			}
+			for (Wire w : this.wires){
+				if (pins.contains(w.getPin1()) && pins.contains(w.getPin2())){
+					this.wiresToRemove.add(w);
+				}
+			}
+		});
+		UiButton alignBusButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_alignBus.png")), "ALIGN BUS", buttonsRect[11], () -> {
+			boolean allBus = !this.selectedGates.stream().filter(g -> !(g instanceof Bus)).findAny().isPresent();
+			if (this.selectedGates.size() > 0 && allBus){
+				Gate ref = this.selectedGates.get(0);
+				for (int i = 1; i < this.selectedGates.size(); i++){
+					Gate g = this.selectedGates.get(i);
+					if (ref.getRect().getWidth() > ref.getRect().getHeight()){
+						((Bus)g).setRect(new Rectangle2D(ref.getRect().getMinX(), ref.getRect().getMinY()+i*20, ref.getRect().getWidth(), ref.getRect().getHeight()));
+					} else {
+						((Bus)g).setRect(new Rectangle2D(ref.getRect().getMinX()+i*20, ref.getRect().getMinY(), ref.getRect().getWidth(), ref.getRect().getHeight()));
+					}
+				}
+			}
+		});
 		this.buttons.add(saveButton);
 		this.buttons.add(loadButton);
 		this.buttons.add(saveChipButton);
@@ -281,6 +311,9 @@ public class MainApplication extends Application{
 		this.buttons.add(exportButton);
 		this.buttons.add(busConnectButton);
 		this.buttons.add(moveButton);
+		this.buttons.add(deleteButton);
+		this.buttons.add(wireDeleteButton);
+		this.buttons.add(alignBusButton);
 		
 		buildSideArea(gc);
 
@@ -335,7 +368,7 @@ public class MainApplication extends Application{
 
 		canvas.setOnMousePressed(e -> {
 			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
-			Rectangle2D hideButton = new Rectangle2D(0, this.toolbarHidden ? 0 : TOOLBAR_Y, 25, 37.5);
+			Rectangle2D hideButton = new Rectangle2D(0, this.toolbarHidden ? 0 : TOOLBAR_Y, 37.5, 25);
 			if (e.getButton() == MouseButton.PRIMARY){
 				if (!this.toolbarHidden && e.getY() < TOOLBAR_Y && (e.getX() < TOOLBAR_X || !this.sideArea.isOpen())){
 					for (UiButton ub : this.buttons){
@@ -343,6 +376,8 @@ public class MainApplication extends Application{
 					}
 				} else if (hideButton.contains(e.getX(), e.getY())){
 					this.toolbarHidden = !this.toolbarHidden;
+				} else if (POWER_RECTANGLE.contains(e.getX(), e.getY())){
+					Util.toggleCircuitPower(this.gates);
 				} else {
 					if (this.selectedId >= 0){
 						Gate g = null;
@@ -710,7 +745,8 @@ public class MainApplication extends Application{
 					this.movePoint = null;
 					this.cameraX += this.deltaMove.getX();
 					this.cameraY += this.deltaMove.getY();
-				} else if (this.selectionMoveStart != null){
+				}
+				if (this.selectionMoveStart != null){
 					this.selectionMoveStart = null;
 				}
 			}
@@ -837,13 +873,14 @@ public class MainApplication extends Application{
 		canvas.setHeight(HEIGHT);
 		TOOLBAR_X = WIDTH*0.7;
 
-		Rectangle2D[] rects = new Rectangle2D[9];
+		Rectangle2D[] rects = new Rectangle2D[12];
 		makeButtonsRect(rects);
 		for (int i = 0; i < rects.length; i++){
 			this.buttons.get(i).setRect(rects[i]);
 		}
 
 		buildSideArea(canvas.getGraphicsContext2D());
+		POWER_RECTANGLE = new Rectangle2D(25, HEIGHT-190, 45, 45);
 	}
 
 	private void makeButtonsRect(Rectangle2D[] buttonsRect){
@@ -1170,7 +1207,6 @@ public class MainApplication extends Application{
 			}
 		}
 
-
 		// Hide toolbar button
 		gc.save();
 		gc.translate(0, this.toolbarHidden ? 0 : TOOLBAR_Y);
@@ -1179,7 +1215,7 @@ public class MainApplication extends Application{
 		gc.restore();
 
 		gc.setFill(Util.isPowerOn() ? Color.LIME : Color.RED);
-		gc.fillRoundRect(25, HEIGHT-190, 45, 45, 15, 15);
+		gc.fillRoundRect(POWER_RECTANGLE.getMinX(), POWER_RECTANGLE.getMinY(), POWER_RECTANGLE.getWidth(), POWER_RECTANGLE.getHeight(), 15, 15);
 		if (this.selectedId == -1) this.sideArea.render();
 
 		if (this.tooltip != null) this.tooltip.render();
