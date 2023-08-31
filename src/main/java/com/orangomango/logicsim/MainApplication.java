@@ -50,7 +50,7 @@ public class MainApplication extends Application{
 	private static int WIDTH = 1000;
 	private static int HEIGHT = 800;
 	public static final int FPS = 40;
-	private static double TOOLBAR_X = WIDTH*0.65;
+	private static double TOOLBAR_X = WIDTH*0.7;
 	private static double TOOLBAR_Y;
 
 	private SideArea sideArea;
@@ -82,6 +82,8 @@ public class MainApplication extends Application{
 	private Bus resizingBus = null;
 	private Pin movingBusPin = null;
 	private Bus connB;
+	private boolean toolbarHidden = false;
+	private Image hideImage = new Image(getClass().getResourceAsStream("/sidebutton.png"));
 	
 	@Override
 	public void start(Stage stage){
@@ -89,7 +91,7 @@ public class MainApplication extends Application{
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		CanvasPane pane = new CanvasPane(canvas, (w, h) -> resize((int)w, (int)h, canvas));
 
-		Rectangle2D[] buttonsRect = new Rectangle2D[8];
+		Rectangle2D[] buttonsRect = new Rectangle2D[9];
 		makeButtonsRect(buttonsRect);
 
 		UiButton saveButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_save.png")), "SAVE", buttonsRect[0], () -> {
@@ -261,11 +263,15 @@ public class MainApplication extends Application{
 				info.showAndWait();
 			}
 		});
-		UiButton busConnectButton  = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_connbus.png")), "CONNECT BUS", buttonsRect[7], () -> {
+		UiButton busConnectButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_connbus.png")), "CONNECT BUS", buttonsRect[7], () -> {
 			this.connBus = true;
 			this.rmGate = false;
 			this.rmWire = false;
-		});;
+		});
+		UiButton moveButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_move.png")), "MOVE", buttonsRect[8], () -> {
+
+		});
+		moveButton.setToggle(true);
 		this.buttons.add(saveButton);
 		this.buttons.add(loadButton);
 		this.buttons.add(saveChipButton);
@@ -274,6 +280,7 @@ public class MainApplication extends Application{
 		this.buttons.add(rmGateButton);
 		this.buttons.add(exportButton);
 		this.buttons.add(busConnectButton);
+		this.buttons.add(moveButton);
 		
 		buildSideArea(gc);
 
@@ -319,6 +326,8 @@ public class MainApplication extends Application{
 						}
 					}
 				}
+			} else if (e.getCode() == KeyCode.H){
+				this.toolbarHidden = !this.toolbarHidden;
 			} else if (e.getCode() == KeyCode.F1){
 				Util.SHOW_PIN_ID = !Util.SHOW_PIN_ID;
 			}
@@ -326,11 +335,14 @@ public class MainApplication extends Application{
 
 		canvas.setOnMousePressed(e -> {
 			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
+			Rectangle2D hideButton = new Rectangle2D(0, this.toolbarHidden ? 0 : TOOLBAR_Y, 25, 37.5);
 			if (e.getButton() == MouseButton.PRIMARY){
-				if (e.getY() < TOOLBAR_Y && (e.getX() < TOOLBAR_X || !this.sideArea.isOpen())){
+				if (!this.toolbarHidden && e.getY() < TOOLBAR_Y && (e.getX() < TOOLBAR_X || !this.sideArea.isOpen())){
 					for (UiButton ub : this.buttons){
 						ub.onClick(e.getX(), e.getY());
 					}
+				} else if (hideButton.contains(e.getX(), e.getY())){
+					this.toolbarHidden = !this.toolbarHidden;
 				} else {
 					if (this.selectedId >= 0){
 						Gate g = null;
@@ -485,7 +497,11 @@ public class MainApplication extends Application{
 													}
 												}
 											} else {
-												g.click(e);
+												if (!moveButton.isOn()) g.click(e);
+												if (e.getClickCount() == 2){
+													ContextMenu cm = buildContextMenu(g, pin);
+													cm.show(canvas, e.getScreenX(), e.getScreenY());
+												}
 											}
 										}
 										voidClick = false;
@@ -508,6 +524,9 @@ public class MainApplication extends Application{
 									} else {
 										if (e.isShiftDown() && g instanceof Bus){
 											this.movingBusPin = pin;
+										} else if (e.getClickCount() == 2){
+											ContextMenu cm = buildContextMenu(g, pin);
+											cm.show(canvas, e.getScreenX(), e.getScreenY());
 										} else {
 											this.selectedId = 1;
 											this.connG = pin;
@@ -515,7 +534,13 @@ public class MainApplication extends Application{
 									}
 								}
 							}
-							if (voidClick || e.isControlDown()){ // No gates found
+							if (voidClick && moveButton.isOn()){
+								startMoving(true, e.getX(), e.getY());
+							} else if (voidClick || e.isControlDown()){ // No gates found
+								this.rmGate = false;
+								this.rmWire = false;
+								this.connBus = false;
+								this.rmW = null;
 								this.selectedRectanglePoint = clickPoint;
 								if (!e.isControlDown()){
 									this.selectedGates.clear();
@@ -523,6 +548,10 @@ public class MainApplication extends Application{
 								}
 								this.selectedAreaWidth = 0;
 								this.selectedAreaHeight = 0;
+							}
+
+							if (moveButton.isOn() && (this.selectedGates.size() > 0 || this.selectedWirePoints.size() > 0)){
+								startMoving(false, e.getX(), e.getY());
 							}
 						}
 					}
@@ -555,59 +584,12 @@ public class MainApplication extends Application{
 				this.connBus = false;
 				this.rmW = null;
 				if (found == null && foundPoint == null){
-					this.selectedId = -1;
-					this.pinPoints.clear();
-					this.connG = null;
-					this.movePoint = new Point2D(e.getX(), e.getY());
-					this.deltaMove = new Point2D(0, 0);
-					if (this.busStartPoint != null){
-						this.busStartPoint = null;
-						this.busTempEndPoint = null;
-					}
+					startMoving(true, e.getX(), e.getY());
 				} else if (found != null && (!this.selectedGates.contains(found) || e.getClickCount() == 2)){
-					ContextMenu cm = new ContextMenu();
-					if (found instanceof Chip){
-						MenuItem showChip = new MenuItem("Look inside");
-						final Chip chip = (Chip)found;
-						showChip.setOnAction(ev -> {
-							Alert alert = new Alert(Alert.AlertType.INFORMATION);
-							alert.setTitle(chip.getName());
-							alert.setHeaderText(chip.getName());
-							ChipCanvas cc = new ChipCanvas(chip);
-							alert.getDialogPane().setContent(cc.getPane());
-							alert.showAndWait();
-							cc.destroy();
-						});
-						cm.getItems().add(showChip);
-					} else if (found instanceof Bus){
-						MenuItem clearConn = new MenuItem("Clear connections");
-						final Bus bus = (Bus)found;
-						clearConn.setOnAction(ev -> bus.clearConnections());
-						cm.getItems().add(clearConn);
-					}
-					final Gate gate = found;
-					MenuItem changeLabel = new MenuItem("Change label");
-					changeLabel.setOnAction(ev -> {
-						TextInputDialog dialog = new TextInputDialog(gate.getLabel());
-						dialog.setTitle("Set label");
-						dialog.setHeaderText("Label name");
-						dialog.showAndWait().ifPresent(v -> {
-							gate.setLabel(v);
-						});
-					});
-					if (pinFound != null){
-						final Pin pin = pinFound;
-						if (gate instanceof Bus){
-							MenuItem removePin = new MenuItem("Remove pin");
-							removePin.setOnAction(ev -> this.pinsToRemove.add(pin));
-							cm.getItems().add(removePin);
-						}
-					}
-					cm.getItems().add(changeLabel);
+					ContextMenu cm = buildContextMenu(found, pinFound);
 					cm.show(canvas, e.getScreenX(), e.getScreenY());
 				} else if (this.selectedGates.size() > 0 || this.selectedWirePoints.size() > 0){
-					this.selectionMoveStart = new Point2D(e.getX(), e.getY());
-					this.deltaMove = new Point2D(0, 0);
+					startMoving(false, e.getX(), e.getY());
 				}
 			}
 		});
@@ -649,7 +631,7 @@ public class MainApplication extends Application{
 		canvas.setOnMouseDragged(e -> {
 			this.mouseMoved = new Point2D(e.getX(), e.getY());
 			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
-			if (e.getButton() == MouseButton.PRIMARY){
+			if (e.getButton() == MouseButton.PRIMARY && !moveButton.isOn()){
 				if (this.selectedRectanglePoint != null){
 					this.selectedAreaWidth = clickPoint.getX()-this.selectedRectanglePoint.getX();
 					this.selectedAreaHeight = clickPoint.getY()-this.selectedRectanglePoint.getY();
@@ -669,7 +651,7 @@ public class MainApplication extends Application{
 						}
 					}
 				}
-			} else if (e.getButton() == MouseButton.SECONDARY){
+			} else if (e.getButton() == MouseButton.SECONDARY || moveButton.isOn()){
 				if ((this.selectedGates.size() == 0 && this.selectedWirePoints.size() == 0) || this.selectionMoveStart == null){
 					if (this.movePoint != null){
 						this.deltaMove = new Point2D(e.getX()-this.movePoint.getX(), e.getY()-this.movePoint.getY());
@@ -722,7 +704,8 @@ public class MainApplication extends Application{
 				this.selectedRectanglePoint = null;
 				this.resizingBus = null;
 				this.movingBusPin = null;
-			} else if (e.getButton() == MouseButton.SECONDARY){
+			}
+			if (e.getButton() == MouseButton.SECONDARY || moveButton.isOn()){
 				if (this.movePoint != null){
 					this.movePoint = null;
 					this.cameraX += this.deltaMove.getX();
@@ -787,16 +770,76 @@ public class MainApplication extends Application{
 		stage.show();
 	}
 
+	private void startMoving(boolean screen, double x, double y){
+		if (screen){
+			this.selectedId = -1;
+			this.pinPoints.clear();
+			this.connG = null;
+			this.movePoint = new Point2D(x, y);
+			this.deltaMove = new Point2D(0, 0);
+			if (this.busStartPoint != null){
+				this.busStartPoint = null;
+				this.busTempEndPoint = null;
+			}
+		} else {
+			this.selectionMoveStart = new Point2D(x, y);
+			this.deltaMove = new Point2D(0, 0);
+		}
+	}
+
+	private ContextMenu buildContextMenu(Gate found, Pin pinFound){
+		ContextMenu cm = new ContextMenu();
+		if (found instanceof Chip){
+			MenuItem showChip = new MenuItem("Look inside");
+			final Chip chip = (Chip)found;
+			showChip.setOnAction(ev -> {
+				Alert alert = new Alert(Alert.AlertType.INFORMATION);
+				alert.setTitle(chip.getName());
+				alert.setHeaderText(chip.getName());
+				ChipCanvas cc = new ChipCanvas(chip);
+				alert.getDialogPane().setContent(cc.getPane());
+				alert.showAndWait();
+				cc.destroy();
+			});
+			cm.getItems().add(showChip);
+		} else if (found instanceof Bus){
+			MenuItem clearConn = new MenuItem("Clear connections");
+			final Bus bus = (Bus)found;
+			clearConn.setOnAction(ev -> bus.clearConnections());
+			cm.getItems().add(clearConn);
+		}
+		final Gate gate = found;
+		MenuItem changeLabel = new MenuItem("Change label");
+		changeLabel.setOnAction(ev -> {
+			TextInputDialog dialog = new TextInputDialog(gate.getLabel());
+			dialog.setTitle("Set label");
+			dialog.setHeaderText("Label name");
+			dialog.showAndWait().ifPresent(v -> {
+				gate.setLabel(v);
+			});
+		});
+		if (pinFound != null){
+			final Pin pin = pinFound;
+			if (gate instanceof Bus){
+				MenuItem removePin = new MenuItem("Remove pin");
+				removePin.setOnAction(ev -> this.pinsToRemove.add(pin));
+				cm.getItems().add(removePin);
+			}
+		}
+		cm.getItems().add(changeLabel);
+		return cm;
+	}
+
 	private void resize(int width, int height, Canvas canvas){
 		WIDTH = width;
 		HEIGHT = height;
 		canvas.setWidth(WIDTH);
 		canvas.setHeight(HEIGHT);
-		TOOLBAR_X = WIDTH*0.65;
+		TOOLBAR_X = WIDTH*0.7;
 
-		Rectangle2D[] rects = new Rectangle2D[8];
+		Rectangle2D[] rects = new Rectangle2D[9];
 		makeButtonsRect(rects);
-		for (int i = 0; i < 8; i++){
+		for (int i = 0; i < rects.length; i++){
 			this.buttons.get(i).setRect(rects[i]);
 		}
 
@@ -814,7 +857,7 @@ public class MainApplication extends Application{
 	}
 
 	private void buildSideArea(GraphicsContext gc){
-		this.sideArea = new SideArea(gc, new Rectangle2D(WIDTH-50, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, WIDTH*0.35, HEIGHT));
+		this.sideArea = new SideArea(gc, new Rectangle2D(WIDTH-50, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, WIDTH*0.3, HEIGHT));
 		this.sideArea.setButtonSize(WIDTH*0.35*0.25);
 		this.sideArea.addButton("Switch", () -> this.selectedId = 0);
 		this.sideArea.addButton("Wire", () -> this.selectedId = 1);
@@ -1115,15 +1158,28 @@ public class MainApplication extends Application{
 		gc.save();
 		gc.setFill(Color.BLACK);
 		gc.fillText(String.format("ID: %d\nPower: %s\nScale: %.2f", Pin.PIN_ID, Util.isPowerOn(), this.cameraScale), 60, HEIGHT-100);
-		gc.setGlobalAlpha(0.5);
-		gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
+		if (!this.toolbarHidden){
+			gc.setGlobalAlpha(0.5);
+			gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
+		}
 		gc.restore();
 
-		for (UiButton ub : this.buttons){
-			ub.render();
+		if (!this.toolbarHidden){
+			for (UiButton ub : this.buttons){
+				ub.render();
+			}
 		}
+
+
+		// Hide toolbar button
+		gc.save();
+		gc.translate(0, this.toolbarHidden ? 0 : TOOLBAR_Y);
+		gc.rotate(-90);
+		gc.drawImage(this.hideImage, 1+(this.toolbarHidden ? 52 : 0), 1, 50, 75, -25, 0, 25, 37.5);
+		gc.restore();
+
 		gc.setFill(Util.isPowerOn() ? Color.LIME : Color.RED);
-		gc.fillRoundRect(50, HEIGHT-190, 45, 45, 15, 15);
+		gc.fillRoundRect(25, HEIGHT-190, 45, 45, 15, 15);
 		if (this.selectedId == -1) this.sideArea.render();
 
 		if (this.tooltip != null) this.tooltip.render();
