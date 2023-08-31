@@ -29,6 +29,7 @@ Available for Windows, Linux and MacOS.
 
 # Keyboard usage help
 * Use `P` to toggle global power on/off
+* Use `H` to show/hide the toolbar
 * Use `DELETE` to delete selected gates from the circuit
 * Use `Shift` + `DELETE` to delete the wires of the selected gates in the circuit
 * Use `Z` and `X` to decrement/increment buses amount when placing a bus
