@@ -61,7 +61,7 @@ public class ChipCanvas{
 						MainApplication.createCustomAlert(cc.getPane(), chip.getName(), cc::destroy);
 					});
 					cm.getItems().add(showChip);
-					cm.show(canvas, e.getSceneX(), e.getSceneY());
+					cm.show(canvas, e.getScreenX(), e.getScreenY());
 				}
 			}
 		});

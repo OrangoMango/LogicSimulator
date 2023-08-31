@@ -110,15 +110,15 @@ public class MainApplication extends Application{
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 
 		// Mobile not supported
-		if (OperatingSystem.isMobile()){
-			HtmlText error = new HtmlText("<h1>Mobile not supported</h1>"+
-    			"<p>Please download the desktop version or try it in a browser from a computer</p>"+
-    			"<p><b>Operating systems supported: </b>Linux (amd64 and arm64), Windows (installer and executable), MacOS and browser</p>"+
-    			"<p>For more information: <a target=\"_blank\" href=\"https://orangomango.itch.io/logicsimulator\">Download and Help site</a></p>");
-			pane.getChildren().add(error);
-		} else {
+		//if (OperatingSystem.isMobile()){
+		//	HtmlText error = new HtmlText("<h1>Mobile not supported</h1>"+
+    	//		"<p>Please download the desktop version or try it in a browser from a computer</p>"+
+    	//		"<p><b>Operating systems supported: </b>Linux (amd64 and arm64), Windows (installer and executable), MacOS and browser</p>"+
+    	//		"<p>For more information: <a target=\"_blank\" href=\"https://orangomango.itch.io/logicsimulator\">Download and Help site</a></p>");
+		//	pane.getChildren().add(error);
+		//} else {
 			pane.getChildren().add(canvas);
-		}
+		//}
 
 		FilePicker picker = FilePicker.create();
 		picker.setGraphic(new ImageView(new Image(Resource.toUrl("/images/icon.png", MainApplication.class))));
@@ -586,7 +586,7 @@ public class MainApplication extends Application{
 					}
 					if (this.activeContextMenu != null) this.activeContextMenu.hide();
 					this.activeContextMenu = cm;
-					cm.show(canvas, e.getSceneX(), e.getSceneY());
+					cm.show(canvas, e.getScreenX(), e.getScreenY());
 				} else if (this.selectedGates.size() > 0 || this.selectedWirePoints.size() > 0){
 					this.selectionMoveStart = new Point2D(e.getX(), e.getY());
 					this.deltaMove = new Point2D(0, 0);
@@ -802,6 +802,7 @@ public class MainApplication extends Application{
 		Button cancel = new Button("CANCEL");
 		gpane.add(cancel, 0, 3);
 		DialogCallback callback = DialogUtil.showModalNodeInGoldLayout(gpane, SCENE_PANE);
+		name.requestFocus();
 		ok.setOnAction(e -> {
 			callback.closeDialog();
 			if (this.currentFile == null){
@@ -868,6 +869,7 @@ public class MainApplication extends Application{
 		gridPane.add(cancel, 0, 2);
 		gridPane.add(ok, 1, 2);
 		DialogCallback callback = DialogUtil.showModalNodeInGoldLayout(gridPane, SCENE_PANE);
+		field.requestFocus();
 		ok.setOnAction(e -> {
 			callback.closeDialog();
 			onSuccess.accept(field.getText());
