@@ -18,6 +18,7 @@ public class SideArea{
 	private double extraY;
 	private Image btnImage;
 	private double openedX;
+	private double buttonSize = 75;
 	private volatile boolean animating;
 
 	public SideArea(GraphicsContext gc, Rectangle2D closedBtn, Rectangle2D area){
@@ -27,18 +28,22 @@ public class SideArea{
 		this.btnImage = new Image(getClass().getResourceAsStream("/sidebutton.png"));
 	}
 
+	public void setButtonSize(double size){
+		this.buttonSize = size;
+	}
+
 	public void addButton(String text, Runnable r){
 		final double distance = 10;
-		final int maxRow = (int)Math.floor(area.getWidth()/(75+distance));
-		Point2D pos = new Point2D(distance+(this.amount%maxRow)*(75+distance), distance+(this.amount/maxRow)*(75+distance)+this.extraY);
+		final int maxRow = (int)Math.floor(area.getWidth()/(this.buttonSize+distance));
+		Point2D pos = new Point2D(distance+(this.amount%maxRow)*(this.buttonSize+distance), distance+(this.amount/maxRow)*(this.buttonSize+distance)+this.extraY);
 		pos = pos.add(area.getMinX(), area.getMinY());
-		UiButton ub = new UiButton(this.gc, null, text, new Rectangle2D(pos.getX(), pos.getY(), 75, 75), r);
+		UiButton ub = new UiButton(this.gc, null, text, new Rectangle2D(pos.getX(), pos.getY(), this.buttonSize, this.buttonSize), r);
 		this.buttons.add(ub);
 		this.amount++;
 	}
 
 	public void startSection(){
-		this.extraY = this.buttons.get(this.buttons.size()-1).getRect().getMaxY()+35;
+		this.extraY = this.buttons.get(this.buttons.size()-1).getRect().getMaxY()+this.buttonSize*0.6;
 		this.amount = 0;
 	}
 

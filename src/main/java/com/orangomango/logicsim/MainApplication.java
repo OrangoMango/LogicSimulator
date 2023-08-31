@@ -47,11 +47,11 @@ import com.orangomango.logicsim.core.*;
  * @version 1.0
  */
 public class MainApplication extends Application{
-	private static final double WIDTH = 1000;
-	private static final double HEIGHT = 800;
+	private static int WIDTH = 1000;
+	private static int HEIGHT = 800;
 	public static final int FPS = 40;
-	private static final double TOOLBAR_X = 650;
-	private static final double TOOLBAR_Y = 100;
+	private static double TOOLBAR_X = WIDTH*0.65;
+	private static double TOOLBAR_Y;
 
 	private SideArea sideArea;
 	private File currentFile = null;
@@ -85,12 +85,14 @@ public class MainApplication extends Application{
 	
 	@Override
 	public void start(Stage stage){
-		StackPane pane = new StackPane();
 		Canvas canvas = new Canvas(WIDTH, HEIGHT);
 		GraphicsContext gc = canvas.getGraphicsContext2D();
-		pane.getChildren().add(canvas);
+		CanvasPane pane = new CanvasPane(canvas, (w, h) -> resize((int)w, (int)h, canvas));
 
-		UiButton saveButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_save.png")), "SAVE", new Rectangle2D(50, 20, 50, 50), () -> {
+		Rectangle2D[] buttonsRect = new Rectangle2D[8];
+		makeButtonsRect(buttonsRect);
+
+		UiButton saveButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_save.png")), "SAVE", buttonsRect[0], () -> {
 			FileChooser fc = new FileChooser();
 			fc.setTitle("Save project");
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
@@ -106,7 +108,7 @@ public class MainApplication extends Application{
 				buildSideArea(gc);
 			}
 		});
-		UiButton loadButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_load.png")), "LOAD", new Rectangle2D(150, 20, 50, 50), () -> {
+		UiButton loadButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_load.png")), "LOAD", buttonsRect[1], () -> {
 			FileChooser fc = new FileChooser();
 			fc.setTitle("Load project");
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("LogicSim files", "*.lsim"));
@@ -128,7 +130,7 @@ public class MainApplication extends Application{
 				buildSideArea(gc);
 			}
 		});
-		UiButton saveChipButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_savechip.png")), "SAVE CHIP", new Rectangle2D(250, 20, 50, 50), () -> {
+		UiButton saveChipButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_savechip.png")), "SAVE CHIP", buttonsRect[2], () -> {
 			String defaultName = "";
 			Color defaultColor = Color.BLUE;
 			try {
@@ -177,23 +179,23 @@ public class MainApplication extends Application{
 				}
 			}
 		});
-		UiButton clearButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_clear.png")), "CLEAR", new Rectangle2D(350, 20, 50, 50), () -> {
+		UiButton clearButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_clear.png")), "CLEAR", buttonsRect[3], () -> {
 			this.wires = new ArrayList<Wire>();
 			this.gates = new ArrayList<Gate>();
 			Pin.PIN_ID = 0;
 			this.currentFile = null;
 		});
-		UiButton rmWireButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_rmwire.png")), "RM WIRE", new Rectangle2D(450, 20, 50, 50), () -> {
+		UiButton rmWireButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_rmwire.png")), "RM WIRE", buttonsRect[4], () -> {
 			this.rmWire = true;
 			this.rmGate = false;
 			this.connBus = false;
 		});
-		UiButton rmGateButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_rmgate.png")), "RM GATE", new Rectangle2D(550, 20, 50, 50), () -> {
+		UiButton rmGateButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_rmgate.png")), "RM GATE", buttonsRect[5], () -> {
 			this.rmGate = true;
 			this.rmWire = false;
 			this.connBus = false;
 		});
-		UiButton exportButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_export.png")), "EXPORT", new Rectangle2D(650, 20, 50, 50), () -> {
+		UiButton exportButton = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_export.png")), "EXPORT", buttonsRect[6], () -> {
 			double minPosX = Double.POSITIVE_INFINITY;
 			double maxPosX = Double.NEGATIVE_INFINITY;
 			double minPosY = Double.POSITIVE_INFINITY;
@@ -259,7 +261,7 @@ public class MainApplication extends Application{
 				info.showAndWait();
 			}
 		});
-		UiButton busConnectButton  = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_connbus.png")), "CONNECT BUS", new Rectangle2D(750, 20, 50, 50), () -> {
+		UiButton busConnectButton  = new UiButton(gc, new Image(getClass().getResourceAsStream("/button_connbus.png")), "CONNECT BUS", buttonsRect[7], () -> {
 			this.connBus = true;
 			this.rmGate = false;
 			this.rmWire = false;
@@ -780,14 +782,40 @@ public class MainApplication extends Application{
 		simulation.setDaemon(true);
 		simulation.start();
 		
-		stage.setResizable(false);
 		stage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
 		stage.setScene(scene);
 		stage.show();
 	}
 
+	private void resize(int width, int height, Canvas canvas){
+		WIDTH = width;
+		HEIGHT = height;
+		canvas.setWidth(WIDTH);
+		canvas.setHeight(HEIGHT);
+		TOOLBAR_X = WIDTH*0.65;
+
+		Rectangle2D[] rects = new Rectangle2D[8];
+		makeButtonsRect(rects);
+		for (int i = 0; i < 8; i++){
+			this.buttons.get(i).setRect(rects[i]);
+		}
+
+		buildSideArea(canvas.getGraphicsContext2D());
+	}
+
+	private void makeButtonsRect(Rectangle2D[] buttonsRect){
+		final int maxRowItems = WIDTH/100;
+		for (int i = 0; i < buttonsRect.length; i++){
+			int xp = 50+(i%maxRowItems)*100;
+			int yp = 20+(i/maxRowItems)*85;
+			buttonsRect[i] = new Rectangle2D(xp, yp, 50, 50);
+		}
+		TOOLBAR_Y = 100*((buttonsRect.length-1)/maxRowItems+1);
+	}
+
 	private void buildSideArea(GraphicsContext gc){
-		this.sideArea = new SideArea(gc, new Rectangle2D(950, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, 350, 800));
+		this.sideArea = new SideArea(gc, new Rectangle2D(WIDTH-50, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, WIDTH*0.35, HEIGHT));
+		this.sideArea.setButtonSize(WIDTH*0.35*0.25);
 		this.sideArea.addButton("Switch", () -> this.selectedId = 0);
 		this.sideArea.addButton("Wire", () -> this.selectedId = 1);
 		this.sideArea.addButton("Light", () -> this.selectedId = 2);
@@ -1086,7 +1114,7 @@ public class MainApplication extends Application{
 		// UI
 		gc.save();
 		gc.setFill(Color.BLACK);
-		gc.fillText(String.format("ID: %d\nPower: %s\nScale: %.2f", Pin.PIN_ID, Util.isPowerOn(), this.cameraScale), 60, 700);
+		gc.fillText(String.format("ID: %d\nPower: %s\nScale: %.2f", Pin.PIN_ID, Util.isPowerOn(), this.cameraScale), 60, HEIGHT-100);
 		gc.setGlobalAlpha(0.5);
 		gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
 		gc.restore();
@@ -1095,7 +1123,7 @@ public class MainApplication extends Application{
 			ub.render();
 		}
 		gc.setFill(Util.isPowerOn() ? Color.LIME : Color.RED);
-		gc.fillRoundRect(850, 15, 45, 45, 15, 15);
+		gc.fillRoundRect(50, HEIGHT-190, 45, 45, 15, 15);
 		if (this.selectedId == -1) this.sideArea.render();
 
 		if (this.tooltip != null) this.tooltip.render();

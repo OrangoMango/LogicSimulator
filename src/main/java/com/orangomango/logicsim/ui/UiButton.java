@@ -29,6 +29,10 @@ public class UiButton{
 		}
 	}
 
+	public void setRect(Rectangle2D rect){
+		this.button = rect;
+	}
+
 	public Rectangle2D getRect(){
 		return this.button;
 	}
