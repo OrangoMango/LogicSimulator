@@ -304,7 +304,7 @@ public class MainApplication extends Application{
 		
 		buildSideArea(gc);
 
-		HtmlText html = new HtmlText("LogicSim by OrangoMango (v1.0-webfx), <a target=\"_blank\" href=\"https://orangomango.itch.io/logicsimulator\">Help & Download</a> | <a target=\"_blank\" href=\"https://github.com/OrangoMango/LogicSimulator\">Source code & Examples</a> | <a target=\"_blank\" href=\"https://orangomango.github.io\">Website</a>");
+		//HtmlText html = new HtmlText("LogicSim by OrangoMango (v1.0-webfx), <a target=\"_blank\" href=\"https://orangomango.itch.io/logicsimulator\">Help & Download</a> | <a target=\"_blank\" href=\"https://github.com/OrangoMango/LogicSimulator\">Source code & Examples</a> | <a target=\"_blank\" href=\"https://orangomango.github.io\">Website</a>");
 
 		Slider scaleSlider = new Slider(0.3, 1.5, this.globalScale);
 		scaleSlider.valueProperty().addListener((ob, oldV, newV) -> {
@@ -316,7 +316,7 @@ public class MainApplication extends Application{
 			}
 		});
 
-		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo, uploader.getView(), uploadedFilesInfo, scaleSlider), html, pane);
+		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo, uploader.getView(), uploadedFilesInfo, scaleSlider), pane);
 		vbox.setPadding(new Insets(10, 10, 10, 10));
 		SCENE_PANE = vbox;
 
