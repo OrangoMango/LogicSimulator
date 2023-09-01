@@ -113,7 +113,8 @@ public class MainApplication extends Application{
 		Canvas canvas = new Canvas(WIDTH, HEIGHT);
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 
-		pane.getChildren().add(canvas);
+		CanvasPane canvasPane = new CanvasPane(canvas, (w, h) -> resize((int)w, (int)h, canvas));
+		pane.getChildren().add(canvasPane);
 
 		FilePicker picker = FilePicker.create();
 		picker.setGraphic(new ImageView(new Image(Resource.toUrl("/images/icon.png", MainApplication.class))));
