@@ -887,7 +887,7 @@ public class MainApplication extends Application{
 
 	private void buildSideArea(GraphicsContext gc){
 		this.sideArea = new SideArea(gc, new Rectangle2D(WIDTH-50, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, WIDTH*0.3, HEIGHT));
-		this.sideArea.setButtonSize(WIDTH*0.35*0.25);
+		this.sideArea.setButtonSize(80);
 		this.sideArea.addButton("Switch", () -> this.selectedId = 0);
 		this.sideArea.addButton("Wire", () -> this.selectedId = 1);
 		this.sideArea.addButton("Light", () -> this.selectedId = 2);
