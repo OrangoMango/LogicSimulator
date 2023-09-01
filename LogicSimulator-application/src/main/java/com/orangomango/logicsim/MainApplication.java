@@ -102,7 +102,6 @@ public class MainApplication extends Application{
 	private ContextMenu activeContextMenu;
 	private double globalScale = 1;
 	private static VBox SCENE_PANE;
-	private static int TOOLBAR_COUNT = OperatingSystem.isMobile() ? 15 : 12;
 	
 	@Override
 	public void start(Stage stage){
@@ -133,7 +132,7 @@ public class MainApplication extends Application{
 			buildSideArea(gc);
 		});
 
-		Rectangle2D[] buttonsRect = new Rectangle2D[TOOLBAR_COUNT];
+		Rectangle2D[] buttonsRect = new Rectangle2D[15];
 		makeButtonsRect(buttonsRect);
 
 		UiButton saveButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_save.png", MainApplication.class)), "SAVE", buttonsRect[0], () -> {
@@ -309,9 +308,9 @@ public class MainApplication extends Application{
 		Slider scaleSlider = new Slider(0.3, 1.5, this.globalScale);
 		scaleSlider.valueProperty().addListener((ob, oldV, newV) -> {
 			this.globalScale = (double)newV;
-			Rectangle2D[] rects = new Rectangle2D[TOOLBAR_COUNT];
+			Rectangle2D[] rects = new Rectangle2D[15];
 			makeButtonsRect(rects);
-			for (int i = 0; i < rects.length; i++){
+			for (int i = 0; i < (OperatingSystem.isMobile() ? 15 : 12); i++){
 				this.buttons.get(i).setRect(rects[i]);
 			}
 		});
@@ -880,9 +879,9 @@ public class MainApplication extends Application{
 		canvas.setHeight(HEIGHT);
 		TOOLBAR_X = WIDTH*0.7;
 
-		Rectangle2D[] rects = new Rectangle2D[TOOLBAR_COUNT];
+		Rectangle2D[] rects = new Rectangle2D[15];
 		makeButtonsRect(rects);
-		for (int i = 0; i < rects.length; i++){
+		for (int i = 0; i < (OperatingSystem.isMobile() ? 15 : 12); i++){
 			this.buttons.get(i).setRect(rects[i]);
 		}
 
@@ -897,7 +896,7 @@ public class MainApplication extends Application{
 			int yp = 20+(i/maxRowItems)*85;
 			buttonsRect[i] = new Rectangle2D(xp, yp, 50, 50);
 		}
-		TOOLBAR_Y = 100*((buttonsRect.length-1)/maxRowItems+1);
+		TOOLBAR_Y = 100*(((OperatingSystem.isMobile() ? 15 : 12)-1)/maxRowItems+1);
 	}
 
 	private void buildSideArea(GraphicsContext gc){
