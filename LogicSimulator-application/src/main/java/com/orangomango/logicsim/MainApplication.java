@@ -38,6 +38,7 @@ import dev.webfx.platform.file.Blob;
 import dev.webfx.platform.file.spi.BlobProvider;
 import dev.webfx.platform.scheduler.Scheduler;
 import dev.webfx.platform.resource.Resource;
+import dev.webfx.platform.os.OperatingSystem;
 import dev.webfx.extras.filepicker.FilePicker;
 import dev.webfx.extras.canvas.blob.CanvasBlob;
 import dev.webfx.extras.webtext.HtmlText;
@@ -56,7 +57,7 @@ import com.orangomango.logicsim.core.*;
  */
 public class MainApplication extends Application{
 	private static int WIDTH = (int)(Screen.getPrimary().getVisualBounds().getWidth()*0.85);
-	private static int HEIGHT = (int)(Screen.getPrimary().getVisualBounds().getHeight()*0.75);
+	private static int HEIGHT = (int)(Screen.getPrimary().getVisualBounds().getHeight()*0.7);
 	private static double TOOLBAR_X = WIDTH*0.7;
 	private static double TOOLBAR_Y;
 	private static Rectangle2D POWER_RECTANGLE = new Rectangle2D(25, HEIGHT-190, 45, 45);
@@ -99,7 +100,9 @@ public class MainApplication extends Application{
 	private static List<File> uploadedFiles = new ArrayList<>();
 	private boolean rightMouseDrag = false;
 	private ContextMenu activeContextMenu;
+	private double globalScale = 1;
 	private static VBox SCENE_PANE;
+	private static int TOOLBAR_COUNT = OperatingSystem.isMobile() ? 15 : 12;
 	
 	@Override
 	public void start(Stage stage){
@@ -130,7 +133,7 @@ public class MainApplication extends Application{
 			buildSideArea(gc);
 		});
 
-		Rectangle2D[] buttonsRect = new Rectangle2D[15];
+		Rectangle2D[] buttonsRect = new Rectangle2D[TOOLBAR_COUNT];
 		makeButtonsRect(buttonsRect);
 
 		UiButton saveButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_save.png", MainApplication.class)), "SAVE", buttonsRect[0], () -> {
@@ -293,15 +296,27 @@ public class MainApplication extends Application{
 		this.buttons.add(deleteButton);
 		this.buttons.add(wireDeleteButton);
 		this.buttons.add(alignBusButton);
-		this.buttons.add(shiftButton);
-		this.buttons.add(controlButton);
-		this.buttons.add(altButton);
+		if (OperatingSystem.isMobile()){
+			this.buttons.add(shiftButton);
+			this.buttons.add(controlButton);
+			this.buttons.add(altButton);
+		}
 		
 		buildSideArea(gc);
 
 		HtmlText html = new HtmlText("LogicSim by OrangoMango (v1.0-webfx), <a target=\"_blank\" href=\"https://orangomango.itch.io/logicsimulator\">Help & Download</a> | <a target=\"_blank\" href=\"https://github.com/OrangoMango/LogicSimulator\">Source code & Examples</a> | <a target=\"_blank\" href=\"https://orangomango.github.io\">Website</a>");
 
-		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo, uploader.getView(), uploadedFilesInfo), html, pane);
+		Slider scaleSlider = new Slider(0.3, 1.5, this.globalScale);
+		scaleSlider.valueProperty().addListener((ob, oldV, newV) -> {
+			this.globalScale = (double)newV;
+			Rectangle2D[] rects = new Rectangle2D[TOOLBAR_COUNT];
+			makeButtonsRect(rects);
+			for (int i = 0; i < rects.length; i++){
+				this.buttons.get(i).setRect(rects[i]);
+			}
+		});
+
+		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo, uploader.getView(), uploadedFilesInfo, scaleSlider), html, pane);
 		vbox.setPadding(new Insets(10, 10, 10, 10));
 		SCENE_PANE = vbox;
 
@@ -355,14 +370,14 @@ public class MainApplication extends Application{
 		});
 
 		canvas.setOnMousePressed(e -> {
-			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
+			Point2D clickPoint = getClickPoint(e.getX()/this.globalScale, e.getY()/this.globalScale);
 			Rectangle2D hideButton = new Rectangle2D(0, this.toolbarHidden ? 0 : TOOLBAR_Y, 37.5, 25);
 			if (e.getButton() == MouseButton.PRIMARY){
-				if (!this.toolbarHidden && e.getY() < TOOLBAR_Y && (e.getX() < TOOLBAR_X || !this.sideArea.isOpen())){
+				if (!this.toolbarHidden && e.getY()/this.globalScale < TOOLBAR_Y && (e.getX()/this.globalScale < TOOLBAR_X || !this.sideArea.isOpen())){
 					for (UiButton ub : this.buttons){
-						ub.onClick(e.getX(), e.getY());
+						ub.onClick(e.getX()/this.globalScale, e.getY()/this.globalScale);
 					}
-				} else if (hideButton.contains(e.getX(), e.getY())){
+				} else if (hideButton.contains(e.getX()/this.globalScale, e.getY()/this.globalScale)){
 					this.toolbarHidden = !this.toolbarHidden;
 				} else if (POWER_RECTANGLE.contains(e.getX(), e.getY())){
 					Util.toggleCircuitPower(this.gates);
@@ -555,7 +570,7 @@ public class MainApplication extends Application{
 								}
 							}
 							if (voidClick && moveButton.isOn()){
-								startMoving(true, e.getX(), e.getY());
+								startMoving(true, e.getX()/this.globalScale, e.getY()/this.globalScale);
 							} else if (voidClick || (e.isControlDown() || controlButton.isOn())){ // No gates found
 								this.rmGate = false;
 								this.rmWire = false;
@@ -575,7 +590,7 @@ public class MainApplication extends Application{
 							}
 
 							if (moveButton.isOn() && (this.selectedGates.size() > 0 || this.selectedWirePoints.size() > 0)){
-								startMoving(false, e.getX(), e.getY());
+								startMoving(false, e.getX()/this.globalScale, e.getY()/this.globalScale);
 							}
 						}
 					}
@@ -608,12 +623,12 @@ public class MainApplication extends Application{
 				this.connBus = false;
 				this.rmW = null;
 				if (found == null && foundPoint == null){
-					startMoving(true, e.getX(), e.getY());
+					startMoving(true, e.getX()/this.globalScale, e.getY()/this.globalScale);
 				} else if (found != null && (!this.selectedGates.contains(found) || e.getClickCount() == 2)){
 					ContextMenu cm = buildContextMenu(found, pinFound);
 					cm.show(canvas, e.getScreenX(), e.getScreenY());
 				} else if (this.selectedGates.size() > 0 || this.selectedWirePoints.size() > 0){
-					startMoving(false, e.getX(), e.getY());
+					startMoving(false, e.getX()/this.globalScale, e.getY()/this.globalScale);
 				}
 
 				this.rightMouseDrag = true;
@@ -621,10 +636,10 @@ public class MainApplication extends Application{
 		});
 
 		canvas.setOnMouseMoved(e -> {
-			this.mouseMoved = new Point2D(e.getX(), e.getY());
-			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
+			this.mouseMoved = new Point2D(e.getX()/this.globalScale, e.getY()/this.globalScale);
+			Point2D clickPoint = getClickPoint(e.getX()/this.globalScale, e.getY()/this.globalScale);
 			if (this.rightMouseDrag){ // MouseButton.SECONDARY dragging
-				rightDragging(e.getX(), e.getY());
+				rightDragging(e.getX()/this.globalScale, e.getY()/this.globalScale);
 			} else {
 				Gate found = null;
 				Pin pinFound = null;
@@ -660,10 +675,10 @@ public class MainApplication extends Application{
 
 		canvas.setOnMouseDragged(e -> { // Always primary
 			if (moveButton.isOn()){
-				rightDragging(e.getX(), e.getY());
+				rightDragging(e.getX()/this.globalScale, e.getY()/this.globalScale);
 			} else {
-				this.mouseMoved = new Point2D(e.getX(), e.getY());
-				Point2D clickPoint = getClickPoint(e.getX(), e.getY());
+				this.mouseMoved = new Point2D(e.getX()/this.globalScale, e.getY()/this.globalScale);
+				Point2D clickPoint = getClickPoint(e.getX()/this.globalScale, e.getY()/this.globalScale);
 				if (this.selectedRectanglePoint != null){
 					this.selectedAreaWidth = clickPoint.getX()-this.selectedRectanglePoint.getX();
 					this.selectedAreaHeight = clickPoint.getY()-this.selectedRectanglePoint.getY();
@@ -865,7 +880,7 @@ public class MainApplication extends Application{
 		canvas.setHeight(HEIGHT);
 		TOOLBAR_X = WIDTH*0.7;
 
-		Rectangle2D[] rects = new Rectangle2D[15];
+		Rectangle2D[] rects = new Rectangle2D[TOOLBAR_COUNT];
 		makeButtonsRect(rects);
 		for (int i = 0; i < rects.length; i++){
 			this.buttons.get(i).setRect(rects[i]);
@@ -876,7 +891,7 @@ public class MainApplication extends Application{
 	}
 
 	private void makeButtonsRect(Rectangle2D[] buttonsRect){
-		final int maxRowItems = WIDTH/100;
+		final int maxRowItems = (int)(WIDTH/this.globalScale)/100;
 		for (int i = 0; i < buttonsRect.length; i++){
 			int xp = 50+(i%maxRowItems)*100;
 			int yp = 20+(i/maxRowItems)*85;
@@ -1180,6 +1195,9 @@ public class MainApplication extends Application{
 		gc.setFill(Color.web("#9595D3"));
 		gc.fillRect(0, 0, WIDTH, HEIGHT);
 
+		gc.save();
+		gc.scale(this.globalScale, this.globalScale);
+
 		// Render the grid
 		double gridSize = 50*this.cameraScale;
 		gridSize = Math.min(100, Math.max(gridSize, 15));
@@ -1188,11 +1206,11 @@ public class MainApplication extends Application{
 		gc.setLineWidth(1.5);
 		double offsetX = (this.cameraX+(this.movePoint != null ? this.deltaMove.getX() : 0)) % gridSize;
 		double offsetY = (this.cameraY+(this.movePoint != null ? this.deltaMove.getY() : 0)) % gridSize;
-		for (double i = offsetX; i < WIDTH; i += gridSize){
-			gc.strokeLine(i, 0, i, HEIGHT);
+		for (double i = offsetX; i < WIDTH/this.globalScale; i += gridSize){
+			gc.strokeLine(i, 0, i, HEIGHT/this.globalScale);
 		}
-		for (double i = offsetY; i < HEIGHT; i += gridSize){
-			gc.strokeLine(0, i, WIDTH, i);
+		for (double i = offsetY; i < HEIGHT/this.globalScale; i += gridSize){
+			gc.strokeLine(0, i, WIDTH/this.globalScale, i);
 		}
 		gc.restore();
 
@@ -1204,7 +1222,7 @@ public class MainApplication extends Application{
 		gc.scale(this.cameraScale, this.cameraScale);
 
 		Point2D topLeft = getClickPoint(0, 0);
-		Point2D bottomRight = getClickPoint(WIDTH, HEIGHT);
+		Point2D bottomRight = getClickPoint(WIDTH/this.globalScale, HEIGHT/this.globalScale);
 		Rectangle2D screen = new Rectangle2D(topLeft.getX(), topLeft.getY(), bottomRight.getX()-topLeft.getX(), bottomRight.getY()-topLeft.getY());
 
 		for (Gate g : this.gates){
@@ -1279,10 +1297,10 @@ public class MainApplication extends Application{
 		// UI
 		gc.save();
 		gc.setFill(Color.BLACK);
-		gc.fillText("ID: "+Pin.PIN_ID+"\nPower: "+Util.isPowerOn(), 60, HEIGHT-100);
+		gc.fillText("ID: "+Pin.PIN_ID+"\nPower: "+Util.isPowerOn(), 60, HEIGHT/this.globalScale-100);
 		if (!this.toolbarHidden){
 			gc.setGlobalAlpha(0.5);
-			gc.fillRect(0, 0, WIDTH, TOOLBAR_Y);
+			gc.fillRect(0, 0, WIDTH/this.globalScale, TOOLBAR_Y);
 		}
 		gc.restore();
 
@@ -1299,9 +1317,13 @@ public class MainApplication extends Application{
 		gc.drawImage(this.hideImage, 1+(this.toolbarHidden ? 52 : 0), 1, 50, 75, -25, 0, 25, 37.5);
 		gc.restore();
 
+		gc.restore(); // Restore global scale
+
 		gc.setFill(Util.isPowerOn() ? Color.LIME : Color.RED);
 		gc.fillRoundRect(POWER_RECTANGLE.getMinX(), POWER_RECTANGLE.getMinY(), POWER_RECTANGLE.getWidth(), POWER_RECTANGLE.getHeight(), 15, 15);
-		if (this.selectedId == -1) this.sideArea.render();
+		if (this.selectedId == -1){
+			this.sideArea.render();
+		}
 
 		if (this.tooltip != null) this.tooltip.render();
 
