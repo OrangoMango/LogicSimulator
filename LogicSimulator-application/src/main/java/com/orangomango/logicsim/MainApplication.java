@@ -382,10 +382,10 @@ public class MainApplication extends Application{
 										break;
 									}
 								}
-								if (found != null && found != this.connG){
+								if (found != null){
 									if (this.connG == null){
 										this.connG = found;
-									} else {
+									} else if (found != this.connG){
 										if ((e.isShiftDown() || shiftButton.isOn()) && this.pinPoints.size() > 0){
 											Point2D thisPoint = new Point2D(found.getX(), found.getY());
 											Point2D ref = this.pinPoints.get(this.pinPoints.size()-1);
@@ -397,6 +397,11 @@ public class MainApplication extends Application{
 											this.pinPoints.set(this.pinPoints.size()-1, ref);
 										}
 										this.wires.add(new Wire(gc, this.connG, found, new ArrayList<Point2D>(this.pinPoints)));
+										this.connG = null;
+										this.selectedId = -1;
+										this.pinPoints.clear();
+									} else {
+										// The user clicked on the starting pin
 										this.connG = null;
 										this.selectedId = -1;
 										this.pinPoints.clear();
@@ -515,10 +520,6 @@ public class MainApplication extends Application{
 												}
 											} else {
 												if (!moveButton.isOn()) g.click(e);
-												if (e.getClickCount() == 2){
-													ContextMenu cm = buildContextMenu(g, pin);
-													cm.show(canvas, e.getScreenX(), e.getScreenY());
-												}
 											}
 										}
 										voidClick = false;
@@ -541,14 +542,16 @@ public class MainApplication extends Application{
 									} else {
 										if ((e.isShiftDown() || shiftButton.isOn()) && g instanceof Bus){
 											this.movingBusPin = pin;
-										} else if (e.getClickCount() == 2){
-											ContextMenu cm = buildContextMenu(g, pin);
-											cm.show(canvas, e.getScreenX(), e.getScreenY());
 										} else {
 											this.selectedId = 1;
 											this.connG = pin;
 										}
 									}
+								}
+
+								if (e.getClickCount() == 2){
+									ContextMenu cm = buildContextMenu(g, pin);
+									cm.show(canvas, e.getScreenX(), e.getScreenY());
 								}
 							}
 							if (voidClick && moveButton.isOn()){
@@ -608,8 +611,6 @@ public class MainApplication extends Application{
 					startMoving(true, e.getX(), e.getY());
 				} else if (found != null && (!this.selectedGates.contains(found) || e.getClickCount() == 2)){
 					ContextMenu cm = buildContextMenu(found, pinFound);
-					if (this.activeContextMenu != null) this.activeContextMenu.hide();
-					this.activeContextMenu = cm;
 					cm.show(canvas, e.getScreenX(), e.getScreenY());
 				} else if (this.selectedGates.size() > 0 || this.selectedWirePoints.size() > 0){
 					startMoving(false, e.getX(), e.getY());
@@ -622,22 +623,8 @@ public class MainApplication extends Application{
 		canvas.setOnMouseMoved(e -> {
 			this.mouseMoved = new Point2D(e.getX(), e.getY());
 			Point2D clickPoint = getClickPoint(e.getX(), e.getY());
-			if (this.rightMouseDrag || (this.rightMouseDrag && moveButton.isOn())){ // MouseButton.SECONDARY dragging
-				if ((this.selectedGates.size() == 0 && this.selectedWirePoints.size() == 0) || this.selectionMoveStart == null){
-					if (this.movePoint != null){
-						this.deltaMove = new Point2D(e.getX()-this.movePoint.getX(), e.getY()-this.movePoint.getY());
-					}
-				} else if (this.selectionMoveStart != null){
-					this.deltaMove = new Point2D(e.getX()-this.selectionMoveStart.getX(), e.getY()-this.selectionMoveStart.getY());
-					this.selectionMoveStart = new Point2D(e.getX(), e.getY());
-					for (Gate g : this.selectedGates){
-						g.setPos(g.getRect().getMinX()+this.deltaMove.getX()/this.cameraScale, g.getRect().getMinY()+this.deltaMove.getY()/this.cameraScale);
-					}
-					for (Wire.WirePoint wp : this.selectedWirePoints){
-						wp.setX(wp.getX()+this.deltaMove.getX()/this.cameraScale);
-						wp.setY(wp.getY()+this.deltaMove.getY()/this.cameraScale);
-					}
-				}
+			if (this.rightMouseDrag){ // MouseButton.SECONDARY dragging
+				rightDragging(e.getX(), e.getY());
 			} else {
 				Gate found = null;
 				Pin pinFound = null;
@@ -672,7 +659,9 @@ public class MainApplication extends Application{
 		});
 
 		canvas.setOnMouseDragged(e -> { // Always primary
-			if (!moveButton.isOn()){
+			if (moveButton.isOn()){
+				rightDragging(e.getX(), e.getY());
+			} else {
 				this.mouseMoved = new Point2D(e.getX(), e.getY());
 				Point2D clickPoint = getClickPoint(e.getX(), e.getY());
 				if (this.selectedRectanglePoint != null){
@@ -753,6 +742,11 @@ public class MainApplication extends Application{
 			}
 		});
 
+		/*canvas.setOnZoom(e -> {
+			this.cameraScale *= e.getZoomFactor();
+			this.cameraScale = Math.max(0.3, Math.min(this.cameraScale, 2));
+		});*/
+
 		Scene scene = new Scene(vbox, WIDTH, HEIGHT+100);
 		scene.setFill(Color.CYAN);
 
@@ -790,6 +784,24 @@ public class MainApplication extends Application{
 		stage.getIcons().add(new Image(Resource.toUrl("/images/icon.png", MainApplication.class)));
 		stage.setScene(scene);
 		stage.show();
+	}
+
+	private void rightDragging(double x, double y){
+		if ((this.selectedGates.size() == 0 && this.selectedWirePoints.size() == 0) || this.selectionMoveStart == null){
+			if (this.movePoint != null){
+				this.deltaMove = new Point2D(x-this.movePoint.getX(), y-this.movePoint.getY());
+			}
+		} else if (this.selectionMoveStart != null){
+			this.deltaMove = new Point2D(x-this.selectionMoveStart.getX(), y-this.selectionMoveStart.getY());
+			this.selectionMoveStart = new Point2D(x, y);
+			for (Gate g : this.selectedGates){
+				g.setPos(g.getRect().getMinX()+this.deltaMove.getX()/this.cameraScale, g.getRect().getMinY()+this.deltaMove.getY()/this.cameraScale);
+			}
+			for (Wire.WirePoint wp : this.selectedWirePoints){
+				wp.setX(wp.getX()+this.deltaMove.getX()/this.cameraScale);
+				wp.setY(wp.getY()+this.deltaMove.getY()/this.cameraScale);
+			}
+		}
 	}
 
 	private void startMoving(boolean screen, double x, double y){
@@ -841,6 +853,8 @@ public class MainApplication extends Application{
 			}
 		}
 		cm.getItems().add(changeLabel);
+		if (this.activeContextMenu != null) this.activeContextMenu.hide();
+		this.activeContextMenu = cm; // ContextMenu will be shown soon
 		return cm;
 	}
 

@@ -88,6 +88,10 @@ public class ChipCanvas{
 			}
 		});
 
+		/*canvas.setOnZoom(e -> {
+			this.scale *= e.getZoomFactor();
+		});*/
+
 		this.loop = new Timeline(new KeyFrame(Duration.millis(1000.0/MainApplication.FPS), e -> {
 			update(gc);
 			if (this.movePoint != null){
