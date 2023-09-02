@@ -129,7 +129,7 @@ public class MainApplication extends Application{
 		uploader.getSelectedFiles().addListener((javafx.beans.InvalidationListener)obs -> {
 			List<File> files = uploader.getSelectedFiles();
 			uploadedFiles = files;
-			uploadedFilesInfo.setText(uploadedFiles.stream().map(file -> file.getName()).collect(Collectors.toList()).toString());
+			uploadedFilesInfo.setText(files.size() > 0 ? "Check your items on the right" : "No dependency files uploaded");
 			buildSideArea(gc);
 		});
 
