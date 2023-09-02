@@ -58,7 +58,7 @@ import com.orangomango.logicsim.core.*;
 public class MainApplication extends Application{
 	private static int WIDTH = (int)(Screen.getPrimary().getVisualBounds().getWidth()*0.85);
 	private static int HEIGHT = (int)(Screen.getPrimary().getVisualBounds().getHeight()*0.7);
-	private static double TOOLBAR_X = WIDTH*0.7;
+	private static double TOOLBAR_X = WIDTH*0.5;
 	private static double TOOLBAR_Y;
 	private static Rectangle2D POWER_RECTANGLE = new Rectangle2D(25, HEIGHT-190, 45, 45);
 	public static final int FPS = 40;
@@ -314,6 +314,7 @@ public class MainApplication extends Application{
 			for (int i = 0; i < (OperatingSystem.isMobile() ? 15 : 12); i++){
 				this.buttons.get(i).setRect(rects[i]);
 			}
+			buildSideArea(gc);
 		});
 
 		VBox vbox = new VBox(5, new HBox(5, picker.getView(), uploadInfo, uploader.getView(), uploadedFilesInfo, scaleSlider), html, pane);
@@ -880,7 +881,7 @@ public class MainApplication extends Application{
 		HEIGHT = height;
 		canvas.setWidth(WIDTH);
 		canvas.setHeight(HEIGHT);
-		TOOLBAR_X = WIDTH*0.7;
+		TOOLBAR_X = WIDTH*0.5;
 
 		Rectangle2D[] rects = new Rectangle2D[15];
 		makeButtonsRect(rects);
@@ -903,8 +904,8 @@ public class MainApplication extends Application{
 	}
 
 	private void buildSideArea(GraphicsContext gc){
-		this.sideArea = new SideArea(gc, new Rectangle2D(WIDTH-50, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, WIDTH*0.3, HEIGHT));
-		this.sideArea.setButtonSize(80);
+		this.sideArea = new SideArea(gc, new Rectangle2D(WIDTH-50, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, WIDTH*0.5, HEIGHT));
+		this.sideArea.setButtonSize(80*this.globalScale);
 		this.sideArea.addButton("Switch", () -> this.selectedId = 0);
 		this.sideArea.addButton("Wire", () -> this.selectedId = 1);
 		this.sideArea.addButton("Light", () -> this.selectedId = 2);
