@@ -169,6 +169,8 @@ public class MainApplication extends Application{
 					this.wires = wires;
 					buildSideArea(gc);
 				});
+			} else {
+				createAlert("No file uploaded", "Please upload a file and retry");
 			}
 		});
 		UiButton saveChipButton = new UiButton(gc, new Image(Resource.toUrl("/images/button_savechip.png", MainApplication.class)), "SAVE CHIP", buttonsRect[2], () -> {

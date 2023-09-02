@@ -10,7 +10,7 @@ import dev.webfx.platform.scheduler.Scheduler;
 import com.orangomango.logicsim.core.*;
 
 public abstract class Util{
-	public static final int GATE_DELAY = 15;
+	public static final int GATE_DELAY = 8;
 	private static boolean CIRCUIT_POWER = true;
 	public static boolean SHOW_PIN_ID = false;
 
