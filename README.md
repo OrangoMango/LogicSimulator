@@ -2,7 +2,9 @@
 This is a simple circuit simulator made in Java using the JavaFX framework.
 
 # Download
-Available for Windows, Linux and MacOS.  
+Available for Windows, Linux and MacOS and browser.
+## Web-version
+Try the web-version now at https://orangomango.itch.io/logicsimulator.
 
 [![Screenshot_20230801-202809](https://github.com/OrangoMango/LogicSimulator/assets/61402409/6ad3fe71-0436-404d-b642-3cef2cb989af)](https://orangomango.itch.io/logicsimulator)
 
@@ -28,7 +30,7 @@ Available for Windows, Linux and MacOS.
 * Export circuit to a PNG image
 
 # Keyboard usage help
-* Use `P` to toggle global power on/off
+* Use `P` to toggle global power on/off (You can also click on the green/red rectangle at the bottom)
 * Use `H` to show/hide the toolbar
 * Use `DELETE` to delete selected gates from the circuit
 * Use `Shift` + `DELETE` to delete the wires of the selected gates in the circuit
@@ -63,6 +65,13 @@ Available for Windows, Linux and MacOS.
 	* to move selected gates or selected wire points
 	* to open the gate properties menu where you can change the label, remove a pin (if you clicked on a bus pin), and so on
 	* to look inside a chip
+
+# Web version changes
+* To load a file, upload it and then click the `Load` button
+* To load chips into your project (**dependencies**), upload them by using the second upload button. Once uploaded, you find them in the sidebar on the right.
+* Use the slider to scale the UI
+* Toggle the `Move` button to move around the scene or to move the gates in your project (instead of the right-click)
+* Some buttons in the toolbar are replacements for the keys `DELETE`, `R`, `SHIFT`, `CONTROL` and `ALT`
 
 # Examples
 Individual project files are available in the `examples` directory.
