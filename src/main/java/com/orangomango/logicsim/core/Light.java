@@ -5,7 +5,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 
 public class Light extends Gate{
-	private Image image;
+	protected Image image;
 
 	public Light(GraphicsContext gc, Rectangle2D rect){
 		super(gc, "LIGHT", rect, null);
@@ -20,6 +20,6 @@ public class Light extends Gate{
 
 	@Override
 	protected void renderGate(GraphicsContext gc){
-		gc.drawImage(this.image, 1+(isOn() ? 52 : 0), 1, 50, 50, this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
+		gc.drawImage(this.image, 1+(isOn() ? 0 : 52), 1, 50, 50, this.rect.getMinX(), this.rect.getMinY(), this.rect.getWidth(), this.rect.getHeight());
 	}
 }

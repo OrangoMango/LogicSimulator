@@ -496,6 +496,9 @@ public class MainApplication extends Application{
 							case 9:
 								g = new TriStateBuffer(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 100, 50));
 								break;
+							case 10:
+								g = new LightRGB(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50));
+								break;
 						}
 						if (g != null){
 							if (loaded) this.gates.add(g);
@@ -863,6 +866,10 @@ public class MainApplication extends Application{
 				gate.setLabel(v);
 			});
 		});
+		MenuItem deleteGate = new MenuItem("Delete");
+		deleteGate.setOnAction(ev -> {
+			this.gatesToRemove.add(found);
+		});
 		if (pinFound != null){
 			final Pin pin = pinFound;
 			if (gate instanceof Bus){
@@ -871,7 +878,7 @@ public class MainApplication extends Application{
 				cm.getItems().add(removePin);
 			}
 		}
-		cm.getItems().add(changeLabel);
+		cm.getItems().addAll(changeLabel, deleteGate);
 		return cm;
 	}
 
@@ -906,8 +913,9 @@ public class MainApplication extends Application{
 		this.sideArea = new SideArea(gc, new Rectangle2D(WIDTH-50, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, WIDTH*0.3, HEIGHT));
 		this.sideArea.setButtonSize(80);
 		this.sideArea.addButton("Switch", () -> this.selectedId = 0);
-		this.sideArea.addButton("Wire", () -> this.selectedId = 1);
 		this.sideArea.addButton("Light", () -> this.selectedId = 2);
+		this.sideArea.addButton("RGB Light", () -> this.selectedId = 10);
+		this.sideArea.addButton("Wire", () -> this.selectedId = 1);
 		this.sideArea.addButton("NOT gate", () -> this.selectedId = 3);
 		this.sideArea.addButton("AND gate", () -> this.selectedId = 4);
 		this.sideArea.addButton("Chip", () -> this.selectedId = 5);
@@ -1009,7 +1017,7 @@ public class MainApplication extends Application{
 				if (name.equals("AND")){
 					gt = new AndGate(gc, rect);
 				} else if (name.equals("LIGHT")){
-					gt = new Light(gc, rect);
+					gt = pins.size() == 3 ? new LightRGB(gc, rect) : new Light(gc, rect);
 				} else if (name.equals("NOT")){
 					gt = new NotGate(gc, rect);
 				} else if (name.equals("SWITCH")){
