@@ -1,4 +1,4 @@
-# ![icon](icon.png) LogicSimulator
+# ![icon](icon.png) LogicSimulator v1.1
 This is a simple circuit simulator made in Java using the JavaFX framework.
 
 # Download
@@ -11,7 +11,7 @@ Try the web-version now at https://orangomango.itch.io/logicsimulator.
 # Features
 ## Building blocks
 * Switches (input)
-* Lights (output)
+* Lights/RGB Lights (output)
 * AND gate
 * NOT gate
 * Bus

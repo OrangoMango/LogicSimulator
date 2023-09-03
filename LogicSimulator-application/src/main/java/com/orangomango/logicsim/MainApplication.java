@@ -53,7 +53,7 @@ import com.orangomango.logicsim.core.*;
  * Using AND and NOT gates you can build every other chip.
  * 
  * @author OrangoMango [https://orangomango.github.io]
- * @version 1.0-web
+ * @version 1.1-web
  */
 public class MainApplication extends Application{
 	private static int WIDTH = (int)(Screen.getPrimary().getVisualBounds().getWidth()*0.85);
@@ -492,6 +492,9 @@ public class MainApplication extends Application{
 							case 9:
 								g = new TriStateBuffer(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 100, 50), true);
 								break;
+							case 10:
+								g = new LightRGB(gc, new Rectangle2D(clickPoint.getX(), clickPoint.getY(), 50, 50), true);
+								break;
 						}
 						if (g != null){
 							this.gates.add(g);
@@ -789,7 +792,7 @@ public class MainApplication extends Application{
 			} else {
 				vbox.setCursor(Cursor.DEFAULT);
 			}
-			stage.setTitle("LogicSim v1.0"+(this.currentFile == null ? "" : " - "+this.currentFile));
+			stage.setTitle("LogicSim v1.1"+(this.currentFile == null ? "" : " - "+this.currentFile));
 		}));
 		loop.setCycleCount(Animation.INDEFINITE);
 		loop.play();
@@ -864,6 +867,10 @@ public class MainApplication extends Application{
 				gate.setLabel(v);
 			});
 		});
+		MenuItem deleteGate = new MenuItem("Delete");
+		deleteGate.setOnAction(ev -> {
+			this.gatesToRemove.add(found);
+		});
 		if (pinFound != null){
 			final Pin pin = pinFound;
 			if (gate instanceof Bus){
@@ -872,7 +879,7 @@ public class MainApplication extends Application{
 				cm.getItems().add(removePin);
 			}
 		}
-		cm.getItems().add(changeLabel);
+		cm.getItems().addAll(changeLabel, deleteGate);
 		if (this.activeContextMenu != null) this.activeContextMenu.hide();
 		this.activeContextMenu = cm; // ContextMenu will be shown soon
 		return cm;
@@ -909,8 +916,9 @@ public class MainApplication extends Application{
 		this.sideArea = new SideArea(gc, new Rectangle2D(WIDTH-50, 250, 50, 75), new Rectangle2D(TOOLBAR_X, 0, WIDTH*0.5, HEIGHT));
 		this.sideArea.setButtonSize(80*this.globalScale);
 		this.sideArea.addButton("Switch", () -> this.selectedId = 0);
-		this.sideArea.addButton("Wire", () -> this.selectedId = 1);
 		this.sideArea.addButton("Light", () -> this.selectedId = 2);
+		this.sideArea.addButton("RGB Light", () -> this.selectedId = 10);
+		this.sideArea.addButton("Wire", () -> this.selectedId = 1);
 		this.sideArea.addButton("NOT gate", () -> this.selectedId = 3);
 		this.sideArea.addButton("AND gate", () -> this.selectedId = 4);
 		this.sideArea.addButton("Chip", () -> this.selectedId = 5);
@@ -1116,7 +1124,7 @@ public class MainApplication extends Application{
 			if (name.equals("AND")){
 				gt = new AndGate(gc, rect, false);
 			} else if (name.equals("LIGHT")){
-				gt = new Light(gc, rect, false);
+				gt = pins.size() == 3 ? new LightRGB(gc, rect, false) : new Light(gc, rect, false);
 			} else if (name.equals("NOT")){
 				gt = new NotGate(gc, rect, false);
 			} else if (name.equals("SWITCH")){
