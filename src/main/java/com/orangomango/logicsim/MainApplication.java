@@ -44,7 +44,7 @@ import com.orangomango.logicsim.core.*;
  * Using AND and NOT gates you can build every other chip.
  * 
  * @author OrangoMango [https://orangomango.github.io]
- * @version 1.0
+ * @version 1.1
  */
 public class MainApplication extends Application{
 	private static int WIDTH = 950;
@@ -792,7 +792,7 @@ public class MainApplication extends Application{
 			} else {
 				scene.setCursor(Cursor.DEFAULT);
 			}
-			stage.setTitle("LogicSim v1.0"+(this.currentFile == null ? "" : " - "+this.currentFile.getName()));
+			stage.setTitle("LogicSim v1.1"+(this.currentFile == null ? "" : " - "+this.currentFile.getName()));
 		}));
 		loop.setCycleCount(Animation.INDEFINITE);
 		loop.play();
